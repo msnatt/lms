@@ -1,0 +1,121 @@
+
+<!-- news  -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const pages = {
+            1: [
+                {
+                    title: "มหาวิทยาลัยเกษมบัณฑิต",
+                    text: "เปิดรับนักศึกษาใหม่แล้ววันนี้ !! หลักสูตรปรับฐานตรงจุดของพนักงานด้านวิศวกรรม...",
+                    img: "..//assets//images//400x200.png",
+                    date: "ประจำภาคเรียนที่ 2/2565"
+                },
+                {
+                    title: "Worlddidac Asia 2017",
+                    text: "The leading Asian event for educational resources that offers new international...",
+                    img: "..//assets//images//400x200.png",
+                    date: "2017"
+                }
+            ],
+            2: [
+                {
+                    title: "GESS Indonesia 2018",
+                    text: "GESS Indonesia 2018, Assembly Hall Jakarta Convention Center, Jl. Jend...",
+                    img: "..//assets//images//400x200.png",
+                    date: "26 - 28 September 2018"
+                },
+                {
+                    title: "Worlddidac Asia 2018",
+                    text: "งานนิทรรศการสื่อการสอนใหม่ 'เวิร์ลไดแด็ค เอเชีย' เป็นหนึ่งในซีรีส์จาก บิสโท...",
+                    img: "..//assets//images//400x200.png",
+                    date: "2018"
+                }
+            ],
+            3: [
+                {
+                    title: "Future Learning 2020",
+                    text: "A new era of learning technology to innovate classrooms worldwide...",
+                    img: "..//assets//images//400x200.png",
+                    date: "2020"
+                },
+                {
+                    title: "Education Expo 2021",
+                    text: "Connecting global education partners to explore new opportunities...",
+                    img: "..//assets//images//400x200.png",
+                    date: "2021"
+                }
+            ]
+        };
+
+        let currentPage = 1;
+        const totalPages = Object.keys(pages).length;
+
+        // Function to load content
+        function loadPageContent(pageNumber) {
+            const newsContent = document.getElementById('news-content');
+            newsContent.innerHTML = '';
+
+            pages[pageNumber].forEach(news => {
+                newsContent.innerHTML += `
+                    <div class="col-md-6 row justify-content-center">
+                        <div class="card h-100">
+                            <img src="${news.img}" class="card-img-top" alt="News Image">
+                            <div class="card-body">
+                                <h5 class="card-title">${news.title}</h5>
+                                <p class="card-text">${news.text}</p>
+                                <p class="text-muted small"><i class="bi bi-calendar-event"></i> ${news.date}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            updatePaginationState();
+        }
+
+        // Function to update Pagination State
+        function updatePaginationState() {
+            const prevButton = document.querySelector('.pagination .page-item:first-child');
+            const nextButton = document.querySelector('.pagination .page-item:last-child');
+
+            if (currentPage === 1) {
+                prevButton.classList.add('disabled');
+            } else {
+                prevButton.classList.remove('disabled');
+            }
+
+            if (currentPage === totalPages) {
+                nextButton.classList.add('disabled');
+            } else {
+                nextButton.classList.remove('disabled');
+            }
+
+            // Update active page number
+            document.querySelectorAll('.pagination .page-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`.pagination .page-item:nth-child(${currentPage + 1})`).classList.add('active');
+        }
+
+        // Add event listeners to page number buttons
+        document.querySelectorAll('.pagination .page-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const textContent = e.target.textContent;
+
+                if (textContent === 'Previous' && currentPage > 1) {
+                    currentPage--;
+                } else if (textContent === 'Next' && currentPage < totalPages) {
+                    currentPage++;
+                } else if (!isNaN(parseInt(textContent))) {
+                    currentPage = parseInt(textContent);
+                }
+
+                loadPageContent(currentPage);
+            });
+        });
+
+        // Load initial page
+        loadPageContent(currentPage);
+    });
+</script>

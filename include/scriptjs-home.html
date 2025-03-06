@@ -1,0 +1,39 @@
+    <!-- Video Player -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const videoContainer = document.getElementById('youtube-video');
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                videoContainer.innerHTML = `
+                    <iframe
+                        src="https://www.youtube.com/embed/IGtyATs2Fq0?autoplay=1&mute=1"
+                        title="YouTube video"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        style="width: 100%; height: 315px;">
+                    </iframe>
+                `;
+                observer.disconnect(); // หยุดสังเกตเมื่อโหลด iframe แล้ว
+            }
+        });
+    });
+    observer.observe(videoContainer);
+});
+
+</script>
+<script>
+    // การเลื่อนซ้าย-ขวาเมื่อคลิกปุ่ม
+    const scrollContent = document.getElementById("scrollContent");
+    const scrollPrevious = document.getElementById("scrollPrevious");
+    const scrollNext = document.getElementById("scrollNext");
+
+    scrollPrevious.addEventListener("click", () => {
+        scrollContent.scrollBy({ left: -420, behavior: "smooth" });
+    });
+
+    scrollNext.addEventListener("click", () => {
+        scrollContent.scrollBy({ left: 420, behavior: "smooth" });
+    });
+</script>
