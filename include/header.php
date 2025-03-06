@@ -54,7 +54,7 @@
                         <ul class="navbar-nav">
                             <li class="nav-item dropdown">
                                 <a class="nav-link  text" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Profile
+                                    Hi! <?php echo $_SESSION['username'] ?>
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                     <li><a class="dropdown-item" href="../pages/setting.php">Setting</a></li>
@@ -75,20 +75,26 @@
                 <!-- เมนู Navbar -->
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="../pages/home.php">Home</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link  text" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Hi! <?php echo $_SESSION['username'] ?>
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="../pages/setting.php">Setting</a></li>
+                                <li><a class="dropdown-item" href="../pages/logout.php">Logout</a></li>
+                            </ul>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="../pages/about.php">About</a>
+                            <a class="nav-link active text" href="../pages/home.php">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="../pages/product.php">Product</a>
+                            <a class="nav-link text" href="../pages/course.php">Course</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="../pages/news.php">News</a>
+                            <a class="nav-link text" href="../pages/news.php">News</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="../pages/contect.php">Contect us</a>
+                            <a class="nav-link text" href="../pages/contect.php">Contact us</a>
                         </li>
                     </ul>
                 </div>

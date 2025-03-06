@@ -1,4 +1,4 @@
-    <div class="main-inner">
+    <div class="main-inner" style="width: 85%;">
         <div id="carouselExample" class="carousel slide" data-bs-ride="carousel" data-bs-interval="3000">
 
             <!-- Indicators -->

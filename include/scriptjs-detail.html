@@ -5,6 +5,9 @@
         const urlParams = new URLSearchParams(window.location.search);
         const courseID = urlParams.get('courseid');
         console.log("Course id:", courseID);
+        const res_course = await fetch(`../config/Find_Course.php?courseid=${courseID}`); // เรียกใช้ PHP
+        const json_res_course = await res_course.json(); // รับผลลัพธ์เป็น JSON
+        let course_ = json_res_course;
 
         const response = await fetch('../config/Fetch_Course.php'); // เรียกใช้ PHP
         const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
@@ -18,6 +21,15 @@
 
         const detail_div = document.getElementById("detail_div");
 
+        const Title_div = document.createElement("div");
+        Title_div.innerHTML = `
+        <div style="padding:15px 50px 15px 50px;">
+            <h1>${course_[0].name}</h1>
+            <p>${course_[0].description}</p>
+        </div>
+        `;
+
+        detail_div.appendChild(Title_div);
         for (let i = 0; i < Units.length; i++) {
             const unit = Units[i];
             if (courseID == unit.course_id) {
@@ -26,90 +38,97 @@
                 unitDiv.style.marginBottom = "10px";
 
                 // ปุ่ม Toggle
-                const toggleBtn = document.createElement("div");
-                toggleBtn.textContent = unit.name;
-                toggleBtn.style.cursor = "pointer";
-                toggleBtn.style.marginBottom = "5px";
-                toggleBtn.style.backgroundColor = "#FFFFFF";
-                toggleBtn.style.fontSize = "2rem";
-                toggleBtn.style.transition = "background-color 0.3s ease";
+                const toggleDiv = document.createElement("div");
+                toggleDiv.textContent = unit.name;
+                toggleDiv.style.cursor = "pointer";
+                toggleDiv.style.marginBottom = "5px";
+                toggleDiv.style.backgroundColor = "#FFFFFF";
+                toggleDiv.style.border = "1px";
+                toggleDiv.style.borderColor = "#fff";
+                toggleDiv.style.fontSize = "1.5rem";
+                toggleDiv.style.transition = "background-color 0.3s ease";
+                toggleDiv.innerHTML = `${unit.name}`;
+                toggleDiv.style.margin = "20px";
+                toggleDiv.style.paddingLeft = "30px";
 
                 // กล่องเนื้อหา (ซ่อนไว้ก่อน)
-                const contentDiv = document.createElement("div");
-                contentDiv.style.display = "none";
-                contentDiv.innerHTML = `
+                const unitcontentDiv = document.createElement("div");
+                unitcontentDiv.style.display = "none";
+                unitcontentDiv.innerHTML = `
                 <div padding: 10px;">
                     ${unit.name}
                 </div>
                 `;
 
-                // เพิ่ม Event Listener สำหรับการซ่อน/แสดง
-                toggleBtn.addEventListener("click", () => {
-                    const isVisible = contentDiv.style.display === "block";
-                    contentDiv.style.display = isVisible ? "none" : "block";
-                    toggleBtn.style.backgroundColor = isVisible ? "#FFFFFF" : "#DDDDDD"; // เขียว-แดง
-                });
+                const contentDiv = document.createElement("div");
+                // กล่องเนื้อหา (ซ่อนไว้ก่อน)
+                contentDiv.style.display = "none";
+                contentDiv.style.paddingLeft = "2rem";
+                for (let j = 0; j < Contents.length; j++) {
+                    const content = Contents[j];
+                    if (unit.id == content.unit_id) {
+                        const innercontentDiv = document.createElement("div");
+                        innercontentDiv.style.padding = "10px";
+                        switch (content.type_id) {
+                            case "1": // Text
+                                innercontentDiv.innerHTML = content.content;
+                                break;
+
+                            case "2": // Image
+                                innercontentDiv.innerHTML = `<img src="${content.content}" alt="Image" style="width: 100%; max-width: 500px;">`;
+                                break;
+
+                            case "3": // Video
+                                const observer = new IntersectionObserver(entries => {
+                                    entries.forEach(entry => {
+                                        if (entry.isIntersecting) {
+                                            innercontentDiv.innerHTML = `
+                                                <iframe
+                                                    src="${content.content}?autoplay=0&mute=1"
+                                                    title="YouTube video"
+                                                    frameborder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowfullscreen
+                                                    style="width: 100%; height: 315px;">
+                                                </iframe>
+                                            `;
+                                            observer.disconnect(); // หยุดสังเกตเมื่อโหลด iframe แล้ว
+                                        }
+                                    });
+                                });
+                                observer.observe(innercontentDiv);
+                                break;
+
+                            case "4": // PDF
+                                innercontentDiv.innerHTML = `
+                                    <embed src="${content.content}" type="application/pdf" width="100%" height="500px" />
+                                    
+                                    `;
+                                break;
+
+                            default:
+                                innercontentDiv.innerHTML = `<p>Unsupported content type</p>`;
+                        }
+                        contentDiv.appendChild(innercontentDiv);
+                    }
+                };
 
                 // ใส่ปุ่มและเนื้อหาเข้าไปใน container หลัก
-                unitDiv.appendChild(toggleBtn);
+                unitDiv.appendChild(toggleDiv);
                 unitDiv.appendChild(contentDiv);
+
+                // เพิ่ม Event Listener สำหรับการซ่อน/แสดง
+                toggleDiv.addEventListener("click", () => {
+                    const isVisible = contentDiv.style.display === "block";
+                    // unitcontentDiv.style.display = isVisible ? "none" : "block";
+                    contentDiv.style.display = isVisible ? "none" : "block";
+                    toggleDiv.style.backgroundColor = isVisible ? "#FFFFFF" : "#EEEEEE"; // เขียว-แดง
+                });
 
                 // เพิ่มเข้าไปใน detail_div
                 detail_div.appendChild(unitDiv);
             }
-
         };
 
-
-
-
-
-
-
-
-
-
-        // // ฟังก์ชันแสดงสินค้า
-        // function renderProducts(page) {
-        //     const startIndex = (page - 1) * productsPerPage;
-        //     const endIndex = startIndex + productsPerPage;
-        //     const visibleCourse = Courses.slice(startIndex, endIndex);
-
-        //     const course_div = document.getElementById("course_div");
-        //     course_div.innerHTML = visibleCourse.map(course => `
-        //     <div class="col-12 col-md-6 col-lg-4 d-flex justify-content-center">
-        //         <div class="card h-100" onclick="handleCardClick('${course.id}')">
-        //             <img src="../assets/images/bg_cards/${course.image_code}.png" class="card-img-top" alt="img-${course.name}">
-        //             <div class="card-body">
-        //                 <h5 class="card-title fw-bold">${course.code} ${course.name}</h5>
-        //                 <p class="">${course.description}</p>
-        //             </div>
-        //         </div>
-        //     </div>
-        // `).join("");
-
-        //     // คำนวณจำนวนหน้าสูงสุด
-        //     const totalPages = Math.ceil(Courses.length / productsPerPage);
-        //     document.getElementById("total-pages").textContent = totalPages;
-
-        //     // อัปเดตปุ่ม Pagination
-        //     document.getElementById("current-page").textContent = currentPage;
-        //     document.getElementById("prev-page").disabled = currentPage === 1;
-        //     document.getElementById("next-page").disabled = currentPage === totalPages;
-        // }
-
-        // // Event Listeners
-        // document.getElementById("prev-page").addEventListener("click", () => changePage(-1));
-        // document.getElementById("next-page").addEventListener("click", () => changePage(1));
-        // window.addEventListener('resize', updateProductsPerPage);
-
-        // // เริ่มต้น
-        // updateProductsPerPage();
     });
-
-    function handleCardClick(course_id) {
-        window.location.href = `../pages/detail.php?courseCode=${courseCode}`;
-        // alert('You clicked on course: ' + course_id);
-    }
-
 </script>

@@ -108,7 +108,7 @@
         background: linear-gradient(120deg, #F28222, #FFA75E, #FF5733);
     }
 
-    .bg-light {
+    .bg-shadow {
         box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.2);
         /* เงาเบา */
     }
@@ -166,7 +166,17 @@
     /* การออกแบบ card */
     .card {
         flex: 0 0 auto;
-        width: 400px;
+        width: 350px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        scroll-snap-align: center;
+        background: #fff;
+    }
+    .card-course {
+        flex: 0 0 auto;
+        width: 95%;
         border: 1px solid #ddd;
         border-radius: 8px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
