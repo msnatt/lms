@@ -1,6 +1,7 @@
 <?php
 include '../components/session.php';
 checkLogin();
+$user = $_SESSION['user'] ?? 'N/A';
 ?>
 
 <!DOCTYPE html>
@@ -34,27 +35,7 @@ checkLogin();
             <br>
             <br>
             <div id="course_div" name="course_div" class="row justify-content-center g-6"></div>
-            <!-- <div class="d-flex justify-content-center"> -->
-            <!-- <img src="../assets//images//1000x500.png" height="75%" width="75%"> -->
-            <!-- </div> -->
 
-            <!-- <br> -->
-            <!-- <div style="margin: 3rem;">
-                <h4>Company Profile</h4>
-                <p>Fieldtech Automation Co., Ltd. was founded in 1996 by 2539 experienced events team for more than 20 years,is a basic and advanced technology products used in industry and management. The company also sells accessories from abroad that are not sold in the country to sell and grow your business.</p><br>
-                <p>Because our company has been manufacturing quality products, which make domestic customers satisfaction is dramatically, allowing us to target the new product to export to foreign countries. Recently, our company has added furniture products for testing laboratories and laboratories, to meet the needs of our customers, especially for specific production equipment. Over the years, Fieldtech Automation Co., Ltd. can adapt and add a variety of sales and services to meet the changing needs at any time, with technicians and engineers in mecha-tronic engineering, electronics and other electronic and every one of our employees and strive to provide quality service and customer satisfaction, as a result, we are ISO 9001-standard products: 2015.</p>
-            </div>
-            <div class="row">
-                <div class="col-12 col-md-6 col-lg-4 d-flex justify-content-center">
-                    <img src="..//assets//images//300100.png" class="d-block w-auto">
-                </div>
-                <div class="col-12 col-md-6 col-lg-4 d-flex justify-content-center">
-                    <img src="..//assets//images//300100.png" class="d-block w-auto">
-                </div>
-                <div class="col-12 col-md-6 col-lg-4 d-flex justify-content-center">
-                    <img src="..//assets//images//300100.png" class="d-block w-auto">
-                </div>
-            </div> -->
             <br>
             <br>
             <!-- Pagination -->
@@ -72,6 +53,13 @@ checkLogin();
                 </div>
             </div>
             <br>
+            <?php if ($user['is_admin'] == "1"): ?>
+                <div style="position: fixed; bottom: 10%; right: 3%;">
+                    <button class="menuquickly" onclick="window.location.href = '../pages/course_create.php'">
+                        <img src="../assets/images/add.png" width="25px" height="25px" />
+                    </button>
+                </div>
+            <?php endif; ?>
         </div>
 
     </div>

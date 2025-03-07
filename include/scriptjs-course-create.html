@@ -1,0 +1,105 @@
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+
+    var newcourse = {};
+    var select_header = document.getElementById('select_header');
+    var select_content = document.getElementById('select_content');
+    var types;
+    
+    try {
+        const response_type = await fetch('../config/Fetch_type.php');
+
+        console.log('Response object:', response_type); // เช็ค object ที่ได้กลับมา
+
+        if (!response_type || !response_type.ok) {
+            throw new Error(`Failed to fetch. HTTP Status: ${response_type ? response_type.status : 'No response'}`);
+        }
+
+        const json_res_type = await response_type.json();
+        console.log('Fetched data:', json_res_type); // ดูข้อมูล JSON ที่ได้
+
+        // ใส่ข้อมูลลง dropdown
+        const dropdown = document.getElementById('typeDropdown');
+        json_res_type.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.id;
+            option.textContent = type.name;
+            dropdown.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error('Error fetching types:', error);
+    }
+
+
+
+    types.forEach(type => {
+        const option = document.createElement('option');
+        option.value = type.id;
+        option.textContent = type.name;
+        select_content.appendChild(option);
+    });
+});
+function fetch(params) {
+
+}
+document.addEventListener('change', () => {
+    var dropdown_content = document.getElementById('select_content');
+    const selectedValue = dropdown_content.value;
+    const content_div = document.getElementById('contentofcontent');
+
+    switch (selectedValue) {
+        case "1": // Text Box
+            innerHTML = `
+                    <label for="textBox">Enter text:</label>
+                    <textarea id="textBox" rows="4" cols="50"></textarea>
+                `;
+            break;
+
+        case "2": // Image
+            innerHTML = `
+                    <label for="imageInput">Choose an image:</label>
+                    <input type="file" id="imageInput" accept="image/*">
+                    <br>
+                    <img id="previewImage" src="" alt="Image Preview" style="max-width: 100%; margin-top: 10px;">
+                `;
+            break;
+
+        case "3": // Video
+            innerHTML = `
+                    <label for="videoInput">Choose a video:</label>
+                    <input type="file" id="videoInput" accept="video/*">
+                    <br>
+                    <video id="previewVideo" controls style="max-width: 100%; margin-top: 10px;">
+                        Your browser does not support the video tag.
+                    </video>
+                `;
+            break;
+
+        case "4": // PDF
+            innerHTML = `
+                    <label for="pdfInput">Choose a PDF:</label>
+                    <input type="file" id="pdfInput" accept="application/pdf">
+                    <br>
+                    <iframe id="pdfPreview" style="width:100%; height:500px; margin-top: 10px;"></iframe>
+                `;
+            break;
+
+        default:
+            innerHTML = "<p>Please select a content type.</p>";
+    }
+
+    content_div.innerHTML = innerHTML;
+});
+
+function popup(id) {
+    var element = document.getElementById(id);
+    const isVisible = element.style.display === "block";
+    element.style.display = isVisible ? "none" : "block";
+
+}
+
+function create_header_div() {
+
+}
+</script>

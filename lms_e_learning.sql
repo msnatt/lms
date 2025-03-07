@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 06, 2025 at 05:28 AM
+-- Generation Time: Mar 07, 2025 at 11:30 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -44,8 +44,10 @@ CREATE TABLE `content` (
 INSERT INTO `content` (`id`, `unit_id`, `type_id`, `content`, `create_date`, `update_date`, `is_deleted`) VALUES
 (1, 1, 1, 'Geo Unit 1 \r\nContent of Geo Unit 1 with Text', '2025-03-06', '2025-03-06', 0),
 (2, 2, 1, 'Geo Unit 2 \r\nContent of Geo Unit 2 with Text', '2025-03-06', '2025-03-06', 0),
-(3, 3, 1, 'facebook Unit 1 \r\nContent of facebook Unit 1 with Text', '2025-03-06', '2025-03-06', 0),
-(4, 4, 2, 'facebook Unit 2 \r\nContent of facebook Unit 2 with 3D model', '2025-03-06', '2025-03-06', 0);
+(3, 3, 1, '<h3>facebook Unit 1</h3>\r\nContent of facebook Unit 1 with Text', '2025-03-06', '2025-03-06', 0),
+(4, 4, 2, '../fileupload/admin/mushroom_forest.png', '2025-03-06', '2025-03-06', 0),
+(5, 4, 3, 'https://www.youtube.com/embed/EFmxPMdBqmU', '2025-03-06', '2025-03-06', 0),
+(6, 3, 4, '../fileupload/admin/Elearning_TOR.pdf', '2025-03-06', '2025-03-06', 0);
 
 -- --------------------------------------------------------
 
@@ -95,10 +97,25 @@ CREATE TABLE `course_student` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `type`
+-- Table structure for table `file`
 --
 
-CREATE TABLE `type` (
+CREATE TABLE `file` (
+  `id` int(11) NOT NULL,
+  `content_id` int(11) NOT NULL,
+  `filename` varchar(50) NOT NULL,
+  `filepath` text NOT NULL,
+  `create_date` date NOT NULL DEFAULT current_timestamp(),
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `types`
+--
+
+CREATE TABLE `types` (
   `id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
   `create_date` date NOT NULL DEFAULT current_timestamp(),
@@ -107,13 +124,14 @@ CREATE TABLE `type` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `type`
+-- Dumping data for table `types`
 --
 
-INSERT INTO `type` (`id`, `name`, `create_date`, `update_date`, `is_deleted`) VALUES
+INSERT INTO `types` (`id`, `name`, `create_date`, `update_date`, `is_deleted`) VALUES
 (1, 'Text Box', '2025-03-06', '2025-03-06', 0),
-(2, '3D model', '2025-03-06', '2025-03-06', 0),
-(3, 'Document', '2025-03-06', '2025-03-06', 0);
+(2, 'Image', '2025-03-06', '2025-03-06', 0),
+(3, 'Video', '2025-03-06', '2025-03-06', 0),
+(4, 'PDF', '2025-03-06', '2025-03-06', 0);
 
 -- --------------------------------------------------------
 
@@ -127,7 +145,6 @@ CREATE TABLE `unit` (
   `name` varchar(50) NOT NULL,
   `create_date` date NOT NULL DEFAULT current_timestamp(),
   `update_date` date NOT NULL DEFAULT current_timestamp(),
-  `publish_date` date NOT NULL DEFAULT current_timestamp(),
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -135,11 +152,11 @@ CREATE TABLE `unit` (
 -- Dumping data for table `unit`
 --
 
-INSERT INTO `unit` (`id`, `course_id`, `name`, `create_date`, `update_date`, `publish_date`, `is_deleted`) VALUES
-(1, 1, 'Geolocator Unit 1', '2025-03-06', '2025-03-06', '2025-03-06', 0),
-(2, 1, 'Geolocator Unit 2', '2025-03-06', '2025-03-06', '2025-03-06', 0),
-(3, 2, 'Facebook Course Unit 1', '2025-03-06', '2025-03-06', '2025-03-06', 0),
-(4, 2, 'Facebook Course Unit 2', '2025-03-06', '2025-03-06', '2025-03-06', 0);
+INSERT INTO `unit` (`id`, `course_id`, `name`, `create_date`, `update_date`, `is_deleted`) VALUES
+(1, 1, 'Geolocator Unit 1', '2025-03-06', '2025-03-06', 0),
+(2, 1, 'Geolocator Unit 2', '2025-03-06', '2025-03-06', 0),
+(3, 2, 'Facebook Course Unit 1', '2025-03-06', '2025-03-06', 0),
+(4, 2, 'Facebook Course Unit 2', '2025-03-06', '2025-03-06', 0);
 
 -- --------------------------------------------------------
 
@@ -198,9 +215,16 @@ ALTER TABLE `course_student`
   ADD KEY `user_id_course_student__id_user` (`user_id`);
 
 --
--- Indexes for table `type`
+-- Indexes for table `file`
 --
-ALTER TABLE `type`
+ALTER TABLE `file`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `content_id_file__id_content` (`content_id`);
+
+--
+-- Indexes for table `types`
+--
+ALTER TABLE `types`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -224,7 +248,7 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `content`
 --
 ALTER TABLE `content`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `course`
@@ -239,10 +263,16 @@ ALTER TABLE `course_student`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `type`
+-- AUTO_INCREMENT for table `file`
 --
-ALTER TABLE `type`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+ALTER TABLE `file`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `types`
+--
+ALTER TABLE `types`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `unit`
@@ -264,7 +294,7 @@ ALTER TABLE `user`
 -- Constraints for table `content`
 --
 ALTER TABLE `content`
-  ADD CONSTRAINT `type_id_content__id_type` FOREIGN KEY (`type_id`) REFERENCES `type` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `type_id_content__id_type` FOREIGN KEY (`type_id`) REFERENCES `types` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `unit_id_content__id_unit` FOREIGN KEY (`unit_id`) REFERENCES `unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
@@ -274,6 +304,12 @@ ALTER TABLE `course_student`
   ADD CONSTRAINT `course_id_course_student__id_course` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `unit_id_course_student__id_unit` FOREIGN KEY (`unit_id`) REFERENCES `unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `user_id_course_student__id_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `file`
+--
+ALTER TABLE `file`
+  ADD CONSTRAINT `content_id_file__id_content` FOREIGN KEY (`content_id`) REFERENCES `content` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `unit`
