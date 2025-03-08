@@ -14,7 +14,7 @@ if ($conn->connect_error) {
 }
 
 // ดึงข้อมูลจากตาราง categories
-$sql = "SELECT * FROM `types`";
+$sql = "SELECT * FROM typefile";
 $result = $conn->query($sql);
 
 $options = [];
