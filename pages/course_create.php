@@ -22,8 +22,16 @@ $user = $_SESSION['user'] ?? 'N/A';
             <div class="d-flex"> <!-- ใช้ gap แทน margin -->
                 <div class="d-flex flex-column col-lg-3 col-12 p-4 rounded" style="background-color: #eee;">
                     <form id="form-course">
-                        <label class="form-label">Name</label>
-                        <input type="text" id="name_course" name="name_course" class="form-control">
+                        <div class="d-flex">
+                            <div>
+                                <label class="form-label">Name</label>
+                                <input type="text" id="name_course" name="name_course" class="form-control">
+                            </div>
+                            <div>
+                                <label class="form-label">Code</label>
+                                <input type="text" id="code_course" name="code_course" class="form-control" oninput="validateNumberInput(event)">
+                            </div>
+                        </div>
                         <label class="form-label">Description</label>
                         <textarea id="textBoxDescription" name="textBoxDescription" rows="4" cols="50" class="form-control"></textarea>
                         <label class="form-label">Objective</label>

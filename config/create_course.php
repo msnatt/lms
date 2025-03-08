@@ -19,7 +19,8 @@ $username = $_SESSION['username'];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // รับข้อมูล JSON จาก FormData
-    $namecourse = $_POST['name_course'];
+    $name = $_POST['name_course'];
+    $code = $_POST['code_course'];
     $description = $_POST['textBoxDescription'];
     $objective = $_POST['textBoxObjective'];
     $data = json_decode($_POST['data'], true);
