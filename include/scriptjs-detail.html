@@ -19,37 +19,56 @@
         const json_res_content = await response_content.json(); // รับผลลัพธ์เป็น JSON
         let Contents = json_res_content;
 
+
         const detail_div = document.getElementById("detail_div");
 
+
         const Title_div = document.createElement("div");
+        Title_div.className = 'd-flex';
         Title_div.innerHTML = `
-        <div style="padding:15px 50px 15px 50px;">
-            <h1>${course_[0].name}</h1>
-            <p>${course_[0].description}</p>
-        </div>
+        <button onclick="window.history.back();" class="btn"><i class="bi bi-arrow-left fs-3"></i></button>
         `;
 
+        const Title = document.createElement("div");
+        Title.id = "title";
+        Title.style.padding = "20px 10px 0px 10px";
+        Title.innerHTML = `
+            <h1>${course_[0].name}</h1>
+            <p>${course_[0].description}</p>
+        `;
+        Title_div.appendChild(Title);
         detail_div.appendChild(Title_div);
         for (let i = 0; i < Units.length; i++) {
             const unit = Units[i];
             if (courseID == unit.course_id) {
                 // สร้าง container หลัก
                 const unitDiv = document.createElement("div");
-                unitDiv.style.marginBottom = "10px";
+                unitDiv.style.border = '1px solid #ccc';
+                unitDiv.style.margin = "20px";
+                unitDiv.style.borderRadius = "1rem";
+                unitDiv.style.backgroundColor = "#ffffff";
 
                 // ปุ่ม Toggle
                 const toggleDiv = document.createElement("div");
-                toggleDiv.textContent = unit.name;
+                toggleDiv.style.fontWeight = '600';
                 toggleDiv.style.cursor = "pointer";
-                toggleDiv.style.marginBottom = "5px";
-                toggleDiv.style.backgroundColor = "#FFFFFF";
                 toggleDiv.style.border = "1px";
                 toggleDiv.style.borderColor = "#fff";
                 toggleDiv.style.fontSize = "1.5rem";
                 toggleDiv.style.transition = "background-color 0.3s ease";
-                toggleDiv.innerHTML = `${unit.name}`;
-                toggleDiv.style.margin = "20px";
+                // toggleDiv.innerHTML = `${unit.name}`;
                 toggleDiv.style.paddingLeft = "30px";
+                const toggleTitleDiv = document.createElement("div");
+                toggleTitleDiv.textContent = unit.name;
+
+                const toggleDescDiv = document.createElement("div");
+                toggleDescDiv.style.fontSize = '1rem';
+                toggleDescDiv.style.fontWeight = '400';
+                toggleDescDiv.style.paddingLeft = '0.5rem';
+                toggleDescDiv.textContent = "Description of " + unit.name;
+
+                toggleDiv.appendChild(toggleTitleDiv);
+                toggleDiv.appendChild(toggleDescDiv);
 
                 // กล่องเนื้อหา (ซ่อนไว้ก่อน)
                 const unitcontentDiv = document.createElement("div");
@@ -89,7 +108,7 @@
                                                     frameborder="0"
                                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                     allowfullscreen
-                                                    style="width: 100%; height: 315px;">
+                                                    style="width: 100%; height: 100vh;">
                                                 </iframe>
                                             `;
                                             observer.disconnect(); // หยุดสังเกตเมื่อโหลด iframe แล้ว
@@ -102,6 +121,11 @@
                             case "4": // PDF
                                 innercontentDiv.innerHTML = `
                                     <embed src="${content.content}" type="application/pdf" width="100%" height="500px" />
+                                    
+                                    `;
+                                break;
+                            case "5": // PDF
+                                innercontentDiv.innerHTML = `
                                     
                                     `;
                                 break;
@@ -122,7 +146,7 @@
                     const isVisible = contentDiv.style.display === "block";
                     // unitcontentDiv.style.display = isVisible ? "none" : "block";
                     contentDiv.style.display = isVisible ? "none" : "block";
-                    toggleDiv.style.backgroundColor = isVisible ? "#FFFFFF" : "#EEEEEE"; // เขียว-แดง
+                    unitDiv.style.backgroundColor = isVisible ? "#eeeeee" : "#ffffff"; // เขียว-แดง
                 });
 
                 // เพิ่มเข้าไปใน detail_div

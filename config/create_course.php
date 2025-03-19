@@ -5,6 +5,9 @@ session_start();
 include "../config/no-crash.php";
 include "../config/connect.php";
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // ตรวจสอบการเชื่อมต่อ
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
@@ -16,41 +19,69 @@ if (!isset($_SESSION['username'])) {
 }
 
 $username = $_SESSION['username'];
+$user = $_SESSION['user'] ?? 'N/A';
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // รับข้อมูล JSON จาก FormData
-    $name = $_POST['name_course'];
-    $code = $_POST['code_course'];
-    $description = $_POST['textBoxDescription'];
-    $objective = $_POST['textBoxObjective'];
-    $data = json_decode($_POST['data'], true);
+    // เปิด Transaction
+    $conn->begin_transaction();
 
+    try {
+        // รับค่าจากฟอร์ม
+        $name = $_POST['name_course'];
+        $code = $_POST['code_course'];
+        $description = $_POST['textBoxDescription'];
+        $objective = $_POST['textBoxObjective'];
+        $units = json_decode($_POST['data'], true);
 
-    // // ตรวจสอบค่าที่ต้องใช้ในการสร้าง course
-    // if (!$name || !$description) {
-    //     echo "Missing required fields.";
-    //     exit();
-    // }
+        // บันทึกข้อมูลลงในตาราง course
+        $sql_course = "INSERT INTO course (code, image_code, name, description, objective, create_by) VALUES (?, 1, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql_course); 
+        if (!$stmt) {
+            die("Error preparing course statement: " . $conn->error);
+        }
+        $stmt->bind_param("sssss", $code, $name, $description, $objective, $user['id']);
+        if (!$stmt->execute()) {
+            die("Error executing statement: " . $stmt->error);
+        }
+        // $stmt->execute();
 
-    // // เตรียมคำสั่ง SQL
-    // $sql = "INSERT INTO courses (name, description, content, username) VALUES (?, ?, ?, ?)";
+        // ดึงค่า id ที่เพิ่งถูก insert
+        $course_id = $conn->insert_id;
+        echo "Course ID: " . $course_id . "<br>";
 
-    // $stmt = $conn->prepare($sql);
-    // if ($stmt) {
-    //     $stmt->bind_param("ssss", $name, $description, $content, $username);
+        $unit_id = 0;
 
-    //     if ($stmt->execute()) {
-    //         echo "Course created successfully!";
-    //     } else {
-    //         echo "Error: " . $stmt->error;
-    //     }
+        foreach ($units as $unit) {
+            if ($unit['type'] == 'header') {
+                // บันทึกข้อมูลลงในตาราง unit
+                $sql_unit = "INSERT INTO unit (course_id, name) VALUES (?, ?)";
+                $stmt = $conn->prepare($sql_unit);
 
-    //     $stmt->close();
-    // } else {
-    //     echo "Error preparing statement: " . $conn->error;
-    // }
+                $stmt->bind_param("is", $course_id, $unit['content']);
+                $stmt->execute();
+                $unit_id = $conn->insert_id;
+                print("Unit id : " . $unit_id);
+            } else if ($unit['type'] == 'content') {
+                // บันทึกข้อมูลลงในตาราง content
+                if ($unit_id != 0) {
+                    $sql_content = "INSERT INTO content (unit_id, type_id, content) VALUES (?, ?, ?)";
+                    $stmt = $conn->prepare($sql_content);
+
+                    $stmt->bind_param("iss", $unit_id, $unit['selecttype'], $unit['content']);
+                    $stmt->execute();
+                }
+            }
+        }
+
+        // ถ้าทุกอย่างสำเร็จ ให้ commit
+        $conn->commit();
+        echo "บันทึกข้อมูลเรียบร้อย";
+    } catch (Exception $e) {
+        // หากเกิดข้อผิดพลาด ยกเลิกการบันทึกทั้งหมด
+        $conn->rollback();
+        echo "เกิดข้อผิดพลาด: " . $e->getMessage();
+    }
 }
 
 $conn->close();
 exit();
-?>

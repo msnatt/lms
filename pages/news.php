@@ -7,7 +7,6 @@ checkLogin();
 <!DOCTYPE html>
 <html lang="en">
 
-<?php session_start(); ?>
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
 

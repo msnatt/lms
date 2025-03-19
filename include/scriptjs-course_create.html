@@ -2,11 +2,11 @@
 <script>
     var data = [];
     const div_degree_course = document.getElementById('degree_course');
-    
+
     function validateNumberInput(event) {
-    // กรองเฉพาะตัวเลข
-    event.target.value = event.target.value.replace(/[^0-9]/g, '');
-}
+        // กรองเฉพาะตัวเลข
+        event.target.value = event.target.value.replace(/[^0-9]/g, '');
+    }
 
     // ++++++++++++++++++++++++ Header and content +++++++++++++++++++++++++++
 
@@ -165,7 +165,7 @@
 
 
         if (selectedValue === '1') { // Text
-            data.push({ type: 'content', content: inputContent.value });
+            data.push({ type: 'content', selecttype: selectedValue, content: inputContent.value });
             header_div.textContent = inputContent.value;
         } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
             file = inputContent.files[0];
@@ -181,7 +181,7 @@
 
                 const result = await response.json();
                 if (result.success) {
-                    data.push({ type: 'content', content: result.filePath }); // ได้ path กลับมา
+                    data.push({ type: 'content', selecttype: selectedValue, content: result.filePath }); // ได้ path กลับมา
                 } else {
                     console.error('Upload failed:', result.message);
                 }
@@ -216,5 +216,11 @@
         } catch (error) {
             console.error('Error Create course:', error);
         }
+        RedirectToPage('course');
     }
+
+    function RedirectToPage(page) {
+        window.location.href = '../pages/' + page +'.php';
+    }
+
 </script>
