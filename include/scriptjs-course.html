@@ -42,7 +42,7 @@
 
             const course_div = document.getElementById("course_div");
             course_div.innerHTML = visibleCourse.map(course => `
-            <div class="col-12 col-md-6 col-lg-4 d-flex justify-content-center" style="padding:1.5rem 0rem ;">
+            <div class="col-12 col-md-6 col-xxl-3 d-flex justify-content-center" style="padding:1.5rem 0rem ;">
                 <div class="card h-100" onclick="handleCardClick('${course.id}')">
                     <img src="../assets/images/bg_cards/${course.image_code}.png" class="card-img-top" alt="img-${course.name}">
                     <div class="card-body">
@@ -73,7 +73,7 @@
     });
 
     function handleCardClick(course_id) {
-        window.location.href = `../components/set_course.php?courseid=${course_id}`;
+        window.location.href = `../components/Set_Course.php?courseid=${course_id}`;
         // alert('You clicked on course: ' + course_id);
     }
 

@@ -1,0 +1,86 @@
+<!-- page product -->
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const response = await fetch("../config/Fetch_MyCourse.php?user_id=<?php echo $_SESSION['user']['id']; ?>"); // เรียกใช้ PHP
+        const json_res = await response.json();
+        let mycourse = json_res;
+
+        console.log(mycourse);
+
+        if (mycourse.length === 0) {
+            alert("คุณยังไม่ได้ลงทะเบียนเรียน");
+        } else {
+
+            let productsPerPage = 6;
+            let currentPage = 1;
+
+            // ฟังก์ชันตรวจสอบขนาดหน้าจอ
+            function updateProductsPerPage() {
+                if (window.innerWidth < 768) {
+                    productsPerPage = 3; // หน้าจอเล็ก
+                } else {
+                    productsPerPage = 6; // หน้าจอใหญ่
+                }
+                currentPage = 1; // รีเซ็ตไปหน้าแรก
+                renderProducts(currentPage);
+            }
+
+            // ฟังก์ชันเปลี่ยนหน้า
+            function changePage(offset) {
+                currentPage += offset;
+                renderProducts(currentPage);
+            }
+
+
+            function randomImage() {
+                var random = Math.floor((Math.random() * 6) + 1);
+                var pathofimage = `../assets/images/bg_cards/${random}.png`;
+                return pathofimage
+            }
+
+            // ฟังก์ชันแสดงสินค้า
+            function renderProducts(page) {
+                const startIndex = (page - 1) * productsPerPage;
+                const endIndex = startIndex + productsPerPage;
+                const visibleCourse = mycourse['courses'].slice(startIndex, endIndex);
+
+                const course_div = document.getElementById("course_div");
+                course_div.innerHTML = visibleCourse.map(course => `
+                    <div class="col-12 col-md-6 col-lg-3 d-flex justify-content-center" style="padding:1.5rem 0rem ;">
+                        <div class="card h-100" onclick="handleCardClick('${course.course_id}')">
+                            <img src="../assets/images/bg_cards/${course.image_code}.png" class="card-img-top" alt="img-${course.name}">
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold">${course.course_code} ${course.course_name}</h5>
+                                <p class="">${course.description}</p>
+                            </div>
+                        </div>
+                    </div>
+                `).join("");
+
+                // คำนวณจำนวนหน้าสูงสุด
+                const totalPages = Math.ceil(mycourse['courses'].length / productsPerPage);
+                document.getElementById("total-pages").textContent = totalPages;
+
+                // อัปเดตปุ่ม Pagination
+                document.getElementById("current-page").textContent = currentPage;
+                document.getElementById("prev-page").disabled = currentPage === 1;
+                document.getElementById("next-page").disabled = currentPage === totalPages;
+            }
+
+            // Event Listeners
+            document.getElementById("prev-page").addEventListener("click", () => changePage(-1));
+            document.getElementById("next-page").addEventListener("click", () => changePage(1));
+            window.addEventListener('resize', updateProductsPerPage);
+
+            // เริ่มต้น
+            updateProductsPerPage();
+        }
+    });
+
+    function handleCardClick(course_id) {
+        window.location.href = `../components/Set_Course.php?courseid=${course_id}`;
+        // alert('You clicked on course: ' + course_id);
+    }
+
+
+</script>

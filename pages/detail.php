@@ -1,8 +1,10 @@
 <?php
 include '../components/session.php';
+checkLogin();
 $courseid = $_GET['courseid'] ?? 'N/A';
 $user = $_SESSION['user'] ?? 'N/A';
 $course = $_SESSION['course'] ?? 'N/A';
+$owner = $_SESSION['owner'] ?? 'N/A';
 
 ?>
 
@@ -19,9 +21,9 @@ $course = $_SESSION['course'] ?? 'N/A';
     <div class="main-inner">
         <div class="main-container bg-white bg-shadow" style="min-height: 70vh;" id="detail_div" name="detail_div"></div>
 
-        <?php if ($user['is_admin'] == "1" && $course['create_by'] == "1"): ?>
+        <?php if ($user['is_admin'] == "1" && $course['create_by'] == $user['id']): ?>
                 <div style="position: fixed; bottom: 10%; right: 3%;">
-                    <button class="menuquickly">
+                    <button class="menuquickly" onclick="window.location.href = '../pages/edit_course.php?courseid=<?php echo $courseid; ?>'">
                         <img src="../assets/images/edit.png" width="25px" height="25px" />
                     </button>
                 </div>

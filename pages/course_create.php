@@ -14,11 +14,10 @@ $user = $_SESSION['user'] ?? 'N/A';
 <body class="bg-custom">
     <?php include "../include/header.php"; ?>
     <div class="main-inner">
-        <div class="main-container">
-            <h3 class="p-4">New Course</h3>
-        </div>
 
-        <div class="bg-light main-container p-4" style="min-height: 60vh;">
+        <div class="bg-light main-container p-4 mt-2" style="min-height: 60vh;">
+            <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>
+            <span id="title_edit" style="font-size: 2rem; font-weight: 600;">New Course</span>
             <div class="d-flex"> <!-- ใช้ gap แทน margin -->
                 <div class="d-flex flex-column col-lg-3 col-12 p-4 rounded" style="background-color: #eee;">
                     <form id="form-course">

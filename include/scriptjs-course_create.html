@@ -168,25 +168,8 @@
             data.push({ type: 'content', selecttype: selectedValue, content: inputContent.value });
             header_div.textContent = inputContent.value;
         } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
-            file = inputContent.files[0];
-            if (file) {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('type', selectedValue);
-
-                const response = await fetch('../config/upload.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-                if (result.success) {
-                    data.push({ type: 'content', selecttype: selectedValue, content: result.filePath }); // ได้ path กลับมา
-                } else {
-                    console.error('Upload failed:', result.message);
-                }
-            }
-            header_div.textContent = file.name;
+            var filename = await upload_file_temp(inputContent, selectedValue);
+            header_div.textContent = filename;
         }
 
         console.log('Updated Data:', data);
@@ -220,7 +203,29 @@
     }
 
     function RedirectToPage(page) {
-        window.location.href = '../pages/' + page +'.php';
+        window.location.href = '../pages/' + page + '.php';
+    }
+
+    async function upload_file_temp(inputs, selectedValue) {
+        file = inputs.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('type', selectedValue);
+
+            const response = await fetch('../config/upload_temp.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                data.push({ type: 'content', selecttype: selectedValue, content: result.filePath }); // ได้ path กลับมา
+            } else {
+                console.error('Upload failed:', result.message);
+            }
+        }
+        return file.name;
     }
 
 </script>

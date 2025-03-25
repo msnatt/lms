@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         // บันทึกข้อมูลลงในตาราง course
         $sql_course = "INSERT INTO course (code, image_code, name, description, objective, create_by) VALUES (?, 1, ?, ?, ?, ?)";
-        $stmt = $conn->prepare($sql_course); 
+        $stmt = $conn->prepare($sql_course);
         if (!$stmt) {
             die("Error preparing course statement: " . $conn->error);
         }
@@ -50,6 +50,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         echo "Course ID: " . $course_id . "<br>";
 
         $unit_id = 0;
+        $tempFolder = "../temp/$username/";
+        $uploadFolder = "../uploads/$username/";
 
         foreach ($units as $unit) {
             if ($unit['type'] == 'header') {
@@ -62,6 +64,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $unit_id = $conn->insert_id;
                 print("Unit id : " . $unit_id);
             } else if ($unit['type'] == 'content') {
+                // เช็คว่าเป็นประเภท "content" และ selecttype เป็น 2, 3, หรือ 4
+                if (in_array($unit['selecttype'], [2, 3, 4])) {
+                    $oldPath = $unit['content']; // ไฟล์ต้นทาง
+                    $filename = basename($oldPath); // ดึงเฉพาะชื่อไฟล์
+                    $newPath = $uploadFolder . $filename; // กำหนดปลายทางใหม่
+
+                    // ตรวจสอบว่าไฟล์อยู่ใน temp folder และย้ายไฟล์
+                    if (file_exists($tempFolder . $filename)) {
+                        if (rename($tempFolder . $filename, $newPath)) {
+                            $unit['content'] = $newPath; // อัปเดตพาธใหม่ใน array
+                        } else {
+                            echo "เกิดข้อผิดพลาดในการย้ายไฟล์: $filename <br>";
+                        }
+                    }
+                }
                 // บันทึกข้อมูลลงในตาราง content
                 if ($unit_id != 0) {
                     $sql_content = "INSERT INTO content (unit_id, type_id, content) VALUES (?, ?, ?)";

@@ -1,0 +1,484 @@
+<!-- page product -->
+<script>
+    var data = [];
+    const div_degree_course = document.getElementById('degree_course');
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        // fetch
+        const response_details = await fetch("../config/Fetch_DetailCourse.php?course_id=<?php echo $courseid; ?>"); // เรียกใช้ PHP
+        const json_res_details = await response_details.json(); // รับผลลัพธ์เป็น JSON
+        let detail_course = json_res_details;
+        console.log(detail_course['course']);
+
+        const course_name = document.getElementById('name_course');
+        const title_course = document.getElementById('title_edit');
+        const course_code = document.getElementById('code_course');
+        const course_Description = document.getElementById('textBoxDescription');
+        const course_Objective = document.getElementById('textBoxObjective');
+
+        course_name.value = detail_course['course']['course_name'];
+        title_course.innerHTML = "Edit " + detail_course['course']['course_name'];
+        course_code.value = detail_course['course']['course_code'];
+        course_Objective.value = detail_course['course']['objective'];
+        course_Description.value = detail_course['course']['description'];
+
+        const div_degree_course = document.getElementById('degree_course');
+
+
+        detail_course['course']['units'].forEach(unit => {
+            const unit_ = document.createElement('div');
+            unit_.className = 'p-2 rounded bg-shadow-10 d-flex justify-content-between';
+            unit_.style.width = '100%';
+            unit_.style.fontSize = '1.25rem';
+            unit_.style.border = '1px solid #eee';
+            unit_.innerHTML = `<div id="header_${unit['unit_id']}">${unit['unit_name']}</div>`;
+            data.push({ id: unit['unit_id'], type: 'header', content: unit['unit_name'] });
+
+            // ปุ่มแก้ไข Unit
+            const editUnitBtn = document.createElement('button');
+            editUnitBtn.id = "edit_header_" + unit['unit_id'];
+            editUnitBtn.type = 'button';
+            editUnitBtn.textContent = 'แก้ไข';
+            editUnitBtn.className = 'btn btn-sm';
+            editUnitBtn.style.marginLeft = '10px';
+            editUnitBtn.onclick = () => popup_update_header(unit['unit_id']);
+
+            unit_.appendChild(editUnitBtn);
+            div_degree_course.appendChild(unit_);
+            unit['contents'].forEach(content => {
+
+                if (content['unit_id'] == unit['unit_id']) {
+                    const content_ = document.createElement('div');
+                    content_.className = 'rounded p-2 d-flex justify-content-between';
+                    content_.style.width = '100%';
+                    switch (content['type_id']) {
+                        case 1:
+                            content_.innerHTML = `<div id="content_${content['content_id']}">${content['content']}</div>`;
+                            break;
+                        case 2:
+                            content_.innerHTML = `<img id="content_${content['content_id']}" src="${content['content']}" alt="Image" style="width: 100%; max-width: 200px">`;
+                            break;
+                        case 3:
+                            content_.innerHTML = `
+                            <iframe
+                                id="content_${content['content_id']}"
+                                src="${content['content']}?autoplay=0&mute=1"
+                                title="YouTube video"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen
+                                style="width: 100%; max-width:500px; height: 50vw; max-height:300px;">
+                            </iframe>
+                        `;
+                            break;
+                        case 4:
+                            content_.innerHTML = `
+                            <embed id="content_${content['content_id']}" src="${content['content']}" type="application/pdf" width="100%" height="50%" />
+                            `;
+                            break;
+
+                        default:
+                            content_.innerHTML = "ไม่พบข้อมูลที่ตรงกับชนิดข้อมูล โปรดติดต่อแอดมิน.";
+                            break;
+                    }
+                    data.push({ id: content['content_id'], type: 'content', selecttype: content['type_id'], content: content['content'] });
+
+                    // ปุ่มแก้ไข Content
+                    const editContentBtn = document.createElement('button');
+                    editContentBtn.textContent = 'แก้ไข';
+                    editContentBtn.id = "edit_content_" + content['content_id'];
+                    editContentBtn.type = 'button';
+                    editContentBtn.className = 'btn btn-sm';
+                    editContentBtn.style.marginLeft = '10px';
+                    editContentBtn.onclick = () => popup_update_content(content['content_id']);
+
+                    content_.appendChild(editContentBtn);
+                    div_degree_course.appendChild(content_);
+                }
+
+            });
+
+        });
+
+
+    });
+
+    function validateNumberInput(event) {
+        // กรองเฉพาะตัวเลข
+        event.target.value = event.target.value.replace(/[^0-9]/g, '');
+    }
+
+    // ++++++++++++++++++++++++ Header and content +++++++++++++++++++++++++++
+
+    function create_popup_header() {
+        // ลบ modal_div เดิมถ้ามี
+        const oldModal = document.getElementById('modal_div');
+        if (oldModal) {
+            oldModal.remove();
+        }
+        const Modal = document.createElement('div');
+        Modal.id = 'modal_div';
+        Modal.innerHTML = `
+            <div class="modal " id="headerModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" style="max-width: 50vw;">
+                    <div class="modal-content" style="min-height: 30vh;">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">New Header</h5>
+                            <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <label>New header name</label>
+                            <input type="text" class="form-control" id="new_header">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" onclick="create_header_div()" data-bs-dismiss="modal">Create</button>
+                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(Modal);
+        const dynamicModal = new bootstrap.Modal(document.getElementById('headerModal'));
+        dynamicModal.show();
+    }
+
+    function create_popup_content() {
+        // ลบ modal_div เดิมถ้ามี
+        const oldModal = document.getElementById('modal_div');
+        if (oldModal) {
+            oldModal.remove();
+        }
+        const Modal = document.createElement('div');
+        Modal.id = 'modal_div';
+        Modal.innerHTML = `
+            <div class="modal " id="contentModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" style="max-width: 50vw;">
+                    <div class="modal-content" style="min-height: 70vh;">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">New Header</h5>
+                            <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <select id="select_content" class="form-select">
+                                <option value="0">please select type</option>
+                            </select>
+                            <div id="contentofcontent">
+                                <!-- content in js -->
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" onclick="create_content_div()" data-bs-dismiss="modal">Create</button>
+                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(Modal);
+        const dynamicModal = new bootstrap.Modal(document.getElementById('contentModal'));
+        dynamicModal.show();
+        fetch_typefile();
+        changedropdown();
+    }
+
+    async function fetch_typefile() {
+        const response_typefile = await fetch('../config/Fetch_typefile.php'); // เรียกใช้ PHP
+        const json_res_typefile = await response_typefile.json(); // รับผลลัพธ์เป็น JSON
+        let types = json_res_typefile;
+
+        const dropdown = document.getElementById('select_content');
+        types.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.id;
+            option.textContent = type.name;
+            dropdown.appendChild(option);
+        });
+    }
+
+    function changedropdown() {
+        var dropdown_content = document.getElementById('select_content');
+        dropdown_content.addEventListener('change', () => {
+            var dropdown_content = document.getElementById('select_content');
+            const selectedValue = dropdown_content.value;
+            const content_div = document.getElementById('contentofcontent');
+            switch (selectedValue) {
+                case "1": // Text Box
+                    innerHTML = `
+                    <label for="textBox">Enter text:</label>
+                    <textarea id="inputContent" rows="4" cols="50" class="form-control"></textarea>
+                `;
+                    break;
+
+                case "2": // Image
+                    innerHTML = `
+                    <label for="imageInput">Choose an image:</label>
+                    <input type="file" id="inputContent" name="image" accept="image/*">
+                    <br>
+                `;
+                    break;
+
+                case "3": // Video
+                    innerHTML = `
+                    <label for="videoInput">Choose a video:</label>
+                    <input type="file" id="inputContent" accept="video/*">
+                    <br>
+                `;
+                    break;
+
+                case "4": // PDF
+                    innerHTML = `
+                    <label for="pdfInput">Choose a PDF:</label>
+                    <input type="file" id="inputContent" accept="application/pdf">
+                    <br>
+                `;
+                    break;
+
+                default:
+                    innerHTML = "<p>Please select a content type.</p>";
+            }
+            content_div.innerHTML = innerHTML;
+        });
+    }
+
+    function clearModal(id) {
+        const div_Modal = document.getElementById(id);
+        div_Modal.remove();
+    }
+
+    function create_header_div() {
+        const new_header_ = document.getElementById('new_header');
+
+        data.push({ id: 0, type: 'header', content: new_header_.value });
+        const header_div = document.createElement('div');
+        header_div.className = 'p-2 rounded bg-shadow-10';
+        header_div.style.width = '100%';
+        header_div.style.fontSize = '1.25rem';
+        header_div.style.border = '1px solid #eee';
+        header_div.textContent = new_header_.value;
+        div_degree_course.appendChild(header_div);
+
+        clearModal('modal_div');
+    }
+
+    async function create_content_div() {
+        const inputContent = document.getElementById('inputContent');
+
+        const header_div = document.createElement('div');
+        header_div.className = 'rounded';
+        header_div.style.width = '100%';
+        header_div.style.padding = '1rem 2rem';
+
+
+        var dropdown_content = document.getElementById('select_content');
+        const selectedValue = dropdown_content.value;
+        if (selectedValue === '1') { // Text
+            data.push({ id: 0, type: 'content', selecttype: selectedValue, content: inputContent.value });
+            header_div.textContent = inputContent.value;
+        } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
+            var filename = await upload_file_temp(inputContent, selectedValue);
+            header_div.textContent = filename;
+        }
+
+        console.log('Updated Data:', data);
+        div_degree_course.appendChild(header_div);
+
+        clearModal('modal_div');
+    }
+
+    // ========================= End Header and content =======================
+
+    async function update_course() {
+        const formcourse = document.getElementById('form-course');
+        const form_course = new FormData(formcourse);
+        form_course.append('data', JSON.stringify(data));
+
+        form_course.forEach((value, key) => {
+            console.log(`${key}: ${value}`);
+        });
+
+        try {
+            const response = await fetch('../config/update_course.php', {
+                method: 'POST',
+                body: form_course
+            });
+
+        } catch (error) {
+            console.error('Error Create course:', error);
+        }
+        RedirectToPage('course');
+    }
+
+    function RedirectToPage(page) {
+        window.location.href = '../pages/' + page + '.php';
+    }
+
+
+    // ========================== update Header and content ===================
+
+    function popup_update_header(id) {
+        // ลบ modal_div เดิมถ้ามี
+        const oldModal = document.getElementById('modal_div');
+        if (oldModal) {
+            oldModal.remove();
+        }
+        const Modal = document.createElement('div');
+        Modal.id = 'modal_div';
+        Modal.innerHTML = `
+            <div class="modal " id="headerModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" style="max-width: 50vw;">
+                    <div class="modal-content" style="min-height: 30vh;">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Edit Unit</h5>
+                            <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <label>New Unit name</label>
+                            <input type="text" class="form-control" id="update_header">
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="update-header" data-bs-dismiss="modal">Update</button>
+                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(Modal);
+        const dynamicModal = new bootstrap.Modal(document.getElementById('headerModal'));
+        dynamicModal.show();
+        document.getElementById('update-header').addEventListener('click', () => {
+            var new_content = document.getElementById('update_header');
+            if (new_content) {
+                update_header(id, new_content.value);
+            }
+        });
+
+    }
+
+    function updateIndata(id, type, content) {
+        data.forEach(row => {
+            if (id == row['id'] && type == row['type']) {
+                row['content'] = content;
+            }
+        });
+
+        console.log(data);
+    }
+
+    async function update_header(id, content) {
+        const ele_header = document.getElementById('header_' + id);
+        ele_header.textContent = content;
+
+        var dropdown_content = document.getElementById('select_content');
+        const selectedValue = dropdown_content.value;
+        if (selectedValue === '1') { // Text
+            data.push({ id: 0, type: 'content', selecttype: selectedValue, content: inputContent.value });
+            header_div.textContent = inputContent.value;
+        } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
+            var [filename, massage] = await upload_file_temp(inputContent, selectedValue);
+            header_div.textContent = filename;
+        }
+
+        console.log('Updated Data:', data);
+        updateIndata(id, "header", content);
+        clearModal('modal_div');
+    };
+
+
+
+
+    function popup_update_content(id) {
+        // ลบ modal_div เดิมถ้ามี
+        const oldModal = document.getElementById('modal_div');
+        if (oldModal) {
+            oldModal.remove();
+        }
+        const Modal = document.createElement('div');
+        Modal.id = 'modal_div';
+        Modal.innerHTML = `
+            <div class="modal " id="contentModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog" style="max-width: 50vw;">
+                    <div class="modal-content" style="min-height: 70vh;">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Edit about of content</h5>
+                            <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h6>Select new content.</h6>
+                            <select id="select_content" class="form-select">
+                                <option value="0">please select type</option>
+                            </select>
+                            <div id="contentofcontent" class="p-3 mt-3" style="border: 2px solid #ddd; border-radius: 1rem; background-color:#fff; min-height: 40vh;">
+                                <!-- content in js -->
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="update-header" data-bs-dismiss="modal">Create</button>
+                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(Modal);
+        const dynamicModal = new bootstrap.Modal(document.getElementById('contentModal'));
+        dynamicModal.show();
+        fetch_typefile();
+        changedropdown();
+        document.getElementById('update-header').addEventListener('click', () => {
+            var new_content = document.getElementById('inputContent');
+            if (new_content) {
+                update_content(id, new_content);
+            }
+        });
+    }
+
+    async function update_content(id, content) {
+        const ele_header = document.getElementById('content_' + id);
+        console.log(ele_header);
+
+        var dropdown_content = document.getElementById('select_content');
+        const selectedValue = dropdown_content.value;
+        if (selectedValue === '1') { // Text
+            // data.push({ id: 0, type: 'content', selecttype: selectedValue, content: inputContent.value });
+            ele_header.textContent = content.value;
+        } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
+            var [filename, massage] = await upload_file_temp(inputContent, selectedValue);
+            ele_header.src = massage;
+        }
+
+        console.log('Updated Data:', data);
+
+        updateIndata(id, "content", content.value);
+        clearModal('modal_div');
+    };
+
+
+
+    async function upload_file_temp(input, selectedValue) {
+
+        file = input.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('type', selectedValue);
+
+            const response = await fetch('../config/upload_temp.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                console.log('Upload "', result.filename, '" success.');
+                // data.push({ id: 0, type: 'content', selecttype: selectedValue, content: result.filePath }); // ได้ path กลับมา
+            } else {
+                console.error('Upload failed:', result.message);
+            }
+            return [file.name, result.filePath];
+        }
+        return [file.name, "Upload failed ;("]
+    }
+
+</script>
