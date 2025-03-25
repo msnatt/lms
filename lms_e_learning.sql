@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 21, 2025 at 08:21 AM
+-- Generation Time: Mar 25, 2025 at 04:36 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -44,7 +44,7 @@ CREATE TABLE `content` (
 INSERT INTO `content` (`id`, `unit_id`, `type_id`, `content`, `create_date`, `update_date`, `is_deleted`) VALUES
 (1, 1, 1, 'Geo Unit 1 \r\nContent of Geo Unit 1 with Text', '2025-03-06', '2025-03-06', 0),
 (2, 2, 1, 'Geo Unit 2 \r\nContent of Geo Unit 2 with Text', '2025-03-06', '2025-03-06', 0),
-(3, 3, 1, 'Content of facebook Unit 1 with Text', '2025-03-06', '2025-03-06', 0),
+(3, 3, 1, 'adwasfasdawda', '2025-03-06', '2025-03-06', 0),
 (4, 4, 2, '../uploads/admin/mushroom_forest.png', '2025-03-06', '2025-03-06', 0),
 (5, 4, 3, 'https://www.youtube.com/embed/EFmxPMdBqmU', '2025-03-06', '2025-03-06', 0),
 (6, 3, 4, '../uploads/admin/Elearning_TOR.pdf', '2025-03-06', '2025-03-06', 0),
@@ -58,7 +58,14 @@ INSERT INTO `content` (`id`, `unit_id`, `type_id`, `content`, `create_date`, `up
 (16, 9, 1, '<h3>Room</h3>', '2025-03-19', '2025-03-19', 0),
 (17, 9, 2, '../uploads/admin/3_รักตัวเอง-01.jpg', '2025-03-19', '2025-03-19', 0),
 (18, 9, 1, '<h3>Employee</h3>', '2025-03-19', '2025-03-19', 0),
-(19, 9, 2, '../uploads/admin/GhzRRSsbQAEThSp.jfif', '2025-03-19', '2025-03-19', 0);
+(19, 9, 2, '../uploads/admin/GhzRRSsbQAEThSp.jfif', '2025-03-19', '2025-03-19', 0),
+(20, 10, 1, 'Text Box about New content in Unit 3', '2025-03-22', '2025-03-22', 0),
+(23, 10, 2, '../uploads/admin2/IMG_5493.JPG', '2025-03-24', '2025-03-24', 0),
+(24, 11, 2, '../uploads/admin2/Later_Media_-_Instagram_Bio_Nov.png', '2025-03-24', '2025-03-24', 0),
+(25, 11, 2, '../uploads/admin2/images.png', '2025-03-24', '2025-03-24', 0),
+(26, 12, 1, 'This Image', '2025-03-24', '2025-03-24', 0),
+(27, 12, 2, '../uploads/admin2/instagram-pin-posts.png', '2025-03-24', '2025-03-24', 0),
+(28, 12, 2, '../uploads/admin2/canva-black-and-beige-photo-new.png', '2025-03-24', '2025-03-24', 0);
 
 -- --------------------------------------------------------
 
@@ -77,6 +84,7 @@ CREATE TABLE `course` (
   `update_date` date NOT NULL DEFAULT current_timestamp(),
   `create_by` int(11) NOT NULL DEFAULT 0 COMMENT 'create by user_id',
   `update_by` int(11) NOT NULL DEFAULT 0 COMMENT 'update by user_id',
+  `is_publish` tinyint(1) NOT NULL DEFAULT 0,
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -84,12 +92,13 @@ CREATE TABLE `course` (
 -- Dumping data for table `course`
 --
 
-INSERT INTO `course` (`id`, `code`, `image_code`, `name`, `description`, `objective`, `create_date`, `update_date`, `create_by`, `update_by`, `is_deleted`) VALUES
-(1, '110210', 2, 'Geolocator', 'This is Description of Geolocator Course', '', '2025-03-03', '2025-03-03', 1, 0, 0),
-(2, '110222', 3, 'Facebook Course', 'This is Description of Facebook Course\r\n', '', '2025-03-03', '2025-03-03', 3, 0, 0),
-(7, '12345123', 4, 'Course Test', 'Description  Course Test', 'Objective Course Test', '2025-03-19', '2025-03-19', 3, 0, 0),
-(8, '0101110', 1, 'Course programing', 'Course programing Description', 'Course programing Objective', '2025-03-19', '2025-03-19', 5, 0, 0),
-(9, '101010', 6, 'Thai massage', 'Thai masssage in your heart', '- relax\r\n- comfortable', '2025-03-19', '2025-03-19', 1, 0, 0);
+INSERT INTO `course` (`id`, `code`, `image_code`, `name`, `description`, `objective`, `create_date`, `update_date`, `create_by`, `update_by`, `is_publish`, `is_deleted`) VALUES
+(1, '110210', 2, 'Geolocator', 'This is Description of Geolocator Course', 'Geolocator Course\r\n - location\r\n - plate\r\n - date of location', '2025-03-03', '2025-03-03', 1, 0, 1, 0),
+(2, '110222', 3, 'Facebook Course', 'This is Description of Facebook\r\n', 'Facebook Course\r\n - social media\r\n - for entertainment', '2025-03-03', '2025-03-03', 3, 3, 1, 0),
+(7, '12345123', 4, 'Course Test', 'Description  Course Test', 'Objective Course Test', '2025-03-19', '2025-03-19', 3, 0, 1, 0),
+(8, '0101110', 1, 'Course programing', 'Course programing Description', 'Course programing Objective', '2025-03-19', '2025-03-19', 5, 0, 1, 0),
+(9, '101010', 6, 'Thai massage', 'Thai masssage in your heart', '- relax\r\n- comfortable', '2025-03-19', '2025-03-19', 1, 0, 1, 0),
+(10, '110220', 1, 'Instagram', 'this is course about start into instagram.\r\nnow those course you will learn about starter, create accout, post, etc', '- social media.\r\n- content on internet.\r\n- find new friend.', '2025-03-24', '2025-03-24', 3, 3, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -121,7 +130,25 @@ INSERT INTO `course_student` (`id`, `course_id`, `unit_id`, `content_id`, `owner
 (4, 9, 9, 18, 2, 0, '2025-03-20', '2025-03-20', 0, 0),
 (5, 9, 9, 19, 2, 0, '2025-03-20', '2025-03-20', 0, 0),
 (6, 8, 8, 13, 2, 0, '2025-03-20', '2025-03-20', 0, 0),
-(7, 8, 8, 14, 2, 0, '2025-03-20', '2025-03-20', 0, 0);
+(7, 8, 8, 14, 2, 0, '2025-03-20', '2025-03-20', 0, 0),
+(44, 2, 3, 3, 2, 0, '2025-03-21', '2025-03-21', 0, 0),
+(45, 2, 3, 6, 2, 0, '2025-03-21', '2025-03-21', 0, 0),
+(46, 2, 4, 4, 2, 0, '2025-03-21', '2025-03-21', 0, 0),
+(47, 2, 4, 5, 2, 0, '2025-03-21', '2025-03-21', 0, 0),
+(52, 2, 3, 3, 1, 0, '2025-03-21', '2025-03-21', 0, 0),
+(53, 2, 3, 6, 1, 0, '2025-03-21', '2025-03-21', 0, 0),
+(54, 2, 4, 4, 1, 0, '2025-03-21', '2025-03-21', 0, 0),
+(55, 2, 4, 5, 1, 0, '2025-03-21', '2025-03-21', 0, 0),
+(56, 2, 3, 3, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
+(57, 2, 3, 6, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
+(58, 2, 4, 4, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
+(59, 2, 4, 5, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
+(60, 2, 10, 20, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
+(61, 10, 11, 24, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
+(62, 10, 11, 25, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
+(63, 10, 12, 26, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
+(64, 10, 12, 27, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
+(65, 10, 12, 28, 3, 0, '2025-03-24', '2025-03-24', 0, 0);
 
 -- --------------------------------------------------------
 
@@ -188,7 +215,10 @@ INSERT INTO `unit` (`id`, `course_id`, `name`, `create_date`, `update_date`, `is
 (4, 2, 'Facebook Course Unit 2', '2025-03-06', '2025-03-06', 0),
 (7, 7, 'Header 01 of Course Test', '2025-03-19', '2025-03-19', 0),
 (8, 8, 'preview', '2025-03-19', '2025-03-19', 0),
-(9, 9, 'massage shop', '2025-03-19', '2025-03-19', 0);
+(9, 9, 'massage shop', '2025-03-19', '2025-03-19', 0),
+(10, 2, 'Facebook Course Unit 3', '2025-03-22', '2025-03-22', 0),
+(11, 10, 'About Instagram', '2025-03-24', '2025-03-24', 0),
+(12, 10, 'Accout', '2025-03-24', '2025-03-24', 0);
 
 -- --------------------------------------------------------
 
@@ -284,19 +314,19 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `content`
 --
 ALTER TABLE `content`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `course`
 --
 ALTER TABLE `course`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `course_student`
 --
 ALTER TABLE `course_student`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
 -- AUTO_INCREMENT for table `file`
@@ -314,7 +344,7 @@ ALTER TABLE `typefile`
 -- AUTO_INCREMENT for table `unit`
 --
 ALTER TABLE `unit`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `user`
