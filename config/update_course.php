@@ -32,6 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $code = $_POST['code_course'];
         $description = $_POST['textBoxDescription'];
         $objective = $_POST['textBoxObjective'];
+        $is_deleted = (int)$_POST['is_deleted'];
         $units = json_decode($_POST['data'], true);
 
         // ตรวจสอบว่ามี course_id นี้หรือไม่
@@ -43,9 +44,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($stmt->num_rows > 0) {
             // อัปเดตข้อมูล course
-            $sql_update_course = "UPDATE course SET code = ?, name = ?, description = ?, objective = ?, update_by = ? WHERE id = ?";
+            $sql_update_course = "UPDATE course SET code = ?, name = ?, description = ?, objective = ?, update_by = ?, is_deleted = ? WHERE id = ? ";
             $stmt = $conn->prepare($sql_update_course);
-            $stmt->bind_param("ssssii", $code, $name, $description, $objective, $user['id'], $course_id);
+            $stmt->bind_param("ssssiii", $code, $name, $description, $objective, $user['id'], $is_deleted, $course_id);
             $stmt->execute();
         } else {
             die("Error: Course ID not found.");
@@ -66,9 +67,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
                 if ($stmt->num_rows > 0) {
                     // อัปเดต unit
-                    $sql_update_unit = "UPDATE unit SET name = ? WHERE id = ?";
+                    $sql_update_unit = "UPDATE unit SET name = ?, is_deleted = ? WHERE id = ? ";
                     $stmt = $conn->prepare($sql_update_unit);
-                    $stmt->bind_param("si", $unit['content'], $unit['id']);
+                    $stmt->bind_param("sii", $unit['content'], $unit['is_deleted'], $unit['id']);
                     $stmt->execute();
                     $newUnit_id = $unit['id'];
                 } else {
@@ -103,9 +104,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
                 if ($stmt->num_rows > 0) {
                     // อัปเดต content
-                    $sql_update_content = "UPDATE content SET type_id = ?, content = ? WHERE id = ?";
+                    $sql_update_content = "UPDATE content SET type_id = ?, content = ?, is_deleted = ? WHERE id = ? ";
                     $stmt = $conn->prepare($sql_update_content);
-                    $stmt->bind_param("isi", $unit['selecttype'], $unit['content'], $unit['id']);
+                    $stmt->bind_param("isii", $unit['selecttype'], $unit['content'], $unit['is_deleted'], $unit['id']);
                     $stmt->execute();
                 } else {
                     // เพิ่ม content ใหม่

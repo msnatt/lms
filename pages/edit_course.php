@@ -21,6 +21,7 @@ $user = $_SESSION['user'] ?? 'N/A';
             <span id="title_edit" style="font-size: 2rem; font-weight: 600;">Edit Course</span>
             <form id="form-course" class="d-flex flex-wrap">
                 <input type="hidden" id="course_id" name="course_id" value="<?php echo $courseid; ?>">
+                <input type="hidden" id="is_deleted" name="is_deleted" value="0">
                 <div class="d-flex flex-column col-lg-3 col-12 rounded" style="padding: 0.5rem 0.25rem;">
                     <div class="bg-secondary p-4 rounded bg-opacity-10">
                         <div class="d-flex">
@@ -41,8 +42,14 @@ $user = $_SESSION['user'] ?? 'N/A';
                             <button type="button" class="btn btn-primary" onclick="update_course()" style="width: 40%;">
                                 Update
                             </button>
-                            <button type="button" class="btn btn-danger" onclick="window.history.back();"  style="width: 40%;">
+                            <button type="button" class="btn btn-light" onclick="window.history.back();" style="width: 40%; border: 1px solid #ccc;">
                                 Cancel
+                            </button>
+                        </div>
+                        <div class="p-3">
+                            <button type="button" class="btn btn-danger w-100" onclick="is_deleted_course()" style="width: 40%;">
+                                <i class="bi bi-trash"></i>
+                                Bin
                             </button>
                         </div>
                     </div>

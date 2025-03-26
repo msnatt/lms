@@ -23,6 +23,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                    unit.id AS unit_id, 
                    unit.course_id AS unit_course_id,
                    unit.name AS unit_name,                    
+                   unit.introduction AS unit_introduction,
+                   unit.conclusion AS unit_conclusion,
                    unit.create_date AS unit_create_date, 
                    unit.update_date AS unit_update_date, 
                    unit.is_deleted AS unit_is_deleted, 
@@ -38,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             FROM course
             LEFT JOIN unit ON course.id = unit.course_id
             LEFT JOIN content ON unit.id = content.unit_id
-            WHERE course.is_deleted = 0 AND course.id = ?";
+            WHERE course.is_deleted = 0 AND unit.is_deleted = 0 AND content.is_deleted = 0 AND course.id = ?";
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $course_id);
@@ -81,8 +83,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         if (!$unitExists) {
             $data["course"]["units"][] = [
                 "unit_id" => $row["unit_id"],
-                "unit_course_id" => $row["unit_course_id"],
                 "unit_name" => $row["unit_name"],
+                "unit_course_id" => $row["unit_course_id"],
+                "unit_introduction" => $row["unit_introduction"],
+                "unit_conclusion" => $row["unit_conclusion"],
                 "create_date" => $row["unit_create_date"],
                 "update_date" => $row["unit_update_date"],
                 "is_deleted" => $row["unit_is_deleted"],
@@ -90,7 +94,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             ];
         }
         foreach ($data['course']['units'] as $key => $value) {
-            # code...
             // ✅ ตรวจสอบว่า `contents` มีข้อมูลนี้อยู่แล้วหรือยัง
             $contentExists = array_filter($data["course"]["units"][$key]["contents"], function ($c) use ($row) {
                 return $c["content_id"] == $row["content_id"];

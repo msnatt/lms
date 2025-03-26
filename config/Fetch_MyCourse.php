@@ -34,6 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                    unit.id AS unit_id, 
                    unit.name AS unit_name, 
                    unit.course_id AS unit_course_id,
+                   unit.introduction AS unit_introduction,
+                   unit.conclusion AS unit_conclusion,
                    unit.create_date AS unit_create_date, 
                    unit.update_date AS unit_update_date, 
                    unit.is_deleted AS unit_is_deleted, 
@@ -62,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             LEFT JOIN unit ON course_student.unit_id = unit.id
             LEFT JOIN content ON course_student.content_id = content.id
             LEFT JOIN user ON course_student.owner_id = user.id
-            WHERE course_student.is_deleted = 0 AND course_student.owner_id = ?";
+            WHERE course_student.is_deleted = 0 AND course.is_deleted = 0 AND unit.is_deleted = 0 AND content.is_deleted = 0 AND course_student.owner_id = ?";
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $user_id);
@@ -116,6 +118,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 "unit_id" => $row["unit_id"],
                 "unit_course_id" => $row["unit_course_id"],
                 "unit_name" => $row["unit_name"],
+                "unit_introduction" => $row["unit_introduction"],
+                "unit_conclusion" => $row["unit_conclusion"],
                 "create_date" => $row["unit_create_date"],
                 "update_date" => $row["unit_update_date"],
                 "is_deleted" => $row["unit_is_deleted"]

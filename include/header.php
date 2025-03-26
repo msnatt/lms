@@ -16,18 +16,7 @@
                         <li class="nav-item">
                             <a class="nav-link text" href="../pages/course.php">Course</a>
                         </li>
-                        <!-- <li class="nav-item">
-                            <a class="nav-link text" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                Product
-                            </a>
-                            <ul class="dropdown-menu" style="left: auto;" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="../pages/product.php">All</a></li>
-                                <li><a class="dropdown-item" href="#">Type 1</a></li>
-                                <li><a class="dropdown-item" href="#">Type 2</a></li>
-                                <li><a class="dropdown-item" href="#">Type 3</a></li>
-                                <li><a class="dropdown-item" href="#">Type 4</a></li>
-                            </ul>
-                        </li> -->
+
                         <li class="nav-item">
                             <a class="nav-link text" href="../pages/news.php">News</a>
                         </li>
@@ -35,7 +24,6 @@
                             <a class="nav-link text" href="../pages/contect.php">Contact us</a>
                         </li>
                     </ul>
-                    <!-- </div> -->
                 </div>
             </div>
             <div class="w-15 d-none d-lg-flex align-items-center">
@@ -58,6 +46,8 @@
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                     <li><a class="dropdown-item" href="../pages/mycourse.php">My Course</a></li>
+                                    <?php if ($_SESSION['user']['is_admin']): ?>
+                                    <?php endif; ?>
                                     <li><a class="dropdown-item" href="../pages/setting.php">Setting</a></li>
                                     <li><a class="dropdown-item" href="../pages/logout.php">Logout</a></li>
                                 </ul>
