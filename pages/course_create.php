@@ -18,9 +18,11 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="bg-light main-container p-4 mt-2" style="min-height: 60vh;">
             <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>
             <span id="title_edit" style="font-size: 2rem; font-weight: 600;">New Course</span>
-            <div class="d-flex"> <!-- ใช้ gap แทน margin -->
-                <div class="d-flex flex-column col-lg-3 col-12 p-4 rounded" style="background-color: #eee;">
-                    <form id="form-course">
+            <form id="form-course" class="d-flex flex-wrap">
+                <input type="hidden" id="course_id" name="course_id" value="<?php echo $courseid; ?>">
+                <input type="hidden" id="is_deleted" name="is_deleted" value="0">
+                <div class="d-flex flex-column col-lg-3 col-12 rounded" style="padding: 0.2rem 0.25rem;">
+                    <div class="bg-secondary p-4 rounded bg-opacity-10">
                         <div class="d-flex">
                             <div>
                                 <label class="form-label">Name</label>
@@ -43,11 +45,11 @@ $user = $_SESSION['user'] ?? 'N/A';
                                 Cancel
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
-                <div class="d-flex flex-column col-lg-7 col-12 rounded" style="padding: 0rem .75rem;">
+                <div class="d-flex flex-column col-lg-7 col-12 rounded" style="padding: 0.2rem 0.25rem;">
                     <div class="bg-secondary p-2 rounded bg-opacity-10">
-                        <div class="p-3 rounded">
+                        <div class="p-1 rounded d-flex">
                             <button type="button" class="btn btn-secondary" onclick="create_popup_header()">
                                 New Header
                             </button>
@@ -60,9 +62,15 @@ $user = $_SESSION['user'] ?? 'N/A';
                         </div>
                     </div>
                 </div>
-                <div class="d-flex flex-column col-lg-2 col-12 p-4 rounded bg-opacity-10 bg-secondary">
+                <div class="d-flex flex-column col-lg-2 col-12 rounded" style="padding: 0.2rem 0.25rem;">
+                    <div class="bg-secondary p-2 rounded bg-opacity-10 d-flex">
+                        <div class="form-check form-switch px-3 ">
+                            <input class="form-check-input ms-0 switch-lg" type="checkbox" id="is_publish" checked>
+                        </div>
+                        <label class="fw-bo0ld" for="largeSwitch">Publish now</label>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 

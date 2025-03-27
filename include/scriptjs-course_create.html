@@ -1,6 +1,7 @@
 <!-- page product -->
 <script>
     var data = [];
+    var countNo = 0;
     const div_degree_course = document.getElementById('degree_course');
 
     function validateNumberInput(event) {
@@ -10,7 +11,13 @@
 
     // ++++++++++++++++++++++++ Header and content +++++++++++++++++++++++++++
 
+
     function create_popup_header() {
+        // ลบ modal_div เดิมถ้ามี
+        const oldModal = document.getElementById('modal_div');
+        if (oldModal) {
+            oldModal.remove();
+        }
         const Modal = document.createElement('div');
         Modal.id = 'modal_div';
         Modal.innerHTML = `
@@ -39,6 +46,11 @@
     }
 
     function create_popup_content() {
+        // ลบ modal_div เดิมถ้ามี
+        const oldModal = document.getElementById('modal_div');
+        if (oldModal) {
+            oldModal.remove();
+        }
         const Modal = document.createElement('div');
         Modal.id = 'modal_div';
         Modal.innerHTML = `
@@ -136,19 +148,35 @@
         div_Modal.remove();
     }
 
+    function deleteIndata(id, type) {
+        var id_header = 0;
+        data.forEach(row => {
+            if (id == row['id'] && type == row['type']) {
+                row['is_deleted'] = 1;
+                if (type == "header") { id_header = row['id']; }
+            }
+            else if (id_header != 0) {
+                if (row['type'] == "header") {
+                    id_header = 0;
+                }
+                else {
+                    row['is_deleted'] = 1;
+                }
+
+            }
+        });
+        generate_degree_course(data);
+        console.log(data);
+    }
+
     function create_header_div() {
         const new_header_ = document.getElementById('new_header');
 
-        data.push({ type: 'header', content: new_header_.value });
-        const header_div = document.createElement('div');
-        header_div.className = 'p-2 rounded bg-shadow-10';
-        header_div.style.width = '100%';
-        header_div.style.fontSize = '1.25rem';
-        header_div.style.border = '1px solid #eee';
-        header_div.textContent = new_header_.value;
-        div_degree_course.appendChild(header_div);
+        data.push({ id: countNo, type: 'header', content: new_header_.value, is_deleted: 0 });
 
         console.log('Updated Data:', data);
+        countNo++;
+        generate_degree_course(data);
         clearModal('modal_div');
     }
 
@@ -156,26 +184,140 @@
         var dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
         const inputContent = document.getElementById('inputContent');
-        let file;
-
-        const header_div = document.createElement('div');
-        header_div.className = 'rounded';
-        header_div.style.width = '100%';
-        header_div.style.padding = '1rem 2rem';
-
 
         if (selectedValue === '1') { // Text
-            data.push({ type: 'content', selecttype: selectedValue, content: inputContent.value });
-            header_div.textContent = inputContent.value;
+            data.push({ id: countNo, type: 'content', selecttype: parseInt(selectedValue), content: inputContent.value, is_deleted: 0 });
         } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
-            var filename = await upload_file_temp(inputContent, selectedValue);
-            header_div.textContent = filename;
+            var filename = await upload_file_temp(inputContent, parseInt(selectedValue));
         }
 
         console.log('Updated Data:', data);
-        div_degree_course.appendChild(header_div);
-
+        countNo++;
+        generate_degree_course(data);
         clearModal('modal_div');
+    }
+
+    async function upload_file_temp(inputs, selectedValue) {
+        file = inputs.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('type', selectedValue);
+
+            const response = await fetch('../config/upload_temp.php', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                data.push({ id: countNo, type: 'content', selecttype: selectedValue, content: result.filePath, is_deleted: 0 }); // ได้ path กลับมา
+            } else {
+                console.error('Upload failed:', result.message);
+            }
+        }
+        return file.name;
+    }
+
+
+    function generate_degree_course(datas) {
+        const div_degree_course = document.getElementById('degree_course');
+        div_degree_course.innerHTML = '';
+
+        datas.forEach(row => {
+            if (row['type'] == "header" && row['is_deleted'] == 0) {
+                const unit_ = document.createElement('div');
+                unit_.className = 'p-2 rounded bg-shadow-10 d-flex justify-content-between';
+                unit_.style.width = '100%';
+                unit_.style.fontSize = '1.25rem';
+                unit_.style.border = '1px solid #eee';
+                unit_.innerHTML = `<div id="header_${row['id']}">${row['content']}</div>`;
+
+                // ปุ่มแก้ไข Unit
+                const editUnitBtn = document.createElement('button');
+                editUnitBtn.id = "edit_header_" + row['id'];
+                editUnitBtn.type = 'button';
+                editUnitBtn.textContent = 'แก้ไข';
+                editUnitBtn.className = 'btn btn-sm';
+                editUnitBtn.style.marginLeft = '10px';
+                editUnitBtn.onclick = () => popup_update_header(row['id']);
+                // ปุ่มลบ 
+                const delUnitBtn = document.createElement('button');
+                delUnitBtn.id = "delete_header_" + row['id'];
+                delUnitBtn.type = 'button';
+                delUnitBtn.textContent = 'ลบ';
+                delUnitBtn.className = 'btn btn-sm';
+                delUnitBtn.style.marginLeft = '10px';
+                delUnitBtn.onclick = () => deleteIndata(row['id'], "header");
+
+                const end_header = document.createElement('div');
+
+                end_header.appendChild(editUnitBtn);
+                end_header.appendChild(delUnitBtn);
+                unit_.appendChild(end_header);
+                div_degree_course.appendChild(unit_);
+
+            } else if (row['type'] == "content" && row['is_deleted'] == 0) {
+                const content_ = document.createElement('div');
+                content_.className = 'rounded p-2 d-flex justify-content-between';
+                content_.style.width = '100%';
+                switch (row['selecttype']) {
+                    case 1:
+                        content_.innerHTML = `<div id="content_${row['id']}">${row['content']}</div>`;
+                        break;
+                    case 2:
+                        content_.innerHTML = `<img id="content_${row['id']}" src="${row['content']}" alt="Image" style="width: 100%; max-width: 200px">`;
+                        break;
+                    case 3:
+                        content_.innerHTML = `
+                            <iframe
+                                id="content_${row['id']}"
+                                src="${row['content']}?autoplay=0&mute=1"
+                                title="YouTube video"
+                                frameborder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowfullscreen
+                                style="width: 100%; max-width:500px; height: 50vw; max-height:300px;">
+                            </iframe>
+                        `;
+                        break;
+                    case 4:
+                        content_.innerHTML = `
+                            <embed id="content_${row['id']}" src="${row['content']}" type="application/pdf" width="100%" height="50%" />
+                            `;
+                        break;
+
+                    default:
+                        content_.innerHTML = "ไม่พบข้อมูลที่ตรงกับชนิดข้อมูล โปรดติดต่อแอดมิน.";
+                        break;
+                }
+
+                // ปุ่มแก้ไข Content
+                const editContentBtn = document.createElement('button');
+                editContentBtn.textContent = 'แก้ไข';
+                editContentBtn.id = "edit_content_" + row['id'];
+                editContentBtn.type = 'button';
+                editContentBtn.className = 'btn btn-sm';
+                editContentBtn.style.marginLeft = '10px';
+                editContentBtn.onclick = () => popup_update_content(row['id']);
+                // ปุ่มลบ 
+                const delcontentBtn = document.createElement('button');
+                delcontentBtn.id = "delete_content_" + row['id'];
+                delcontentBtn.type = 'button';
+                delcontentBtn.textContent = 'ลบ';
+                delcontentBtn.className = 'btn btn-sm';
+                delcontentBtn.style.marginLeft = '10px';
+                delcontentBtn.onclick = () => deleteIndata(row['id'], "content");
+
+                const end_content = document.createElement('div');
+
+                end_content.appendChild(editContentBtn);
+                end_content.appendChild(delcontentBtn);
+                content_.appendChild(end_content);
+                div_degree_course.appendChild(content_);
+            }
+
+        });
     }
 
     // ========================= End Header and content =======================
@@ -206,26 +348,5 @@
         window.location.href = '../pages/' + page + '.php';
     }
 
-    async function upload_file_temp(inputs, selectedValue) {
-        file = inputs.files[0];
-        if (file) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('type', selectedValue);
-
-            const response = await fetch('../config/upload_temp.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                data.push({ type: 'content', selecttype: selectedValue, content: result.filePath }); // ได้ path กลับมา
-            } else {
-                console.error('Upload failed:', result.message);
-            }
-        }
-        return file.name;
-    }
 
 </script>

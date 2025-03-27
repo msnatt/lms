@@ -23,7 +23,7 @@ $owner = $_SESSION['owner'] ?? 'N/A';
 
         <?php if ($user['is_admin'] == "1" && $course['create_by'] == $user['id']): ?>
                 <div style="position: fixed; bottom: 10%; right: 3%;">
-                    <button class="menuquickly" onclick="window.location.href = '../pages/edit_course.php?courseid=<?php echo $courseid; ?>'">
+                    <button class="menuquickly" onclick="window.location.href = '../pages/course_edit.php?courseid=<?php echo $courseid; ?>'">
                         <img src="../assets/images/edit.png" width="25px" height="25px" />
                     </button>
                 </div>

@@ -5,9 +5,10 @@
         let currentPage = 1;
 
 
-        const response = await fetch('../config/Fetch_Course.php'); // เรียกใช้ PHP
+        const response = await fetch('../config/Search_Course.php'); // เรียกใช้ PHP
         const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
         let Courses = json_res;
+        console.log(Courses);
 
 
         // ฟังก์ชันตรวจสอบขนาดหน้าจอ

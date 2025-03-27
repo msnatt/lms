@@ -17,9 +17,7 @@
         const json_res_mycourse = await response_mycourse.json(); // รับผลลัพธ์เป็น JSON
         let mycourse = json_res_mycourse;
 
-        const response = await fetch('../config/Fetch_Course.php'); // เรียกใช้ PHP
-        const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
-        let Courses = json_res;
+
         const response_unit = await fetch('../config/Fetch_Unit.php'); // เรียกใช้ PHP
         const json_res_unit = await response_unit.json(); // รับผลลัพธ์เป็น JSON
         let Units = json_res_unit;
