@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 25, 2025 at 04:36 AM
+-- Generation Time: Mar 27, 2025 at 10:19 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -93,12 +93,26 @@ CREATE TABLE `course` (
 --
 
 INSERT INTO `course` (`id`, `code`, `image_code`, `name`, `description`, `objective`, `create_date`, `update_date`, `create_by`, `update_by`, `is_publish`, `is_deleted`) VALUES
-(1, '110210', 2, 'Geolocator', 'This is Description of Geolocator Course', 'Geolocator Course\r\n - location\r\n - plate\r\n - date of location', '2025-03-03', '2025-03-03', 1, 0, 1, 0),
+(1, '110210', 2, 'Geolocator', 'This is Description of Geolocator Course', 'Geolocator Course\r\n - location\r\n - plate\r\n - date of location', '2025-03-03', '2025-03-03', 1, 1, 1, 0),
 (2, '110222', 3, 'Facebook Course', 'This is Description of Facebook\r\n', 'Facebook Course\r\n - social media\r\n - for entertainment', '2025-03-03', '2025-03-03', 3, 3, 1, 0),
 (7, '12345123', 4, 'Course Test', 'Description  Course Test', 'Objective Course Test', '2025-03-19', '2025-03-19', 3, 0, 1, 0),
 (8, '0101110', 1, 'Course programing', 'Course programing Description', 'Course programing Objective', '2025-03-19', '2025-03-19', 5, 0, 1, 0),
 (9, '101010', 6, 'Thai massage', 'Thai masssage in your heart', '- relax\r\n- comfortable', '2025-03-19', '2025-03-19', 1, 0, 1, 0),
 (10, '110220', 1, 'Instagram', 'this is course about start into instagram.\r\nnow those course you will learn about starter, create accout, post, etc', '- social media.\r\n- content on internet.\r\n- find new friend.', '2025-03-24', '2025-03-24', 3, 3, 0, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course_access`
+--
+
+CREATE TABLE `course_access` (
+  `id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `is_access` tinyint(1) NOT NULL DEFAULT 0,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -199,6 +213,8 @@ CREATE TABLE `unit` (
   `id` int(11) NOT NULL,
   `course_id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL,
+  `introduction` text NOT NULL,
+  `conclusion` text NOT NULL,
   `create_date` date NOT NULL DEFAULT current_timestamp(),
   `update_date` date NOT NULL DEFAULT current_timestamp(),
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0
@@ -208,17 +224,17 @@ CREATE TABLE `unit` (
 -- Dumping data for table `unit`
 --
 
-INSERT INTO `unit` (`id`, `course_id`, `name`, `create_date`, `update_date`, `is_deleted`) VALUES
-(1, 1, 'Geolocator Unit 1', '2025-03-06', '2025-03-06', 0),
-(2, 1, 'Geolocator Unit 2', '2025-03-06', '2025-03-06', 0),
-(3, 2, 'Facebook Course Unit 1', '2025-03-06', '2025-03-06', 0),
-(4, 2, 'Facebook Course Unit 2', '2025-03-06', '2025-03-06', 0),
-(7, 7, 'Header 01 of Course Test', '2025-03-19', '2025-03-19', 0),
-(8, 8, 'preview', '2025-03-19', '2025-03-19', 0),
-(9, 9, 'massage shop', '2025-03-19', '2025-03-19', 0),
-(10, 2, 'Facebook Course Unit 3', '2025-03-22', '2025-03-22', 0),
-(11, 10, 'About Instagram', '2025-03-24', '2025-03-24', 0),
-(12, 10, 'Accout', '2025-03-24', '2025-03-24', 0);
+INSERT INTO `unit` (`id`, `course_id`, `name`, `introduction`, `conclusion`, `create_date`, `update_date`, `is_deleted`) VALUES
+(1, 1, 'Geolocator Unit 1', 'Introduction Geolocator Unit 1', '', '2025-03-06', '2025-03-06', 0),
+(2, 1, 'Geolocator Unit 2', 'Introduction Geolocator Unit 2', '', '2025-03-06', '2025-03-06', 0),
+(3, 2, 'Facebook Course Unit 1', 'Introduction Facebook Course Unit 1', '', '2025-03-06', '2025-03-06', 0),
+(4, 2, 'Facebook Course Unit 2', 'Introduction Facebook Course Unit 2', '', '2025-03-06', '2025-03-06', 0),
+(7, 7, 'Header 01 of Course Test', 'Introduction Header 01 of Course Test', '', '2025-03-19', '2025-03-19', 0),
+(8, 8, 'preview', 'Introduction preview', '', '2025-03-19', '2025-03-19', 0),
+(9, 9, 'massage shop', 'Introduction massage shop', '', '2025-03-19', '2025-03-19', 0),
+(10, 2, 'Facebook Course Unit 3', 'Introduction Facebook Course Unit 3', '', '2025-03-22', '2025-03-22', 0),
+(11, 10, 'About Instagram', 'Introduction About Instagram', '', '2025-03-24', '2025-03-24', 0),
+(12, 10, 'Accout', 'Introduction Accout', '', '2025-03-24', '2025-03-24', 0);
 
 -- --------------------------------------------------------
 
@@ -267,6 +283,12 @@ ALTER TABLE `content`
 -- Indexes for table `course`
 --
 ALTER TABLE `course`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `course_access`
+--
+ALTER TABLE `course_access`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -321,6 +343,12 @@ ALTER TABLE `content`
 --
 ALTER TABLE `course`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for table `course_access`
+--
+ALTER TABLE `course_access`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `course_student`
