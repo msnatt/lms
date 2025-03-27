@@ -16,7 +16,9 @@
                         <li class="nav-item">
                             <a class="nav-link text" href="../pages/course.php">Course</a>
                         </li>
-
+                        <li class="nav-item">
+                            <a class="nav-link text" href="../pages/chat.php">Chat</a>
+                        </li>
                         <li class="nav-item">
                             <a class="nav-link text" href="../pages/news.php">News</a>
                         </li>
