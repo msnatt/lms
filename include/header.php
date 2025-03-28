@@ -2,9 +2,12 @@
 <header>
     <div style="padding: 0rem ;">
         <nav class="navbar d-flex justify-content-center justify-content-lg-between navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand ms-2" href="../pages/home.php">
-                <img src="../assets/images/logo.png" alt="Logo" width="200">
-            </a>
+            <div>
+                <button id="sidebar_btn" class="btn ms-2"><i class="bi bi-list w-100 h-100"></i> </button>
+                <a class="navbar-brand ms-2" href="../pages/home.php">
+                    <img src="../assets/images/logo.png" alt="Logo" width="200">
+                </a>
+            </div>
 
             <div class="w-50 d-none d-lg-flex ">
                 <div class=" ">

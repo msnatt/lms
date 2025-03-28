@@ -4,11 +4,17 @@
         let productsPerPage = 6; // จำนวนสินค้าต่อหน้า
         let currentPage = 1;
 
-
         const response = await fetch('../config/Search_Course.php'); // เรียกใช้ PHP
         const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
-        let Courses = json_res;
+        let Courses_access = json_res;
+        let Courses = Courses_access['courses'];
+        var numOfResult = document.getElementById('numofresult');
+        numOfResult.innerHTML = Courses.length;
         console.log(Courses);
+
+
+
+
 
 
         // ฟังก์ชันตรวจสอบขนาดหน้าจอ
@@ -28,7 +34,6 @@
             renderProducts(currentPage);
         }
 
-
         function randomImage() {
             var random = Math.floor((Math.random() * 6) + 1);
             var pathofimage = `../assets/images/bg_cards/${random}.png`;
@@ -43,16 +48,16 @@
 
             const course_div = document.getElementById("course_div");
             course_div.innerHTML = visibleCourse.map(course => `
-            <div class="col-12 col-md-6 col-xxl-3 d-flex justify-content-center" style="padding:1.5rem 0rem ;">
-                <div class="card h-100" onclick="handleCardClick('${course.id}')">
-                    <img src="../assets/images/bg_cards/${course.image_code}.png" class="card-img-top" alt="img-${course.name}">
-                    <div class="card-body">
-                        <h5 class="card-title fw-bold">${course.code} ${course.name}</h5>
-                        <p class="">${course.description}</p>
+                <div class="col-12 col-md-6 col-xxl-3 d-flex justify-content-center" style="padding:1.5rem 0rem ;">
+                    <div class="card h-100" onclick="handleCardClick('${course.course_id}')">
+                        <img src="../assets/images/bg_cards/${course.image_code}.png" class="card-img-top" alt="img-${course.course_name}">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">${course.course_code} ${course.course_name}</h5>
+                            <p class="">${course.description}</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `).join("");
+            `).join("");
 
             // คำนวณจำนวนหน้าสูงสุด
             const totalPages = Math.ceil(Courses.length / productsPerPage);

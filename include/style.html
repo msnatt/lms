@@ -149,18 +149,6 @@
         overflow: hidden;
     }
 
-    .main-inner {
-        /* min-width: 85%;
-        display: flex;
-        justify-content: center;
-        flex-direction: column;
-        align-items: center; */
-    }
-
-    .main-container {
-        /* max-width: 85%;
-        width: 100%; */
-    }
 
     .menuquickly {
         box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.3);
@@ -191,6 +179,24 @@
         display: none;
         /* สำหรับเบราว์เซอร์ Chrome, Safari และ Edge */
     }
+
+    .sidebar {
+        width: 250px;
+        height: 100%;
+        background: #f8f9fa;
+        top: 0;
+        display: none;
+        /* ซ่อน sidebar ไว้ */
+        transition: left 0.3s ease-in-out;
+        padding: 20px;
+    }
+
+    .sidebar.open {
+        display: block;
+        /* แสดง sidebar */
+    }
+
+
 
     /* การออกแบบ card */
     .card {
