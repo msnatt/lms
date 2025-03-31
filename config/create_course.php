@@ -35,6 +35,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $isdeleted = $_POST['is_deleted'];
         $faculty = $_POST['select_faculty'];
         $department = $_POST['select_department'];
+        $select_day = $_POST["select_day"] ?? [];
+        $select_start = $_POST["select_start"] ?? [];
+        $select_end = $_POST["select_end"] ?? [];
         $units = json_decode($_POST['data'], true);
 
         // บันทึกข้อมูลลงในตาราง course
@@ -50,7 +53,29 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         // ดึงค่า id ที่เพิ่งถูก insert
         $course_id = $conn->insert_id;
-        echo "Course ID: " . $course_id . "<br>";
+
+
+        // ✅ บันทึกข้อมูลลงในตาราง course_schedule
+        $sql_schedule = "INSERT INTO course_schedule (course_id, day_id, start_time, end_time) VALUES (?, ?, ?, ?)";
+        $stmt_schedule = $conn->prepare($sql_schedule);
+        if (!$stmt_schedule) {
+            die("Error preparing schedule statement: " . $conn->error);
+        }
+
+        for ($i = 0; $i < count($select_day); $i++) {
+            $day_id = $select_day[$i];
+            $start_time = $select_start[$i];
+            $end_time = $select_end[$i];
+
+            $stmt_schedule->bind_param("iiss", $course_id, $day_id, $start_time, $end_time);
+            // if (!$stmt_schedule->execute()) {
+            //     die("Error executing schedule statement: " . $stmt_schedule->error);
+            // }
+        }
+
+        echo "Course and schedule saved successfully!";
+        $stmt_schedule->close();
+
 
         $unit_id = 0;
         $tempFolder = "../temp/$username/";

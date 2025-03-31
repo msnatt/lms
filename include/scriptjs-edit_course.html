@@ -1,7 +1,12 @@
 <!-- page product -->
 <script>
     var data = [];
+    var days = [];
     const div_degree_course = document.getElementById('degree_course');
+    //schedule course
+
+    var btn_schedule = document.getElementById('btn_schedule');
+    var div_schedule = document.getElementById('div_schedule');
 
     document.addEventListener('DOMContentLoaded', async () => {
         // fetch
@@ -9,6 +14,12 @@
         const json_res_details = await response_details.json(); // รับผลลัพธ์เป็น JSON
         let detail_course = json_res_details;
         console.log(detail_course['course']);
+
+        const response_schedule = await fetch("../config/Fetch_schedule.php?course_id=<?php echo $courseid; ?>"); // เรียกใช้ PHP
+        const json_res_schedule = await response_schedule.json(); // รับผลลัพธ์เป็น JSON
+        let schedule = json_res_schedule;
+        console.log(schedule);
+        generate_course_schedule(schedule);
 
         const course_name = document.getElementById('name_course');
         const title_course = document.getElementById('title_edit');
@@ -22,8 +33,7 @@
         course_code.value = detail_course['course']['course_code'];
         course_Objective.value = detail_course['course']['objective'];
         course_Description.value = detail_course['course']['description'];
-        is_publish.checked = detail_course['course']['is_publish'] == 1 ? true : false ;
-
+        is_publish.checked = detail_course['course']['is_publish'] == 1 ? true : false;
 
         detail_course['course']['units'].forEach(unit => {
             data.push({ id: unit['unit_id'], type: 'header', content: unit['unit_name'], is_deleted: unit['is_deleted'] });
@@ -134,6 +144,63 @@
                 content_.appendChild(end_content);
                 div_degree_course.appendChild(content_);
             }
+
+        });
+    }
+
+    async function generate_course_schedule(params) {
+
+        const response_days = await fetch("../config/Fetch_days.php"); // เรียกใช้ PHP
+        const json_res_days = await response_days.json(); // รับผลลัพธ์เป็น JSON
+        days = json_res_days;
+        params.forEach(schedule, () => {
+            var _schedule = document.createElement('div');
+            _schedule.className = "bg-light rounded m-1";
+            _schedule.innerHTML = `
+            <div class="d-flex p-2 justify-content-center">
+                <label class="col-2 ">Day :</label>
+                <select class="form-select col-10 mx-2 w-auto" required id="select_day[]" name="select_day[]">
+                    <option value="">-- Select Day --</option>
+                </select>
+            </div>
+            <div class="d-flex justify-content-around p-2">
+                <label>Start</label>
+                <label>End</label>
+            </div>
+            <div class="d-flex justify-content-around p-2">
+                <select class="form-select mx-2" required name="select_start[]"></select>
+                <select class="form-select mx-2" required name="select_end[]"></select>
+            </div>
+            `;
+
+            div_schedule.appendChild(_schedule);
+
+            // ดึง <select> ภายใน _schedule ที่เพิ่งสร้างใหม่
+            var selecy_day = _schedule.querySelector('select[name="select_day[]"]');
+            var select_start = _schedule.querySelector('select[name="select_start[]"]');
+            var select_end = _schedule.querySelector('select[name="select_end[]"]');
+
+            // ✅ วนลูปเพิ่ม <option> สำหรับวัน (Monday - Sunday)
+            days.forEach(day => {
+                let option_day = new Option(day.name, day.id);
+                select_day.add(option_day);
+            });
+
+            select_day.value = schedule.day_id;
+
+            // ✅ วนลูปเพิ่ม <option> สำหรับช่วงเวลา 08:00 - 20:00
+            for (let hour = 8; hour <= 20; hour++) {
+                let time = hour.toString().padStart(2, '0') + ":00"; // "08:00", "09:00" ...
+                let option_start = new Option(time, time);
+                let option_end = new Option(time, time);
+
+                select_start.add(option_start);
+                select_end.add(option_end);
+            }
+
+            // ✅ ตั้งค่าเวลาตามค่าที่ดึงมาจากฐานข้อมูล
+            select_start.value = schedule.start_time;
+            select_end.value = schedule.end_time;
 
         });
     }
@@ -448,7 +515,6 @@
         clearModal('modal_div');
     };
 
-
     function popup_update_content(id) {
         // ลบ modal_div เดิมถ้ามี
         const oldModal = document.getElementById('modal_div');
@@ -514,7 +580,6 @@
         clearModal('modal_div');
     };
 
-
     async function upload_file_temp(input, selectedValue) {
 
         file = input.files[0];
@@ -539,5 +604,52 @@
         }
         return [file.name, "Upload failed ;("]
     }
+
+    btn_schedule.addEventListener('click', () => {
+        var _schedule = document.createElement('div');
+        _schedule.className = "bg-light rounded m-1";
+        _schedule.innerHTML = `
+        <div class="d-flex p-2 justify-content-center">
+            <label class="col-2 ">Day :</label>
+            <select class="form-select col-10 mx-2 w-auto" required name="select_day[]">
+                <option value="">-- Select Day --</option>
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+                <option value="7">Sunday</option>
+            </select>
+        </div>
+        <div class="d-flex justify-content-around p-2">
+            <label>Start</label>
+            <label>End</label>
+        </div>
+        <div class="d-flex justify-content-around p-2">
+            <select class="form-select mx-2" required name="select_start[]"></select>
+            <select class="form-select mx-2" required name="select_end[]"></select>
+        </div>
+    `;
+
+        div_schedule.appendChild(_schedule);
+
+        // ดึง <select> ภายใน _schedule ที่เพิ่งสร้างใหม่
+        var select_start = _schedule.querySelector('select[name="select_start[]"]');
+        var select_end = _schedule.querySelector('select[name="select_end[]"]');
+
+        // วนลูปตั้งแต่ 08:00 - 20:00
+        for (let hour = 8; hour <= 20; hour++) {
+            let time = hour.toString().padStart(2, '0') + ":00"; // "08:00", "09:00" ...
+
+            // สร้าง <option>
+            let option_start = new Option(time, time);
+            let option_end = new Option(time, time);
+
+            // เพิ่ม <option> เข้าไปใน select
+            select_start.add(option_start);
+            select_end.add(option_end);
+        }
+    });
 
 </script>

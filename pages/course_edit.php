@@ -24,7 +24,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                 <form id="form-course" class="d-flex flex-wrap">
                     <input type="hidden" id="course_id" name="course_id" value="<?php echo $courseid; ?>">
                     <input type="hidden" id="is_deleted" name="is_deleted" value="0">
-                    <div class="d-flex flex-column col-lg-3 col-12 rounded" style="padding: 0.5rem 0.25rem;">
+                    <div class="d-flex flex-column col-lg-3 col-12 rounded" style="padding: 0.2rem 0.25rem;">
                         <div class="bg-secondary p-4 rounded bg-opacity-10">
                             <div class="d-flex">
                                 <div>
@@ -56,7 +56,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                             </div>
                         </div>
                     </div>
-                    <div class="d-flex flex-column col-lg-7 col-12 rounded" style="padding: 0rem 0.25rem;">
+                    <div class="d-flex flex-column col-lg-7 col-12 rounded" style="padding: 0.2rem 0.25rem;">
                         <div class="bg-secondary p-2 rounded bg-opacity-10">
                             <div class="p-1 rounded d-flex">
                                 <button type="button" class="btn btn-secondary col-6 col-lg-2 me-1" onclick="create_popup_header()">
@@ -71,7 +71,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                             </div>
                         </div>
                     </div>
-                    <div class="d-flex flex-column col-lg-2 col-12 rounded" style="padding: 0.5rem 0.25rem;">
+                    <div class="d-flex flex-column col-lg-2 col-12 rounded" style="padding: 0.2rem 0.25rem;">
                         <div class="bg-secondary p-2 rounded bg-opacity-10">
                             <div class="d-flex mb-3">
                                 <div class="form-check form-switch px-3">
@@ -110,6 +110,14 @@ $user = $_SESSION['user'] ?? 'N/A';
                                     <option value="13">Computer Engineering</option>
                                 </optgroup>
                             </select>
+                        </div>
+                        <div class="bg-secondary w-100 bg-opacity-10 rounded mt-1">
+                            <h5 class="d-flex justify-content-center" style="position: relative;">
+                                Schedule
+                                <input type="button" id="btn_schedule" value="+" class="btn btn-sm py-0 h-100" style="position: absolute; top: 0; right: 0; "></input>
+                            </h5>
+                            <div id="div_schedule">
+                            </div>
                         </div>
                     </div>
                 </form>

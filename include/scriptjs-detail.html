@@ -101,6 +101,21 @@
         Title_div.appendChild(Title);
         Title_div.appendChild(info_div);
         detail_div.appendChild(Title_div);
+
+        const box_ = document.createElement("div");
+        box_.className = "d-flex container w-100 form-control";
+        const info_ = document.createElement("div");
+        info_.className = "w-25 form-control me-1";
+        info_.style.maxHeight = '200px';
+        info_.innerHTML = `
+            <h6>Objective</h6>
+            <textarea class="w-100" style="border:0px; min-height:150px;" >${course_[0].objective}</textarea>
+            
+        `;
+        const content_ = document.createElement("div");
+        content_.className = "w-75";
+
+
         for (let i = 0; i < Units.length; i++) {
             const unit = Units[i];
             if (courseID == unit.course_id) {
@@ -110,7 +125,8 @@
                 // สร้าง container หลัก
                 const unitDiv = document.createElement("div");
                 unitDiv.style.border = '1px solid #ccc';
-                unitDiv.style.margin = "20px";
+                unitDiv.style.marginLeft = "5px";
+                unitDiv.style.marginBottom = "5px";
                 unitDiv.style.borderRadius = "1rem";
                 unitDiv.style.backgroundColor = "#ffffff";
 
@@ -136,14 +152,6 @@
                 toggleDiv.appendChild(toggleTitleDiv);
                 toggleDiv.appendChild(toggleDescDiv);
 
-                // กล่องเนื้อหา (ซ่อนไว้ก่อน)
-                const unitcontentDiv = document.createElement("div");
-                unitcontentDiv.style.display = "none";
-                unitcontentDiv.innerHTML = `
-                <div padding: 10px;">
-                    ${unit.name}
-                </div>
-                `;
 
                 const contentDiv = document.createElement("div");
                 // กล่องเนื้อหา (ซ่อนไว้ก่อน)
@@ -152,9 +160,7 @@
                 for (let j = 0; j < Contents.length; j++) {
                     const content = Contents[j];
                     if (unit.id == content.unit_id) {
-                        // ฝัง content_id ไว้หน้าเพจ
                         data[String(unit.id)].push(String(content.id));
-
 
                         const innercontentDiv = document.createElement("div");
                         innercontentDiv.style.padding = "10px";
@@ -220,7 +226,10 @@
                 });
 
                 // เพิ่มเข้าไปใน detail_div
-                detail_div.appendChild(unitDiv);
+                content_.appendChild(unitDiv);
+                box_.appendChild(info_);
+                box_.appendChild(content_);
+                detail_div.appendChild(box_);
             }
         };
         const registerBtn = document.getElementById('register_btn');
