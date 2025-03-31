@@ -22,95 +22,50 @@ $user = $_SESSION['user'] ?? 'N/A';
     <?php include "../include/header.php"; ?>
 
     <div class="main-inner d-flex">
-        <div class="bg-light main-container d-flex">
-            <div class="sidebar" id="sidebar">
-                <ul class="navbar-nav">
-                    <li class="d-flex align-items-center gap-2">
-                        <i class="bi bi-house"></i>
-                        <span><a class="nav-link active text" href="../pages/home.php">Home</a></span>
-                    </li>
-                    <li class="d-flex align-items-center gap-2">
-                        <a class="nav-link text" href="../pages/course.php">Course</a>
-                    </li>
-                    <li class="d-flex align-items-center gap-2">
-                        <a class="nav-link text" href="../pages/chat.php">Chat</a>
-                    </li>
-                    <li class="d-flex align-items-center gap-2">
-                        <a class="nav-link text" href="../pages/news.php">News</a>
-                    </li>
-                    <li class="d-flex align-items-center gap-2">
-                        <a class="nav-link text" href="../pages/contect.php">Contact us</a>
-                    </li>
-                </ul>
-            </div>
-            <div>
-                <h2 class="p-4">Courses</h2>
+        <div class="bg-light d-flex" style="width: 100%;">
+            <?php include "../components/sidemenu.php"; ?>
+            <div class="d-flex flex-column justify-content-center w-100">
+                <h2 class="p-4" style="max-width: 100%">Courses</h2>
                 <div class="d-flex">
-                    <div class="d-flex flex-column col-lg-3 col-12 rounded" style="padding: 0.2rem 0.25rem;">
+                    <div class="d-flex flex-column col-lg-2 col-12 rounded" style="padding: 0.2rem 0.25rem;">
                         <div class="p-4 rounded bg-opacity-10" style="min-height: 100%;">
-                            <div class="d-flex">
-                                <div>
-                                    <label class="form-label">Code</label>
-                                    <input type="text" id="name_course" name="name_course" class="form-control">
-                                </div>
-                                <div>
-                                    <label class="form-label">Name</label>
-                                    <input type="text" id="code_course" name="code_course" class="form-control" oninput="validateNumberInput(event)">
-                                </div>
+                            <div>
+                                <label class="form-label">Code</label>
+                                <input type="text" id="code_filter" name="code_filter" class="form-control" oninput="validateNumberInput(event) ">
+                            </div>
+                            <div>
+                                <label class="form-label">Name</label>
+                                <input type="text" id="name_filter" name="name_filter" class="form-control" oninput="filterCourses()">
                             </div>
                             <label class="form-label">Faculty</label>
-                            <select class="form-select" name="select_faculty" id="select_faculty">
-                                <option value="">-- Select Faculty --</option>
-                                <option value="science">Faculty of Science</option>
-                                <option value="engineering">Faculty of Engineering</option>
-                                <option value="business">Faculty of Business Administration</option>
-                                <option value="arts">Faculty of Arts</option>
-                                <option value="medicine">Faculty of Medicine</option>
+                            <select class="form-select" name="select_faculty" id="select_faculty" onchange="filterCourses()">
+                                <option value="">-- All Faculty --</option>
+                                <option value="1">Faculty of Science</option>
+                                <option value="2">Faculty of Engineering</option>
+                                <option value="3">Faculty of Business Administration</option>
+                                <option value="4">Faculty of Arts</option>
+                                <option value="5">Faculty of Medicine</option>
                             </select>
 
                             <label class="form-label">Department</label>
-                            <select class="form-select" name="select_department" id="select_department">
-                                <option value="">-- Select Department --</option>
+                            <select class="form-select" name="select_department" id="select_department" onchange="filterCourses()">
+                                <option value="">-- All Department --</option>
 
                                 <!-- Science Departments -->
                                 <optgroup label="Faculty of Science">
-                                    <option value="cs">Computer Science</option>
-                                    <option value="math">Mathematics</option>
-                                    <option value="physics">Physics</option>
-                                    <option value="chemistry">Chemistry</option>
-                                    <option value="biology">Biology</option>
+                                    <option value="1">Computer Science</option>
+                                    <option value="2">Mathematics</option>
+                                    <option value="3">Physics</option>
+                                    <option value="4">Chemistry</option>
+                                    <option value="5">Biology</option>
                                 </optgroup>
 
                                 <!-- Engineering Departments -->
                                 <optgroup label="Faculty of Engineering">
-                                    <option value="civil">Civil Engineering</option>
-                                    <option value="mechanical">Mechanical Engineering</option>
-                                    <option value="electrical">Electrical Engineering</option>
-                                    <option value="computer_eng">Computer Engineering</option>
-                                </optgroup>
-
-                                <!-- Business Departments -->
-                                <optgroup label="Faculty of Business Administration">
-                                    <option value="accounting">Accounting</option>
-                                    <option value="finance">Finance</option>
-                                    <option value="marketing">Marketing</option>
-                                    <option value="management">Management</option>
-                                </optgroup>
-
-                                <!-- Arts Departments -->
-                                <optgroup label="Faculty of Arts">
-                                    <option value="history">History</option>
-                                    <option value="philosophy">Philosophy</option>
-                                    <option value="literature">Literature</option>
-                                    <option value="languages">Languages</option>
-                                </optgroup>
-
-                                <!-- Medicine Departments -->
-                                <optgroup label="Faculty of Medicine">
-                                    <option value="general_medicine">General Medicine</option>
-                                    <option value="dentistry">Dentistry</option>
-                                    <option value="pharmacy">Pharmacy</option>
-                                    <option value="nursing">Nursing</option>
+                                    <option value="10">Civil Engineering</option>
+                                    <option value="11">Mechanical Engineering</option>
+                                    <option value="12">Electrical Engineering</option>
+                                    <option value="13">Computer Engineering</option>
                                 </optgroup>
                             </select>
 
@@ -121,7 +76,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <div class="w-100">
                         <div class="d-flex justify-content-center px-4">
                             <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder="search course you interest!">
                         </div>

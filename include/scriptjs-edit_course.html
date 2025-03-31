@@ -15,12 +15,14 @@
         const course_code = document.getElementById('code_course');
         const course_Description = document.getElementById('textBoxDescription');
         const course_Objective = document.getElementById('textBoxObjective');
+        const is_publish = document.getElementById('is_publish');
 
         course_name.value = detail_course['course']['course_name'];
         title_course.innerHTML = "Edit " + detail_course['course']['course_name'];
         course_code.value = detail_course['course']['course_code'];
         course_Objective.value = detail_course['course']['objective'];
         course_Description.value = detail_course['course']['description'];
+        is_publish.checked = detail_course['course']['is_publish'] == 1 ? true : false ;
 
 
         detail_course['course']['units'].forEach(unit => {

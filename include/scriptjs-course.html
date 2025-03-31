@@ -1,53 +1,69 @@
 <!-- page product -->
 <script>
+    let productsPerPage = 6; // จำนวนสินค้าต่อหน้า
+    let currentPage = 1;
+    let Courses = [];
+    let filter_courses = [];
     document.addEventListener('DOMContentLoaded', async () => {
-        let productsPerPage = 6; // จำนวนสินค้าต่อหน้า
-        let currentPage = 1;
 
         const response = await fetch('../config/Search_Course.php'); // เรียกใช้ PHP
         const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
         let Courses_access = json_res;
-        let Courses = Courses_access['courses'];
-        var numOfResult = document.getElementById('numofresult');
-        numOfResult.innerHTML = Courses.length;
+        Courses = Courses_access['courses'];
+        filter_courses = Courses;
         console.log(Courses);
 
+        // เริ่มต้น
+        updateProductsPerPage(Courses);
 
+        // Event Listeners
+        document.getElementById("prev-page").addEventListener("click", () => changePage(-1));
+        document.getElementById("next-page").addEventListener("click", () => changePage(1));
+        window.addEventListener('resize', updateProductsPerPage);
+    });
 
+    function validateNumberInput(event) {
+        // กรองเฉพาะตัวเลข
+        event.target.value = event.target.value.replace(/[^0-9]/g, '');
+        filterCourses();
+    }
 
+    function handleCardClick(course_id) {
+        window.location.href = `../components/Set_Course.php?courseid=${course_id}`;
+        // alert('You clicked on course: ' + course_id);
+    }
 
-
-        // ฟังก์ชันตรวจสอบขนาดหน้าจอ
-        function updateProductsPerPage() {
-            if (window.innerWidth < 768) {
-                productsPerPage = 3; // หน้าจอเล็ก
-            } else {
-                productsPerPage = 6; // หน้าจอใหญ่
-            }
-            currentPage = 1; // รีเซ็ตไปหน้าแรก
-            renderProducts(currentPage);
+    // ฟังก์ชันตรวจสอบขนาดหน้าจอ
+    function updateProductsPerPage() {
+        if (window.innerWidth < 768) {
+            productsPerPage = 3; // หน้าจอเล็ก
+        } else {
+            productsPerPage = 6; // หน้าจอใหญ่
         }
+        currentPage = 1; // รีเซ็ตไปหน้าแรก
+        renderProducts(currentPage);
+    }
 
-        // ฟังก์ชันเปลี่ยนหน้า
-        function changePage(offset) {
-            currentPage += offset;
-            renderProducts(currentPage);
-        }
+    // ฟังก์ชันเปลี่ยนหน้า
+    function changePage(offset) {
+        currentPage += offset;
+        renderProducts(currentPage);
+    }
 
-        function randomImage() {
-            var random = Math.floor((Math.random() * 6) + 1);
-            var pathofimage = `../assets/images/bg_cards/${random}.png`;
-            return pathofimage
-        }
+    function randomImage() {
+        var random = Math.floor((Math.random() * 6) + 1);
+        var pathofimage = `../assets/images/bg_cards/${random}.png`;
+        return pathofimage
+    }
 
-        // ฟังก์ชันแสดงสินค้า
-        function renderProducts(page) {
-            const startIndex = (page - 1) * productsPerPage;
-            const endIndex = startIndex + productsPerPage;
-            const visibleCourse = Courses.slice(startIndex, endIndex);
+    // ฟังก์ชันแสดงสินค้า
+    function renderProducts(page) {
+        const startIndex = (page - 1) * productsPerPage;
+        const endIndex = startIndex + productsPerPage;
+        const visibleCourse = filter_courses.slice(startIndex, endIndex);
 
-            const course_div = document.getElementById("course_div");
-            course_div.innerHTML = visibleCourse.map(course => `
+        const course_div = document.getElementById("course_div");
+        course_div.innerHTML = visibleCourse.map(course => `
                 <div class="col-12 col-md-6 col-xxl-3 d-flex justify-content-center" style="padding:1.5rem 0rem ;">
                     <div class="card h-100" onclick="handleCardClick('${course.course_id}')">
                         <img src="../assets/images/bg_cards/${course.image_code}.png" class="card-img-top" alt="img-${course.course_name}">
@@ -59,28 +75,39 @@
                 </div>
             `).join("");
 
-            // คำนวณจำนวนหน้าสูงสุด
-            const totalPages = Math.ceil(Courses.length / productsPerPage);
-            document.getElementById("total-pages").textContent = totalPages;
+        // คำนวณจำนวนหน้าสูงสุด
+        const totalPages = Math.ceil(Courses.length / productsPerPage);
+        document.getElementById("total-pages").textContent = totalPages;
 
-            // อัปเดตปุ่ม Pagination
-            document.getElementById("current-page").textContent = currentPage;
-            document.getElementById("prev-page").disabled = currentPage === 1;
-            document.getElementById("next-page").disabled = currentPage === totalPages;
-        }
+        // อัปเดตปุ่ม Pagination
+        document.getElementById("current-page").textContent = currentPage;
+        document.getElementById("prev-page").disabled = currentPage === 1;
+        document.getElementById("next-page").disabled = currentPage === totalPages;
+        
 
-        // Event Listeners
-        document.getElementById("prev-page").addEventListener("click", () => changePage(-1));
-        document.getElementById("next-page").addEventListener("click", () => changePage(1));
-        window.addEventListener('resize', updateProductsPerPage);
+        var numOfResult = document.getElementById('numofresult');
+        numOfResult.innerHTML = filter_courses.length;
+    }
 
-        // เริ่มต้น
+    //filter course
+
+    function filterCourses() {
+        let codeFilter = document.getElementById("code_filter").value.trim().toLowerCase();
+        let nameFilter = document.getElementById("name_filter").value.trim().toLowerCase();
+        let facultyFilter = parseInt(document.getElementById("select_faculty").value);
+        let departmentFilter =parseInt(document.getElementById("select_department").value);
+
+        filter_courses = Courses.filter(course => {
+            let matchCode = codeFilter ? course['course_code'].toLowerCase().includes(codeFilter) : true;
+            let matchName = nameFilter ? course['course_name'].toLowerCase().includes(nameFilter) : true;
+            let matchFaculty = facultyFilter ? course['faculty_id'] === facultyFilter : true;
+            let matchDepartment = departmentFilter ? course['department_id'] === departmentFilter : true;
+
+            return matchCode && matchName && matchFaculty && matchDepartment;
+        });
+
         updateProductsPerPage();
-    });
 
-    function handleCardClick(course_id) {
-        window.location.href = `../components/Set_Course.php?courseid=${course_id}`;
-        // alert('You clicked on course: ' + course_id);
     }
 
 </script>

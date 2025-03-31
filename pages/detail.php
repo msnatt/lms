@@ -18,15 +18,16 @@ $owner = $_SESSION['owner'] ?? 'N/A';
 <body class="bg-custom ">
     <?php include "../include/header.php"; ?>
     <br>
-    <div class="main-inner">
-        <div class="main-container bg-white bg-shadow" style="min-height: 70vh;" id="detail_div" name="detail_div"></div>
+    <div class="d-flex" style="min-height: 70vh;">
+        <?php include "../components/sidemenu.php"; ?>
+        <div class="main-container bg-white bg-shadow w-100"  id="detail_div" name="detail_div"></div>
 
         <?php if ($user['is_admin'] == "1" && $course['create_by'] == $user['id']): ?>
-                <div style="position: fixed; bottom: 10%; right: 3%;">
-                    <button class="menuquickly" onclick="window.location.href = '../pages/course_edit.php?courseid=<?php echo $courseid; ?>'">
-                        <img src="../assets/images/edit.png" width="25px" height="25px" />
-                    </button>
-                </div>
+            <div style="position: fixed; bottom: 10%; right: 3%;">
+                <button class="menuquickly" onclick="window.location.href = '../pages/course_edit.php?courseid=<?php echo $courseid; ?>'">
+                    <img src="../assets/images/edit.png" width="25px" height="25px" />
+                </button>
+            </div>
         <?php endif; ?>
     </div>
 

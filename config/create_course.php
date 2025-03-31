@@ -31,19 +31,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $code = $_POST['code_course'];
         $description = $_POST['textBoxDescription'];
         $objective = $_POST['textBoxObjective'];
+        $ispublish = $_POST['is_publish'] == "on" ? 1 : 0;
+        $isdeleted = $_POST['is_deleted'];
+        $faculty = $_POST['select_faculty'];
+        $department = $_POST['select_department'];
         $units = json_decode($_POST['data'], true);
 
         // บันทึกข้อมูลลงในตาราง course
-        $sql_course = "INSERT INTO course (code, image_code, name, description, objective, create_by) VALUES (?, 1, ?, ?, ?, ?)";
+        $sql_course = "INSERT INTO course (code, image_code, name, description, objective, faculty_id, department_id, is_publish, create_by, update_by) VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql_course);
         if (!$stmt) {
             die("Error preparing course statement: " . $conn->error);
         }
-        $stmt->bind_param("sssss", $code, $name, $description, $objective, $user['id']);
-        if (!$stmt->execute()) {
-            die("Error executing statement: " . $stmt->error);
-        }
-        // $stmt->execute();
+        $stmt->bind_param("ssssiiiss", $code, $name, $description, $objective, $faculty, $department, $ispublish, $user['id'], $user['id']);
+        // if (!$stmt->execute()) {
+        //     die("Error executing statement: " . $stmt->error);
+        // }
 
         // ดึงค่า id ที่เพิ่งถูก insert
         $course_id = $conn->insert_id;

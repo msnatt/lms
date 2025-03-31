@@ -1,0 +1,59 @@
+<!-- page product -->
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const response = await fetch('../config/Fetch_faculty.php'); // เรียกใช้ PHP
+        const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
+        let faculty = json_res;
+        console.log(faculty);
+
+        generate_catalogue(faculty);
+
+
+
+    });
+
+    function generate_catalogue(datas) {
+        const catalogue_ = document.getElementById('catalogue_div');
+        catalogue_.innerHTML = '';
+
+        Object.values(datas).forEach(row => {
+            console.log(row);
+
+            var header_ = document.createElement('div');
+            header_.className = "w-100 px-4 py-1 form-control";
+            header_.style.fontSize = "1.25rem";
+            header_.style.fontWeight = "600";
+            header_.textContent = row['name'];
+
+            // loop course list 
+            var courses = row['courses'];
+            var course_ = document.createElement('div');
+            course_.style.display = "none";
+            course_.style.backgroundColor = "#ffffff";
+            row['courses'].forEach(course => {
+                console.log(course);
+                var temp_ = document.createElement('div');
+                temp_.className = "w-100 px-4 py-2";
+                temp_.style.fontSize = "1rem";
+                temp_.style.fontWeight = "400";
+                temp_.textContent = "• " + course['course_code'] + " " + course['course_name'];
+
+                course_.appendChild(temp_);
+            });
+
+            header_.appendChild(course_);
+            catalogue_.appendChild(header_);
+            // เพิ่ม Event Listener สำหรับการซ่อน/แสดง
+            header_.addEventListener("click", () => {
+                const isVisible = course_.style.display === "block";
+                // unitcontentDiv.style.display = isVisible ? "none" : "block";
+                course_.style.display = isVisible ? "none" : "block";
+                header_.style.backgroundColor = isVisible ? "#ffffff" : "#ffffff"; // เขียว-แดง
+            });
+        });
+    }
+
+    function RedirectToPage(page) {
+        window.location.href = '../pages/' + page + '.php';
+    }
+</script>

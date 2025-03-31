@@ -52,6 +52,7 @@
                                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                     <li><a class="dropdown-item" href="../pages/mycourse.php">My Course</a></li>
                                     <?php if ($_SESSION['user']['is_admin']): ?>
+                                        <li><a class="dropdown-item" href="../pages/course_catalogue.php">Catalogue</a></li>
                                     <?php endif; ?>
                                     <li><a class="dropdown-item" href="../pages/setting.php">Setting</a></li>
                                     <li><a class="dropdown-item" href="../pages/logout.php">Logout</a></li>
@@ -64,7 +65,7 @@
 
             <div class="container-fluid d-flex d-lg-none">
                 <!-- ปุ่ม Toggle -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <button class="navbar-toggler w-100" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -97,6 +98,6 @@
             </div>
         </nav>
     </div>
-
+    <hr style="margin: 0; border-color: #888; opacity: 100%;">
 
 </header>

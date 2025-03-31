@@ -25,10 +25,13 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                    course.name AS course_name, 
                    course.description AS course_description, 
                    course.objective AS course_objective, 
+                   course.faculty_id AS course_faculty_id, 
+                   course.department_id AS course_department_id, 
                    course.create_date AS course_create_date, 
                    course.update_date AS course_update_date, 
                    course.create_by AS course_create_by, 
                    course.update_by AS course_update_by, 
+                   course.is_publish AS course_is_publish, 
                    course.is_deleted AS course_is_deleted,
 
                    unit.id AS unit_id, 
@@ -49,6 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                    content.is_deleted AS content_is_deleted, 
 
                    user.id AS user_id, 
+                   user.code AS user_code, 
                    user.name AS user_name, 
                    user.username AS user_username, 
                    user.email AS user_email, 
@@ -100,10 +104,13 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 "course_name" => $row["course_name"],
                 "description" => $row["course_description"],
                 "objective" => $row["course_objective"],
+                "faculty_id" => $row["course_faculty_id"],
+                "department_id" => $row["course_department_id"],
                 "create_date" => $row["course_create_date"],
                 "update_date" => $row["course_update_date"],
                 "create_by" => $row["course_create_by"],
                 "update_by" => $row["course_update_by"],
+                "is_publish" => $row["course_is_publish"],
                 "is_deleted" => $row["course_is_deleted"]
             ];
         }
@@ -147,6 +154,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         if (!$data["owner"]) {
             $data["owner"] = [
                 "user_id" => $row["user_id"],
+                "code" => $row["user_code"],
                 "name" => $row["user_name"],
                 "username" => $row["user_username"],
                 "email" => $row["user_email"],

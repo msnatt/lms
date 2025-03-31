@@ -1,5 +1,5 @@
 <?php
-session_start();
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -8,25 +8,15 @@ error_reporting(E_ALL);
 include "../config/no-crash.php";
 include "../config/connect.php";
 
-// ตรวจสอบว่าผู้ใช้ล็อกอินแล้ว
-if (!isset($_SESSION['username'])) {
-    die("User not logged in.");
-}
-
-$username = $_SESSION['username'];
-$user = $_SESSION['user'] ?? 'N/A';
-
 // ตรวจสอบการเชื่อมต่อ
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
 // ดึงข้อมูลจากตาราง categories
-$sql = "SELECT  course_access.id AS ca_id,
-                course_access.course_id AS ca_course_id,
-                course_access.user_id AS ca_user_id,
-                course_access.is_access AS ca_is_access,
-                course_access.is_deleted AS ca_is_deleted,
+$sql = "SELECT  faculty.id AS faculty_id,
+                faculty.name AS faculty_name,
+                faculty.is_deleted AS faculty_is_deleted,
 
                 course.id AS course_id, 
                 course.code AS course_code, 
@@ -43,12 +33,11 @@ $sql = "SELECT  course_access.id AS ca_id,
                 course.is_publish AS course_is_publish,
                 course.is_deleted AS course_is_deleted
 
-            FROM course_access
-            LEFT JOIN course ON course_access.course_id = course.id
-            WHERE course.is_deleted = 0 AND course_access.is_deleted = 0 AND course_access.user_id = ?";
+            FROM faculty
+            LEFT JOIN course ON faculty.id = course.faculty_id
+            WHERE course.is_deleted = 0 AND faculty.is_deleted = 0";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $user['id']);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -57,20 +46,21 @@ $data = [];
 while ($row = $result->fetch_assoc()) {
 
     // ✅ สร้างโครงสร้างหลักหากยังไม่มีข้อมูลใน `$data`
-    if (empty($data)) {
-        $data = [
-            "user_id" => $row["ca_user_id"],
+    if (!isset($data[$row['faculty_name']])) {
+        $data[$row['faculty_name']] = [
+            "id" => $row["faculty_id"],
+            "name" => $row["faculty_name"],
             "courses" => [],
         ];
     }
 
     // ✅ ตรวจสอบว่า `courses` มีข้อมูลนี้อยู่แล้วหรือยัง
-    $courseExists = array_filter($data["courses"], function ($c) use ($row) {
+    $courseExists = array_filter($data[$row['faculty_name']]["courses"], function ($c) use ($row) {
         return $c["course_id"] == $row["course_id"];
     });
 
     if (!$courseExists) {
-        $data["courses"][] = [
+        $data[$row['faculty_name']]["courses"][] = [
             "course_id" => $row["course_id"],
             "course_code" => $row["course_code"],
             "image_code" => $row["course_image_code"],
