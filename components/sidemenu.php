@@ -2,15 +2,15 @@
     <ul class="navbar-nav">
         <li class="d-flex align-items-center gap-2">
             <i class="bi bi-house"></i>
-            <span><a class="nav-link active text" href="../pages/home.php">Home</a></span>
+            <span><a class="nav-link active text" href="../pages/chat.php">General Chat</a></span>
         </li>
         <li class="d-flex align-items-center gap-2">
             <i class="bi bi-journals"></i>
-            <a class="nav-link text" href="../pages/course.php">Course</a>
+            <a class="nav-link text" href="../pages/course.php">Courses</a>
         </li>
         <li class="d-flex align-items-center gap-2">
             <i class="bi bi-chat-left-dots"></i>
-            <a class="nav-link text" href="../pages/chat.php">Chat</a>
+            <a class="nav-link text" href="../pages/user_management.php">User Management</a>
         </li>
         <li class="d-flex align-items-center gap-2">
             <i class="bi bi-newspaper"></i>

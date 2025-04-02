@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 02, 2025 at 03:48 AM
+-- Generation Time: Apr 02, 2025 at 12:28 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -301,6 +301,19 @@ CREATE TABLE `file` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `logs_user`
+--
+
+CREATE TABLE `logs_user` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `status_code` varchar(10) NOT NULL,
+  `message` text NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `typefile`
 --
 
@@ -460,6 +473,12 @@ ALTER TABLE `file`
   ADD KEY `content_id_file__id_content` (`content_id`);
 
 --
+-- Indexes for table `logs_user`
+--
+ALTER TABLE `logs_user`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `typefile`
 --
 ALTER TABLE `typefile`
@@ -535,6 +554,12 @@ ALTER TABLE `faculty`
 -- AUTO_INCREMENT for table `file`
 --
 ALTER TABLE `file`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `logs_user`
+--
+ALTER TABLE `logs_user`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
