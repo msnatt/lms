@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 27, 2025 at 10:19 AM
+-- Generation Time: Apr 02, 2025 at 03:48 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -80,6 +80,8 @@ CREATE TABLE `course` (
   `name` varchar(50) NOT NULL,
   `description` text NOT NULL,
   `objective` text NOT NULL,
+  `faculty_id` int(11) NOT NULL DEFAULT 0,
+  `department_id` int(11) NOT NULL DEFAULT 0,
   `create_date` date NOT NULL DEFAULT current_timestamp(),
   `update_date` date NOT NULL DEFAULT current_timestamp(),
   `create_by` int(11) NOT NULL DEFAULT 0 COMMENT 'create by user_id',
@@ -92,13 +94,13 @@ CREATE TABLE `course` (
 -- Dumping data for table `course`
 --
 
-INSERT INTO `course` (`id`, `code`, `image_code`, `name`, `description`, `objective`, `create_date`, `update_date`, `create_by`, `update_by`, `is_publish`, `is_deleted`) VALUES
-(1, '110210', 2, 'Geolocator', 'This is Description of Geolocator Course', 'Geolocator Course\r\n - location\r\n - plate\r\n - date of location', '2025-03-03', '2025-03-03', 1, 1, 1, 0),
-(2, '110222', 3, 'Facebook Course', 'This is Description of Facebook\r\n', 'Facebook Course\r\n - social media\r\n - for entertainment', '2025-03-03', '2025-03-03', 3, 3, 1, 0),
-(7, '12345123', 4, 'Course Test', 'Description  Course Test', 'Objective Course Test', '2025-03-19', '2025-03-19', 3, 0, 1, 0),
-(8, '0101110', 1, 'Course programing', 'Course programing Description', 'Course programing Objective', '2025-03-19', '2025-03-19', 5, 0, 1, 0),
-(9, '101010', 6, 'Thai massage', 'Thai masssage in your heart', '- relax\r\n- comfortable', '2025-03-19', '2025-03-19', 1, 0, 1, 0),
-(10, '110220', 1, 'Instagram', 'this is course about start into instagram.\r\nnow those course you will learn about starter, create accout, post, etc', '- social media.\r\n- content on internet.\r\n- find new friend.', '2025-03-24', '2025-03-24', 3, 3, 0, 0);
+INSERT INTO `course` (`id`, `code`, `image_code`, `name`, `description`, `objective`, `faculty_id`, `department_id`, `create_date`, `update_date`, `create_by`, `update_by`, `is_publish`, `is_deleted`) VALUES
+(1, '110210', 2, 'Geolocator', 'This is Description of Geolocator Course', 'Geolocator Course\r\n - location\r\n - plate\r\n - date of location', 1, 1, '2025-03-03', '2025-03-03', 1, 1, 1, 0),
+(2, '110222', 3, 'Facebook Course', 'This is Description of Facebook\r\n', 'Facebook Course\r\n - social media\r\n - for entertainment', 2, 1, '2025-03-03', '2025-03-03', 3, 3, 1, 0),
+(7, '123451', 4, 'Course Test', 'Description  Course Test', 'Objective Course Test', 2, 2, '2025-03-19', '2025-03-19', 3, 0, 1, 0),
+(8, '101112', 1, 'Course programing', 'Course programing Description', 'Course programing Objective', 1, 1, '2025-03-19', '2025-03-19', 5, 0, 1, 0),
+(9, '101010', 6, 'Thai massage', 'Thai masssage in your heart', '- relax\r\n- comfortable', 1, 2, '2025-03-19', '2025-03-19', 1, 0, 1, 0),
+(10, '110220', 1, 'Instagram', 'this is course about start into instagram.\r\nnow those course you will learn about starter, create accout, post, etc', '- social media.\r\n- content on internet.\r\n- find new friend.', 2, 1, '2025-03-24', '2025-03-24', 3, 3, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -111,8 +113,56 @@ CREATE TABLE `course_access` (
   `course_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `is_access` tinyint(1) NOT NULL DEFAULT 0,
+  `create_date` date NOT NULL DEFAULT current_timestamp(),
+  `create_by` int(11) NOT NULL,
   `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `course_access`
+--
+
+INSERT INTO `course_access` (`id`, `course_id`, `user_id`, `is_access`, `create_date`, `create_by`, `is_deleted`) VALUES
+(1, 1, 2, 1, '2025-03-28', 1, 0),
+(2, 2, 2, 1, '2025-03-28', 1, 0),
+(3, 7, 2, 1, '2025-03-28', 1, 0),
+(4, 8, 2, 1, '2025-03-28', 1, 0),
+(5, 9, 2, 1, '2025-03-28', 1, 0),
+(6, 10, 1, 1, '2025-03-28', 1, 0),
+(7, 1, 1, 1, '2025-03-28', 1, 0),
+(8, 2, 1, 1, '2025-03-28', 1, 0),
+(9, 7, 1, 1, '2025-03-28', 1, 0),
+(10, 8, 1, 1, '2025-03-28', 1, 0),
+(11, 9, 1, 1, '2025-03-28', 1, 0),
+(12, 10, 3, 1, '2025-03-28', 3, 0),
+(14, 1, 3, 1, '2025-03-28', 3, 0),
+(15, 2, 3, 1, '2025-03-28', 3, 0),
+(16, 7, 3, 1, '2025-03-28', 3, 0),
+(17, 8, 3, 1, '2025-03-28', 3, 0),
+(18, 9, 3, 1, '2025-03-28', 3, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `course_schedule`
+--
+
+CREATE TABLE `course_schedule` (
+  `id` int(11) NOT NULL,
+  `course_id` int(11) NOT NULL,
+  `day_id` int(11) NOT NULL,
+  `start_time` varchar(10) NOT NULL,
+  `end_time` varchar(10) NOT NULL,
+  `is_deleted` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `course_schedule`
+--
+
+INSERT INTO `course_schedule` (`id`, `course_id`, `day_id`, `start_time`, `end_time`, `is_deleted`) VALUES
+(1, 1, 4, '09:00', '12:00', 0),
+(2, 1, 3, '13:00', '16:00', 0);
 
 -- --------------------------------------------------------
 
@@ -163,6 +213,75 @@ INSERT INTO `course_student` (`id`, `course_id`, `unit_id`, `content_id`, `owner
 (63, 10, 12, 26, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
 (64, 10, 12, 27, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
 (65, 10, 12, 28, 3, 0, '2025-03-24', '2025-03-24', 0, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `days`
+--
+
+CREATE TABLE `days` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `short_name` varchar(3) NOT NULL,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `days`
+--
+
+INSERT INTO `days` (`id`, `name`, `short_name`, `is_deleted`) VALUES
+(1, 'Monday', 'Mon', 0),
+(2, 'Tuesday', 'Tue', 0),
+(3, 'Wednesday', 'Wed', 0),
+(4, 'Thursday', 'Thu', 0),
+(5, 'Friday', 'Fri', 0),
+(6, 'Saturday', 'Sat', 0),
+(7, 'Sunday', 'Sun', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `department`
+--
+
+CREATE TABLE `department` (
+  `id` int(11) NOT NULL,
+  `faculty_id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `department`
+--
+
+INSERT INTO `department` (`id`, `faculty_id`, `name`, `is_deleted`) VALUES
+(1, 1, 'All', 0),
+(2, 1, 'Test Department 1 1', 0),
+(3, 1, 'Test Department 1 2', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `faculty`
+--
+
+CREATE TABLE `faculty` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `faculty`
+--
+
+INSERT INTO `faculty` (`id`, `name`, `is_deleted`) VALUES
+(0, '-emtry-', 0),
+(1, 'Engineer', 0),
+(2, 'Science', 0);
 
 -- --------------------------------------------------------
 
@@ -244,6 +363,7 @@ INSERT INTO `unit` (`id`, `course_id`, `name`, `introduction`, `conclusion`, `cr
 
 CREATE TABLE `user` (
   `id` int(11) NOT NULL,
+  `code` varchar(11) NOT NULL DEFAULT '65000000000',
   `name` varchar(50) NOT NULL,
   `email` varchar(50) NOT NULL,
   `username` varchar(20) NOT NULL,
@@ -261,11 +381,11 @@ CREATE TABLE `user` (
 -- Dumping data for table `user`
 --
 
-INSERT INTO `user` (`id`, `name`, `email`, `username`, `password`, `rank`, `telephone`, `create_date`, `update_date`, `is_pushhandup`, `is_admin`, `is_deleted`) VALUES
-(1, 'Adminitrator', 'admin@gmail.com', 'admin', 'admin', 0, '0987654321', '2025-03-03', '2025-03-03', 0, 1, 0),
-(2, 'user', 'user@gmail.com', 'user', 'user', 1, '1234567890', '2025-03-03', '2025-03-03', 0, 0, 0),
-(3, 'Adminitrator2', 'admin2@gmail.com', 'admin2', 'admin', 0, '0123456789', '2025-03-03', '2025-03-03', 0, 1, 0),
-(5, 'Adminitrator2', 'admin2@gmail.com', 'admin3', 'admin', 0, '0123456789', '2025-03-03', '2025-03-03', 0, 1, 0);
+INSERT INTO `user` (`id`, `code`, `name`, `email`, `username`, `password`, `rank`, `telephone`, `create_date`, `update_date`, `is_pushhandup`, `is_admin`, `is_deleted`) VALUES
+(1, '65000000001', 'Adminitrator', 'admin@gmail.com', 'admin', 'admin', 0, '0987654321', '2025-03-03', '2025-03-03', 0, 1, 0),
+(2, '65000000002', 'user', 'user@gmail.com', 'user', 'user', 1, '1234567890', '2025-03-03', '2025-03-03', 0, 0, 0),
+(3, '65000000003', 'Adminitrator2', 'admin2@gmail.com', 'admin2', 'admin', 0, '0123456789', '2025-03-03', '2025-03-03', 0, 1, 0),
+(5, '65000000004', 'Adminitrator2', 'admin2@gmail.com', 'admin3', 'admin', 0, '0123456789', '2025-03-03', '2025-03-03', 0, 1, 0);
 
 --
 -- Indexes for dumped tables
@@ -283,13 +403,25 @@ ALTER TABLE `content`
 -- Indexes for table `course`
 --
 ALTER TABLE `course`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `faculty_id_course__id_faculty` (`faculty_id`),
+  ADD KEY `department_id_course__id_department` (`department_id`);
 
 --
 -- Indexes for table `course_access`
 --
 ALTER TABLE `course_access`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `course_id_course_access__id_course` (`course_id`),
+  ADD KEY `user_id_course_access__id_user` (`user_id`);
+
+--
+-- Indexes for table `course_schedule`
+--
+ALTER TABLE `course_schedule`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `course_id_course_schedule__id_course` (`course_id`),
+  ADD KEY `day_id_course_schedule__id_course` (`day_id`);
 
 --
 -- Indexes for table `course_student`
@@ -300,6 +432,25 @@ ALTER TABLE `course_student`
   ADD KEY `unit_id_course_student__id_unit` (`unit_id`),
   ADD KEY `owner_id_course_student__id_user` (`owner_id`),
   ADD KEY `content_id_course_student__id_content` (`content_id`);
+
+--
+-- Indexes for table `days`
+--
+ALTER TABLE `days`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `department`
+--
+ALTER TABLE `department`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `faculty_id_department__id_faculty` (`faculty_id`);
+
+--
+-- Indexes for table `faculty`
+--
+ALTER TABLE `faculty`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `file`
@@ -342,19 +493,43 @@ ALTER TABLE `content`
 -- AUTO_INCREMENT for table `course`
 --
 ALTER TABLE `course`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `course_access`
 --
 ALTER TABLE `course_access`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+
+--
+-- AUTO_INCREMENT for table `course_schedule`
+--
+ALTER TABLE `course_schedule`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `course_student`
 --
 ALTER TABLE `course_student`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+
+--
+-- AUTO_INCREMENT for table `days`
+--
+ALTER TABLE `days`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `department`
+--
+ALTER TABLE `department`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `faculty`
+--
+ALTER TABLE `faculty`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `file`
@@ -392,6 +567,27 @@ ALTER TABLE `content`
   ADD CONSTRAINT `unit_id_content__id_unit` FOREIGN KEY (`unit_id`) REFERENCES `unit` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Constraints for table `course`
+--
+ALTER TABLE `course`
+  ADD CONSTRAINT `department_id_course__id_department` FOREIGN KEY (`department_id`) REFERENCES `department` (`id`),
+  ADD CONSTRAINT `faculty_id_course__id_faculty` FOREIGN KEY (`faculty_id`) REFERENCES `faculty` (`id`);
+
+--
+-- Constraints for table `course_access`
+--
+ALTER TABLE `course_access`
+  ADD CONSTRAINT `course_id_course_access__id_course` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`),
+  ADD CONSTRAINT `user_id_course_access__id_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
+
+--
+-- Constraints for table `course_schedule`
+--
+ALTER TABLE `course_schedule`
+  ADD CONSTRAINT `course_id_course_schedule__id_course` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`),
+  ADD CONSTRAINT `day_id_course_schedule__id_course` FOREIGN KEY (`day_id`) REFERENCES `days` (`id`);
+
+--
 -- Constraints for table `course_student`
 --
 ALTER TABLE `course_student`
@@ -399,6 +595,12 @@ ALTER TABLE `course_student`
   ADD CONSTRAINT `course_id_course_student__id_course` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`),
   ADD CONSTRAINT `owner_id_course_student__id_user` FOREIGN KEY (`owner_id`) REFERENCES `user` (`id`),
   ADD CONSTRAINT `unit_id_course_student__id_unit` FOREIGN KEY (`unit_id`) REFERENCES `unit` (`id`);
+
+--
+-- Constraints for table `department`
+--
+ALTER TABLE `department`
+  ADD CONSTRAINT `faculty_id_department__id_faculty` FOREIGN KEY (`faculty_id`) REFERENCES `faculty` (`id`);
 
 --
 -- Constraints for table `file`

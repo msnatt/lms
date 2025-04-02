@@ -32,6 +32,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $code = $_POST['code_course'];
         $description = $_POST['textBoxDescription'];
         $objective = $_POST['textBoxObjective'];
+        $id_schedule = $_POST["id_schedule"] ?? [];
+        $select_day = $_POST["select_day"] ?? [];
+        $select_start = $_POST["select_start"] ?? [];
+        $select_end = $_POST["select_end"] ?? [];
+        $is_deleted_schedule = $_POST["schedule_is_deleted"] ?? [];
         $is_deleted = (int)$_POST['is_deleted'];
         $units = json_decode($_POST['data'], true);
 
@@ -51,6 +56,32 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } else {
             die("Error: Course ID not found.");
         }
+
+        // ตรวจสอบว่ามี course_id นี้หรือไม่
+        $sql_check_schedule = "SELECT * FROM course_schedule WHERE course_id = ?";
+        $stmt_schedule = $conn->prepare($sql_check_schedule);
+        $stmt_schedule->bind_param("i", $course_id);
+        $stmt_schedule->execute();
+        $stmt_schedule->store_result();
+
+        if ($stmt_schedule->num_rows > 0) {
+            for ($i = 0; $i < count($select_day); $i++) {
+                $id = $id_schedule[$i];
+                $day_id = $select_day[$i];
+                $start_time = $select_start[$i];
+                $end_time = $select_end[$i];
+                $is_deleted_schedule = $is_deleted_schedule[$i];
+
+                // อัปเดตข้อมูล course
+                $sql_update_course = "UPDATE course_schedule SET course_id = ?, day_id = ?, start_time = ?, end_time = ?, is_deleted = ? WHERE id = ? ";
+                $stmt_schedule = $conn->prepare($sql_update_course);
+                $stmt_schedule->bind_param("iissii", $course_id, $day_id, $start_time, $end_time, $is_deleted_schedule, $id);
+                $stmt_schedule->execute();
+            }
+        } else {
+            die("Error: Course ID not found.");
+        }
+        $stmt_schedule->close();
 
         $newUnit_id = 0;
         $tempFolder = "../temp/$username/";

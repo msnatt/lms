@@ -47,9 +47,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             die("Error preparing course statement: " . $conn->error);
         }
         $stmt->bind_param("ssssiiiss", $code, $name, $description, $objective, $faculty, $department, $ispublish, $user['id'], $user['id']);
-        // if (!$stmt->execute()) {
-        //     die("Error executing statement: " . $stmt->error);
-        // }
+        if (!$stmt->execute()) {
+            die("Error executing statement: " . $stmt->error);
+        }
 
         // ดึงค่า id ที่เพิ่งถูก insert
         $course_id = $conn->insert_id;
@@ -68,9 +68,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $end_time = $select_end[$i];
 
             $stmt_schedule->bind_param("iiss", $course_id, $day_id, $start_time, $end_time);
-            // if (!$stmt_schedule->execute()) {
-            //     die("Error executing schedule statement: " . $stmt_schedule->error);
-            // }
+            if (!$stmt_schedule->execute()) {
+                die("Error executing schedule statement: " . $stmt_schedule->error);
+            }
         }
 
         echo "Course and schedule saved successfully!";

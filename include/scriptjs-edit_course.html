@@ -153,7 +153,7 @@
         const response_days = await fetch("../config/Fetch_days.php"); // เรียกใช้ PHP
         const json_res_days = await response_days.json(); // รับผลลัพธ์เป็น JSON
         days = json_res_days;
-        params.forEach(schedule, () => {
+        params.forEach(schedule => {
             var _schedule = document.createElement('div');
             _schedule.className = "bg-light rounded m-1";
             _schedule.innerHTML = `
@@ -173,12 +173,28 @@
             </div>
             `;
 
+            var id_ = document.createElement('input');
+            id_.type = "hidden";
+            id_.id = "id_schedule[]";
+            id_.name = "id_schedule[]";
+            id_.value = schedule['id'];
+            
+            var deleted_ = document.createElement('input');
+            deleted_.type = "hidden";
+            deleted_.id = "schedule_is_deleted[]";
+            deleted_.name = "schedule_is_deleted[]";
+            deleted_.value = schedule['is_deleted'];
+
+            _schedule.appendChild(deleted_);
+            _schedule.appendChild(id_);
             div_schedule.appendChild(_schedule);
 
             // ดึง <select> ภายใน _schedule ที่เพิ่งสร้างใหม่
-            var selecy_day = _schedule.querySelector('select[name="select_day[]"]');
+            var select_day = _schedule.querySelector('select[name="select_day[]"]');
             var select_start = _schedule.querySelector('select[name="select_start[]"]');
             var select_end = _schedule.querySelector('select[name="select_end[]"]');
+
+
 
             // ✅ วนลูปเพิ่ม <option> สำหรับวัน (Monday - Sunday)
             days.forEach(day => {
@@ -400,7 +416,7 @@
         });
 
         try {
-            const response = await fetch('../config/Update_course.php', {
+            const response = await fetch('../config/course_edit.php', {
                 method: 'POST',
                 body: form_course
             });
@@ -408,7 +424,7 @@
         } catch (error) {
             console.error('Error Create course:', error);
         }
-        RedirectToPage('course');
+        // RedirectToPage('course');
     }
 
     function is_deleted_course() {

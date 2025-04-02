@@ -17,7 +17,6 @@
         const json_res_mycourse = await response_mycourse.json(); // รับผลลัพธ์เป็น JSON
         let mycourse = json_res_mycourse;
 
-
         const response_unit = await fetch('../config/Fetch_Unit.php'); // เรียกใช้ PHP
         const json_res_unit = await response_unit.json(); // รับผลลัพธ์เป็น JSON
         let Units = json_res_unit;
@@ -26,11 +25,7 @@
         let Contents = json_res_content;
 
 
-
-
-
         const detail_div = document.getElementById("detail_div");
-
 
         const Title_div = document.createElement("div");
         Title_div.className = 'd-flex flex-wrap';
@@ -46,6 +41,7 @@
             <h1>${course_[0].name}</h1>
             <p>${course_[0].description}</p>
         `;
+
         const info_div = document.createElement("div");
         info_div.id = "title";
         info_div.className = "d-flex col-12 col-lg-3 align-items-center";
@@ -54,8 +50,6 @@
         create_by_detail_id = course_[0].create_by;
         user_now_detail_id = '<?php echo $user["id"]; ?>';
         if (typeof mycourse['courses'] !== 'undefined') {
-
-
             mycourse['courses'].forEach(element => {
                 if (stop_findCourse < 1) {
                     if (course_[0].id == element['course_id']) {
@@ -81,7 +75,6 @@
                         <p><?php echo $owner['telephone']; ?></p>
                     </div>
                     `;
-
                     }
                 }
             });
@@ -95,26 +88,123 @@
                         <h6><?php echo $owner['name']; ?></h6>
                         <p><?php echo $owner['telephone']; ?></p>
                     </div>
-                    `;
+                `;
         }
 
         Title_div.appendChild(Title);
         Title_div.appendChild(info_div);
         detail_div.appendChild(Title_div);
 
+        // box_
         const box_ = document.createElement("div");
-        box_.className = "d-flex container w-100 form-control";
+        box_.className = "d-flex w-100 form-control justify-content-center";
+        box_.style.maxWidth = "85%";
         const info_ = document.createElement("div");
         info_.className = "w-25 form-control me-1";
-        info_.style.maxHeight = '200px';
         info_.innerHTML = `
-            <h6>Objective</h6>
-            <textarea class="w-100" style="border:0px; min-height:150px;" >${course_[0].objective}</textarea>
-            
+            <h5 class="">Objective</h5>
+            <textarea class="w-100 px-2" style="border:0px; min-height:150px;" >${course_[0].objective}</textarea>  
         `;
         const content_ = document.createElement("div");
         content_.className = "w-75";
 
+
+        const registerBtn = document.getElementById('register_btn');
+        registerBtn.addEventListener('click', () => {
+            let detail_data = new FormData();
+            detail_data.append('user_id', user_now_detail_id);
+            detail_data.append('create_by', create_by_detail_id);
+            detail_data.append('course_id', course_detail_id);
+
+            // ถ้าข้อมูล 'data' เป็น object หรือ array ที่ต้องการส่ง
+            // คุณสามารถแปลงเป็น JSON string ก่อน
+            detail_data.append('data', JSON.stringify(data));
+
+            console.log(detail_data);
+
+            fetch('../config/mycourse_create.php', {
+                method: 'POST',  // ใช้ POST request
+                body: detail_data // ส่งข้อมูลเป็น FormData
+            })
+                .then(response => response.json()) // แปลง response เป็น JSON
+                .then(result => {
+                    console.log('Success:', result);
+                    window.location.href = `../pages/detail.php?courseid=${courseID}`;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาด!');
+                });
+        });
+
+
+        const calendarDiv = document.createElement("div");
+        calendarDiv.id = "calendar";
+        calendarDiv.className = "calender";
+
+        async function loadCalendar() {
+            const response_schedule = await fetch("../config/Fetch_schedule.php?course_id=<?php echo $courseid; ?>"); // เรียกใช้ PHP
+            const schedules = await response_schedule.json();
+
+            const response_days = await fetch("../config/Fetch_days.php"); // เรียกใช้ PHP
+            const json_res_days = await response_days.json(); // รับผลลัพธ์เป็น JSON
+            let days = json_res_days;
+            console.log(days);
+
+            let header_table_title = document.createElement('div');
+            header_table_title.className = "my-3";
+            header_table_title.innerHTML = "<h5>Timetable</h5>";
+            schedules.forEach(schedule => {
+                for (let i = 0; i < days.length; i++) {
+                    if (days[i]['id'] == schedule['day_id']) {
+                        header_table_title.innerHTML += `<div class="px-2">${days[i]['name']} : ${schedule['start_time']} - ${schedule['end_time']}</div>`;
+                    }
+                }
+            });
+            
+            calendarDiv.appendChild(header_table_title);
+
+            // ** 1. กำหนดเวลาและวัน **
+            const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
+
+            // ** 2. สร้างส่วนหัวของตาราง (แสดงวัน) **
+
+            const calendar_ = document.createElement("div");
+            const temp_ = document.createElement("div");
+            temp_.className = "d-flex";
+            temp_.innerHTML += `<div class="day-header col-2 py-2">Time</div>`;
+            hours.forEach(hour => {
+                temp_.innerHTML += `
+                <div style=" border:1px solid #ddd; width:6.1%;">
+                    <div class="d-flex justify-content-center align-items-center" style="transform: rotate(-90deg); font-size:smaller; padding-right:20px;">${hour}</div>
+                </div>`;
+            });
+            calendar_.appendChild(temp_);
+            days.forEach(day => {
+                var intimer = false;
+                const temp_ = document.createElement("div");
+                temp_.className = "d-flex";
+                temp_.innerHTML += `<div class="day-header col-2">${day['short_name']}</div>`;
+                hours.forEach(hour => {
+                    var default_ = `<div class="time-slot"></div>`;
+                    for (const sc of schedules) {
+                        if (intimer) {
+                            if (hour == sc['end_time']) intimer = false;
+                            default_ = `<div class="time-slot bg-primary"></div>`;
+                        }
+                        if (day['id'] == sc['day_id'] && hour == sc['start_time']) {
+                            default_ = `<div class="time-slot bg-primary"></div>`;
+                            intimer = true;
+                        }
+                    };
+                    temp_.innerHTML += default_;
+                });
+                calendar_.appendChild(temp_);
+            });
+            calendarDiv.appendChild(calendar_);
+        }
+        loadCalendar();
+        info_.appendChild(calendarDiv);
 
         for (let i = 0; i < Units.length; i++) {
             const unit = Units[i];
@@ -232,33 +322,5 @@
                 detail_div.appendChild(box_);
             }
         };
-        const registerBtn = document.getElementById('register_btn');
-        registerBtn.addEventListener('click', () => {
-            let detail_data = new FormData();
-            detail_data.append('user_id', user_now_detail_id);
-            detail_data.append('create_by', create_by_detail_id);
-            detail_data.append('course_id', course_detail_id);
-
-            // ถ้าข้อมูล 'data' เป็น object หรือ array ที่ต้องการส่ง
-            // คุณสามารถแปลงเป็น JSON string ก่อน
-            detail_data.append('data', JSON.stringify(data));
-
-            console.log(detail_data);
-
-            fetch('../config/create_mycourse.php', {
-                method: 'POST',  // ใช้ POST request
-                body: detail_data // ส่งข้อมูลเป็น FormData
-            })
-                .then(response => response.json()) // แปลง response เป็น JSON
-                .then(result => {
-                    console.log('Success:', result);
-                    window.location.href = `../pages/detail.php?courseid=${courseID}`;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('เกิดข้อผิดพลาด!');
-                });
-        });
-
     });
 </script>

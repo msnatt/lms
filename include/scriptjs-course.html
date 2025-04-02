@@ -6,7 +6,7 @@
     let filter_courses = [];
     document.addEventListener('DOMContentLoaded', async () => {
 
-        const response = await fetch('../config/Search_Course.php'); // เรียกใช้ PHP
+        const response = await fetch('../config/course_search.php'); // เรียกใช้ PHP
         const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
         let Courses_access = json_res;
         Courses = Courses_access['courses'];

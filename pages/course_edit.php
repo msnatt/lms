@@ -73,6 +73,9 @@ $user = $_SESSION['user'] ?? 'N/A';
                     </div>
                     <div class="d-flex flex-column col-lg-2 col-12 rounded" style="padding: 0.2rem 0.25rem;">
                         <div class="bg-secondary p-2 rounded bg-opacity-10">
+                            <h5 class="d-flex justify-content-center my-2">
+                                Status
+                            </h5>
                             <div class="d-flex mb-3">
                                 <div class="form-check form-switch px-3">
                                     <input class="form-check-input ms-0 switch-lg" type="checkbox" id="is_publish" name="is_publish">
@@ -112,7 +115,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                             </select>
                         </div>
                         <div class="bg-secondary w-100 bg-opacity-10 rounded mt-1">
-                            <h5 class="d-flex justify-content-center" style="position: relative;">
+                            <h5 class="d-flex justify-content-center my-2" style="position: relative;">
                                 Schedule
                                 <input type="button" id="btn_schedule" value="+" class="btn btn-sm py-0 h-100" style="position: absolute; top: 0; right: 0; "></input>
                             </h5>
