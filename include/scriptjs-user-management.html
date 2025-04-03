@@ -1,12 +1,18 @@
 <!-- page product -->
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
+        await generate_user();
+    });
+
+    // generate user div
+    async function generate_user() {
         const response = await fetch("../config/Fetch_user.php"); // เรียกใช้ PHP
         const json_res = await response.json();
         let users = json_res;
         console.log(users);
 
         let table = document.getElementById('table_user').getElementsByTagName('tbody')[0];
+        table.innerHTML = "";
 
         users.forEach(user => {
             let newRow = table.insertRow();
@@ -23,21 +29,168 @@
             cell04.style.textAlign = "center"; // จัดให้อยู่ตรงกลาง
             cell04.innerHTML = `
                 <div style="display: flex; gap: 5px; width: 100%;">
-                    <button class="btn btn-secondary" onclick="toggle("reset_user",<?= $user['id']?>)">
+                    <button class="btn btn-secondary" onclick="openResetPasswordModal(${user.id})">
                         <i class="bi bi-arrow-counterclockwise"></i> Reset Password
                     </button>
-                    <button class="btn btn-danger" onclick="toggle("deleted_user",<?= $user['id']?>)">
+                    <button class="btn btn-danger" onclick="openDeleteUserModal(${user.id},'${user.name}')">
                         <i class="bi bi-trash3"></i> Delete
                     </button>
                 </div>
             `;
 
         });
-    });
+    }
 
-    function toggle(id, user_id) {
-        let div = document.getElementById(id);
-        var is_visible = div.style.display == "none";
-        div.style.display = is_visible ? "block" : "none";
-    };
+    // open reset
+    function openResetPasswordModal(userId) {
+        document.getElementById('userId').value = userId;
+        let newPassword = document.getElementById('newPassword');
+        let confirmPassword = document.getElementById('confirmPassword');
+        var alert_box = document.getElementById('alert_box');
+        alert_box.innerHTML = "";
+        newPassword.value = "";
+        newPassword.style.border = "1px solid #ccc";
+        confirmPassword.value = "";
+        confirmPassword.style.border = "1px solid #ccc";
+        let resetPasswordModal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+        resetPasswordModal.show();
+    }
+    // open Delete
+    function openDeleteUserModal(userId, userName) {
+        document.getElementById("deleteUserName").innerText = userName; // แสดงชื่อผู้ใช้ใน Modal
+        document.getElementById("confirmDeleteBtn").setAttribute("onclick", `deleteUser(${userId})`); // ตั้งค่าปุ่มลบ
+
+        let deleteUserModal = new bootstrap.Modal(document.getElementById("deleteUserModal"));
+        deleteUserModal.show(); // เปิด Modal
+    }
+    // submit reset
+    function submitResetPassword() {
+        let userId = document.getElementById('userId').value;
+        var alert_box = document.getElementById('alert_box');
+        let newPassword = document.getElementById('newPassword');
+        let confirmPassword = document.getElementById('confirmPassword');
+        if (newPassword.value !== confirmPassword.value) {
+            newPassword.style.border = "1px solid #f00";
+            confirmPassword.style.border = "1px solid #f00";
+            alert_box.style.color = "red";
+            alert_box.style.fontWeight = "600";
+            alert_box.innerHTML = "Password do not match!";
+            return;
+        }
+        let formData = new FormData();
+        formData.append("user_id", userId);
+        formData.append("new_password", newPassword.value);
+
+
+        // ทำ AJAX ส่งค่าไปยัง PHP
+        fetch("../config/user_resetpassword.php", {
+            method: "POST",
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('resetPasswordForm').reset();
+                    let modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+                    modal.hide();
+                }
+            })
+            .catch(error => console.error("Error:", error));
+    }
+    // submit deleted
+    async function deleteUser(userId) {
+        console.log("ลบผู้ใช้ ID:", userId); // Debug ดูว่าได้ค่า userId ไหม
+        let formData = new FormData();
+        formData.append("user_id", userId);
+
+        fetch("../config/user_deleted.php", {
+            method: "POST",
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(data)
+                }
+            })
+            .catch(error => console.error("Error:", error));
+
+        let deleteUserModal = bootstrap.Modal.getInstance(document.getElementById("deleteUserModal"));
+        deleteUserModal.hide(); // ปิด Modal
+
+        await generate_user();
+    }
+
+    async function Import_csv() {
+        document.getElementById("csvInput").click(); // ให้คลิก input file อัตโนมัติ
+    }
+
+    async function Export_csv() {
+        await fetch("../config/user_export.php") // เรียกใช้ PHP
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // สร้างลิงก์ดาวน์โหลดไฟล์ CSV
+                    let link = document.createElement("a");
+                    link.href = "data:text/csv;base64," + data.filedata;
+                    link.download = data.filename;
+                    link.click();
+                } else {
+                    alert("เกิดข้อผิดพลาด: " + data.message);
+                }
+            })
+            .catch(error => console.error("Error:", error));
+    }
+
+    // Upload file
+    function handleFileUpload(event) {
+        const file = event.target.files[0]; // รับไฟล์ที่เลือก
+        if (file) {
+            let formData = new FormData();
+            formData.append("csv_file", file);
+
+            // ส่งไฟล์ไปยัง PHP ผ่าน AJAX
+            fetch("../config/user_import.php", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(typeof (data.duplicates));
+                    if (data.success) {
+                        if (data.duplicates.length > 0) {
+                            showNotify(`ข้อมูลซ้ำ: ${data.duplicates.join(", ")}`);
+                        } else {
+                            showNotify('นำเข้าทั้งหมดสำเร็จ!');
+                        }
+                    }
+
+                })
+                .catch(error => console.error("Error:", error));
+        }
+    }
+
+    // ฟังก์ชันแสดง Notify ลอยอยู่กลางจอด้านบน
+    function showNotify(message) {
+        let notifyDiv = document.createElement("div");
+        notifyDiv.className = "notify-alert alert alert-warning alert-dismissible fade show";
+        notifyDiv.innerHTML = `
+        <div class="modal-header">
+            <h5 class="modal-title" id="resetPasswordModalLabel">Notify</h5>
+            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+        </div>
+        <div class="modal-body">
+            <p>${message}</p>
+        </div>
+    `;
+        document.body.appendChild(notifyDiv);
+
+        // <strong>⚠ แจ้งเตือน:</strong> ${message}
+        // <button type="button" class="btn-close" onclick="this.parentElement.remove()" aria-label="Close"></button>
+        // ตั้งให้ Notify หายไปเองใน 5 วินาที
+        // setTimeout(() => {
+        //     notifyDiv.remove();
+        //     location.reload();
+        // }, 5000);
+    }
 </script>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 02, 2025 at 12:28 PM
+-- Generation Time: Apr 03, 2025 at 12:23 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -396,9 +396,10 @@ CREATE TABLE `user` (
 
 INSERT INTO `user` (`id`, `code`, `name`, `email`, `username`, `password`, `rank`, `telephone`, `create_date`, `update_date`, `is_pushhandup`, `is_admin`, `is_deleted`) VALUES
 (1, '65000000001', 'Adminitrator', 'admin@gmail.com', 'admin', 'admin', 0, '0987654321', '2025-03-03', '2025-03-03', 0, 1, 0),
-(2, '65000000002', 'user', 'user@gmail.com', 'user', 'user', 1, '1234567890', '2025-03-03', '2025-03-03', 0, 0, 0),
+(2, '65000000002', 'user', 'user@gmail.com', 'user', '1234', 1, '1234567890', '2025-03-03', '2025-04-03', 0, 0, 0),
 (3, '65000000003', 'Adminitrator2', 'admin2@gmail.com', 'admin2', 'admin', 0, '0123456789', '2025-03-03', '2025-03-03', 0, 1, 0),
-(5, '65000000004', 'Adminitrator2', 'admin2@gmail.com', 'admin3', 'admin', 0, '0123456789', '2025-03-03', '2025-03-03', 0, 1, 0);
+(5, '65000000004', 'Adminitrator3', 'admin3@gmail.com', 'admin3', 'admin', 0, '0123456789', '2025-03-03', '2025-04-03', 0, 1, 0),
+(6, '65000000005', 'Nattawat muensa', 'nattawatmuensa@gmail.com', 'msnwatt', '1234', 0, '123456789', '2025-04-03', '2025-04-03', 0, 0, 0);
 
 --
 -- Indexes for dumped tables
@@ -496,7 +497,7 @@ ALTER TABLE `unit`
 --
 ALTER TABLE `user`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`);
+  ADD UNIQUE KEY `email` (`email`) USING BTREE;
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -578,7 +579,7 @@ ALTER TABLE `unit`
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- Constraints for dumped tables
