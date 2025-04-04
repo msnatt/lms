@@ -177,7 +177,7 @@
         notifyDiv.innerHTML = `
         <div class="modal-header">
             <h5 class="modal-title" id="resetPasswordModalLabel">Notify</h5>
-            <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            <button type="button" class="btn-close" onclick="this.closest('.notify-alert').remove()"></button>
         </div>
         <div class="modal-body">
             <p>${message}</p>
@@ -185,12 +185,5 @@
     `;
         document.body.appendChild(notifyDiv);
 
-        // <strong>⚠ แจ้งเตือน:</strong> ${message}
-        // <button type="button" class="btn-close" onclick="this.parentElement.remove()" aria-label="Close"></button>
-        // ตั้งให้ Notify หายไปเองใน 5 วินาที
-        // setTimeout(() => {
-        //     notifyDiv.remove();
-        //     location.reload();
-        // }, 5000);
     }
 </script>

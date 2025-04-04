@@ -24,13 +24,16 @@
         const json_res_content = await response_content.json(); // รับผลลัพธ์เป็น JSON
         let Contents = json_res_content;
 
+        const res_user_course = await fetch(`../config/Fetch_usercourse.php?courseid=${courseID}`); // เรียกใช้ PHP
+        const json_res_user_course = await res_user_course.json(); // รับผลลัพธ์เป็น JSON
+        let user_course = json_res_user_course;
 
         const detail_div = document.getElementById("detail_div");
 
         const Title_div = document.createElement("div");
         Title_div.className = 'd-flex flex-wrap';
         Title_div.innerHTML = `
-        <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>
+            <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>
         `;
 
         const Title = document.createElement("div");
@@ -96,6 +99,8 @@
         detail_div.appendChild(Title_div);
 
         // box_
+        const center_ = document.createElement("div");
+        center_.className = "d-flex justify-content-center flex-wrap";
         const box_ = document.createElement("div");
         box_.className = "d-flex w-100 form-control justify-content-center";
         box_.style.maxWidth = "85%";
@@ -106,9 +111,76 @@
             <textarea class="w-100 px-2" style="border:0px; min-height:150px;" >${course_[0].objective}</textarea>  
         `;
         const content_ = document.createElement("div");
+        content_.id = "content_course";
         content_.className = "w-75";
+        content_.style.position = "relative";
+        content_.style.display = "block";
+        content_.style.transition = "all 0.5s ease-in-out";
+        content_.style.top = "0";
+        content_.style.left = "0";
+        content_.style.width = "100%";
+        content_.style.opacity = "1";
+        content_.style.zIndex = "1";
+        content_.innerHTML = `
+            <h4 class="ps-2">Contents</h4>
+        `;
 
+        const users_ = document.createElement("div");
+        users_.id = "users_course";
+        users_.className = "w-75 p-4";
+        users_.style.position = "relative";
+        users_.style.display = "none";
+        users_.style.transition = "all 0.5s ease-in-out";
+        users_.style.top = "0";
+        users_.style.left = "0";
+        users_.style.width = "100%";
+        users_.style.opacity = "0";
+        users_.style.zIndex = "0";
+        users_.innerHTML = `
+            <h4>All Members</h4>
+            <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder="search course you interest!"> 
+            <button id="btn_schedule" class="btn py-0" style="position: absolute; top: 0; right: 0;" onclick="toggle_users_content()">
+                <i class="bi bi-x-circle"></i>
+            </button>
+            <table id="table_user">
+                <thead>
+                    <tr>
+                        <th> Name </th>
+                        <th> Code </th>
+                        <th> Status </th>
+                        <th> roles </th>
+                        <th> Actions </th>
+                    </tr>
+                </thead>
+                <tbody>
 
+                </tbody>
+            </table>
+            `;
+
+        // user viewer
+        const viewer_ = document.createElement("div");
+        viewer_.className = "d-flex justify-content-between px-2";
+        viewer_.innerHTML = `
+        <h5>Members</h5>
+        <div id="last_options" onclick="toggle_users_content()"><i class="bi bi-three-dots"></i></div>
+        `;
+        
+        info_.appendChild(viewer_);
+        let ex_user_count = 0;
+        json_res_user_course['users'].forEach(user => {
+            const user_ = document.createElement("div");
+            user_.className = "form-control ms-3 ";
+            user_.style.width = "auto";
+            if (ex_user_count < 3) {
+                user_.style.fontSize = "0.9rem";
+                user_.innerHTML = user.name;
+                info_.appendChild(user_);
+                ex_user_count++;
+            }
+        });
+
+        // register btn
         const registerBtn = document.getElementById('register_btn');
         registerBtn.addEventListener('click', () => {
             let detail_data = new FormData();
@@ -137,7 +209,7 @@
                 });
         });
 
-
+        //calendar course
         const calendarDiv = document.createElement("div");
         calendarDiv.id = "calendar";
         calendarDiv.className = "calender";
@@ -149,7 +221,6 @@
             const response_days = await fetch("../config/Fetch_days.php"); // เรียกใช้ PHP
             const json_res_days = await response_days.json(); // รับผลลัพธ์เป็น JSON
             let days = json_res_days;
-            console.log(days);
 
             let header_table_title = document.createElement('div');
             header_table_title.className = "my-3";
@@ -161,7 +232,7 @@
                     }
                 }
             });
-            
+
             calendarDiv.appendChild(header_table_title);
 
             // ** 1. กำหนดเวลาและวัน **
@@ -206,6 +277,7 @@
         loadCalendar();
         info_.appendChild(calendarDiv);
 
+        // Units and Contents create div
         for (let i = 0; i < Units.length; i++) {
             const unit = Units[i];
             if (courseID == unit.course_id) {
@@ -317,10 +389,88 @@
 
                 // เพิ่มเข้าไปใน detail_div
                 content_.appendChild(unitDiv);
-                box_.appendChild(info_);
-                box_.appendChild(content_);
-                detail_div.appendChild(box_);
             }
         };
+
+        box_.appendChild(info_);
+        box_.appendChild(users_);
+        box_.appendChild(content_);
+        center_.appendChild(box_);
+        detail_div.appendChild(center_);
+
+
+        // add all div before and do below
+        let table = document.getElementById('table_user').getElementsByTagName('tbody')[0];
+        table.innerHTML = "";
+
+        json_res_user_course['users'].forEach(user => {
+            let newRow = table.insertRow();
+            newRow.insertCell(0).innerHTML = user.name;
+            newRow.insertCell(1).innerHTML = user.code;
+            newRow.insertCell(2).innerHTML = user.telephone;
+            newRow.insertCell(3).innerHTML = user.is_admin == 1 ? "Admin" : "Student";
+            let cell04 = newRow.insertCell(4);
+            cell04.className = "";
+            cell04.style.maxWidth = "100px";
+            cell04.style.textAlign = "center"; // จัดให้อยู่ตรงกลาง
+            cell04.innerHTML = `
+                <div style="display: flex; gap: 5px; width: 100%;">
+                    <button class="btn btn-danger" onclick="openDeleteUserModal(${user.id},'${user.name}')">
+                        <i class="bi bi-trash3"></i> Delete
+                    </button>
+                </div>
+            `;
+
+        });
     });
+
+    // ฟังก์ชันแสดง users_course
+    function toggle_users_content() {
+        const content = document.getElementById("content_course");
+        const users = document.getElementById("users_course");
+        const last_options = document.getElementById("last_options");
+
+        const isContentActive = window.getComputedStyle(content).opacity === "1";
+
+        if (isContentActive) {
+            // แสดง users_course
+            users.style.opacity = "1";
+            users.style.zIndex = "1";
+            setTimeout(() => {
+                users.style.display = "block";
+            }, 600); // ต้องรอให้ animation จบก่อน
+
+            // ซ่อน content_course
+            content.style.opacity = "0";
+            content.style.zIndex = "0";
+            setTimeout(() => {
+                content.style.display = "none";
+            }, 600); // ต้องรอให้ animation จบก่อน
+
+            last_options.innerHTML = `<i class="bi bi-x-circle"></i>`;
+        } else {
+            // แสดง content_course
+            content.style.opacity = "1";
+            content.style.zIndex = "1";
+            setTimeout(() => {
+                content.style.display = "block";
+            }, 600); // ต้องรอให้ animation จบก่อน
+
+            // ซ่อน users_course
+            users.style.opacity = "0";
+            users.style.zIndex = "0";
+            setTimeout(() => {
+                users.style.display = "none";
+            }, 600); // ต้องรอให้ animation จบก่อน
+            last_options.innerHTML = `<i class="bi bi-three-dots"></i>`;
+        }
+    }
+    // open Delete
+    function openDeleteUserModal(userId, userName) {
+        document.getElementById("deleteUserName").innerText = userName; // แสดงชื่อผู้ใช้ใน Modal
+        document.getElementById("confirmDeleteBtn").setAttribute("onclick", `deleteUser(${userId})`); // ตั้งค่าปุ่มลบ
+
+        let deleteUserModal = new bootstrap.Modal(document.getElementById("deleteUserModal"));
+        deleteUserModal.show(); // เปิด Modal
+    }
 </script>

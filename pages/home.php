@@ -11,9 +11,9 @@ include '../components/session.php';
 
 <body class="bg-custom ">
     <?php include "../include/header.php"; ?>
-    <div class="d-flex" style="min-height: 70vh;">
+    <div class="d-flex justify-content-center" style="min-height: 70vh;">
         <?php include "../components/sidemenu.php"; ?>
-        <div class="mt-4">
+        <div class="mt-4 " style="width: 100%; max-width: 1650px;">
             <div class="d-flex justify-content-center py-4">
                 <?php include "../include/slidepage.php"; ?>
             </div>

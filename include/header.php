@@ -51,9 +51,6 @@
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                                     <li><a class="dropdown-item" href="../pages/mycourse.php">My Course</a></li>
-                                    <?php if ($_SESSION['user']['is_admin']): ?>
-                                        <li><a class="dropdown-item" href="../pages/course_catalogue.php">Catalogue</a></li>
-                                    <?php endif; ?>
                                     <li><a class="dropdown-item" href="../pages/setting.php">Setting</a></li>
                                     <li><a class="dropdown-item" href="../pages/logout.php">Logout</a></li>
                                 </ul>

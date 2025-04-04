@@ -13,7 +13,7 @@
     }
 
     .text:hover {
-        color: black;
+        color: black !important;
         transform: scale(1.03);
         transition: transform 0.3s ease-in-out;
     }
@@ -159,6 +159,12 @@
         box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.5);
     }
 
+    .nav-secondary {
+        padding: 0.25rem 0.5rem;
+        text-decoration: none;
+        border: 0;
+        color: #000;
+    }
     /* Scroll content สำหรับ card */
     .scroll-content {
         display: flex;
@@ -176,21 +182,25 @@
     }
 
     .sidebar {
-        width: 250px;
-        /* height: 100%; */
+        width: 350px;
         background: #f8f9fa;
-        top: 0;
         display: none;
-        /* ซ่อน sidebar ไว้ */
         transition: left 0.3s ease-in-out;
-        padding: 15px;
+        padding: 10px;
     }
+
 
     .sidebar.open {
         display: block;
         /* แสดง sidebar */
     }
 
+    #users_course,
+    #content_course {
+        width: 75%;
+        transition: all 0.4s ease;
+        transform: translateX(0%);
+    }
 
 
     /* การออกแบบ card */
@@ -218,16 +228,16 @@
     }
 
     .notify-alert {
-    position: fixed !important;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: auto;
-    max-width: 80%;
-    z-index: 1050;
-    text-align: center;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-}
+        position: fixed !important;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: auto;
+        max-width: 80%;
+        z-index: 1050;
+        text-align: center;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    }
 
     /* ปุ่ม next และ previous */
     .scroll-btn {
@@ -268,7 +278,7 @@
 
     th {
         /* background-color: #ff990000; */
-        color: rgb(32, 32, 32);   
+        color: rgb(32, 32, 32);
         text-transform: uppercase;
     }
 
