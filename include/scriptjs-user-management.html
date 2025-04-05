@@ -170,20 +170,5 @@
         }
     }
 
-    // ฟังก์ชันแสดง Notify ลอยอยู่กลางจอด้านบน
-    function showNotify(message) {
-        let notifyDiv = document.createElement("div");
-        notifyDiv.className = "notify-alert alert alert-warning alert-dismissible fade show";
-        notifyDiv.innerHTML = `
-        <div class="modal-header">
-            <h5 class="modal-title" id="resetPasswordModalLabel">Notify</h5>
-            <button type="button" class="btn-close" onclick="this.closest('.notify-alert').remove()"></button>
-        </div>
-        <div class="modal-body">
-            <p>${message}</p>
-        </div>
-    `;
-        document.body.appendChild(notifyDiv);
 
-    }
 </script>

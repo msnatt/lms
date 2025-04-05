@@ -1,0 +1,45 @@
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        let action_btn = document.getElementById('action_btn');
+        let error_btn = document.getElementById('error_btn');
+        let debug_btn = document.getElementById('debug_btn');
+        action_btn.click();
+    });
+    //  log generate
+    action_btn.addEventListener("click", async () => {
+        const response = await fetch("../config/Fetch_log_login.php"); // เรียกใช้ PHP
+        const json_res = await response.json();
+        let logs = json_res;
+        console.log("action :");
+        console.log(logs);
+
+        let table = document.getElementById('table_log').getElementsByTagName('tbody')[0];
+        table.innerHTML = "";
+
+        logs.forEach(user => {
+            let newRow = table.insertRow();
+            newRow.insertCell(0).innerHTML = user.log_time;
+            newRow.insertCell(1).innerHTML = user.username;
+            newRow.insertCell(2).innerHTML = user.action;
+            newRow.insertCell(3).innerHTML = "-";
+        });
+    });
+    error_btn.addEventListener("click", async () => {
+        const response = await fetch("../config/Fetch_log_error.php"); // เรียกใช้ PHP
+        const json_res = await response.json();
+        let logs = json_res;
+        console.log("error :");
+        console.log(logs);
+
+        let table = document.getElementById('table_log').getElementsByTagName('tbody')[0];
+        table.innerHTML = "";
+
+        logs.forEach(log => {
+            let newRow = table.insertRow();
+            newRow.insertCell(0).innerHTML = log.created_at;
+            newRow.insertCell(1).innerHTML = log.username;
+            newRow.insertCell(2).innerHTML = log.category;
+            newRow.insertCell(3).innerHTML = log.message;
+        });
+    });
+</script>

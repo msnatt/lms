@@ -14,25 +14,21 @@
                 <a class="nav-link text" href="../pages/user_management.php">User Management</a>
             </li>
             <li class="d-flex flex-column align-items-start gap-2">
-                <!-- <i class="bi bi-info-square"></i>
-                <a class="nav-link  text" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    System
-                </a> -->
                 <button class="btn btn-link nav-link text p-0" data-bs-toggle="collapse" data-bs-target="#systemSubNav" aria-expanded="false">
                     <i class="bi bi-gear"></i> System
                 </button>
-                <ul class="collapse nav flex-column ms-3" id="systemSubNav">
+                <ul class="collapse nav flex-column " id="systemSubNav">
                     <li class="d-flex align-items-start gap-2">
                         <i class="bi bi-info-square"></i>
-                        <a class="nav-secondary text" href="../pages/user_management.php">infomation.</a>
+                        <a class="nav-secondary text" href="../pages/infomation.php">infomation.</a>
                     </li>
                     <li class="d-flex align-items-start gap-2">
                         <i class="bi bi-bug"></i>
-                        <a class="nav-secondary text" href="../pages/user_management.php">Log</a>
+                        <a class="nav-secondary text" href="../pages/log.php">Log</a>
                     </li>
                     <li class="d-flex align-items-start gap-2">
                         <i class="bi bi-database-fill-down"></i>
-                        <a class="nav-secondary text" href="../pages/user_management.php">backup data</a>
+                        <a class="nav-secondary text" href="../pages/backup.php">backup data</a>
                     </li>
                 </ul>
             </li>

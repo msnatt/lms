@@ -28,6 +28,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         header("Location: ../pages/home.php");
     } else {
+        $ip_address = $_SERVER['REMOTE_ADDR'];
+        $user_agent = $_SERVER['HTTP_USER_AGENT'];
+
+        $log_sql = "INSERT INTO login_log (user_id, username, action, ip_address, user_agent) 
+            VALUES (0, '$username', 'login_failed', '$ip_address', '$user_agent')";
+        $conn->query($log_sql);
         echo "<script>alert('Invalid username or password!'); window.location.href='../pages/login.php';</script>";
     }
 }

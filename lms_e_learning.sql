@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 03, 2025 at 12:23 PM
+-- Generation Time: Apr 05, 2025 at 12:01 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -212,7 +212,15 @@ INSERT INTO `course_student` (`id`, `course_id`, `unit_id`, `content_id`, `owner
 (62, 10, 11, 25, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
 (63, 10, 12, 26, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
 (64, 10, 12, 27, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
-(65, 10, 12, 28, 3, 0, '2025-03-24', '2025-03-24', 0, 0);
+(65, 10, 12, 28, 3, 0, '2025-03-24', '2025-03-24', 0, 0),
+(66, 1, 1, 1, 1, 0, '2025-04-04', '2025-04-04', 0, 0),
+(67, 1, 2, 2, 1, 0, '2025-04-04', '2025-04-04', 0, 0),
+(68, 1, 1, 1, 2, 0, '2025-04-04', '2025-04-04', 0, 0),
+(69, 1, 2, 2, 2, 0, '2025-04-04', '2025-04-04', 0, 0),
+(70, 1, 1, 1, 3, 0, '2025-04-04', '2025-04-04', 0, 0),
+(71, 1, 2, 2, 3, 0, '2025-04-04', '2025-04-04', 0, 0),
+(72, 1, 1, 1, 5, 0, '2025-04-04', '2025-04-04', 0, 0),
+(73, 1, 2, 2, 5, 0, '2025-04-04', '2025-04-04', 0, 0);
 
 -- --------------------------------------------------------
 
@@ -301,15 +309,73 @@ CREATE TABLE `file` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `logs_user`
+-- Table structure for table `log_action`
 --
 
-CREATE TABLE `logs_user` (
+CREATE TABLE `log_action` (
   `id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `status_code` varchar(10) NOT NULL,
-  `message` text NOT NULL
+  `category` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `username` varchar(255) DEFAULT 'guest',
+  `ip_address` varchar(45) DEFAULT 'unknown',
+  `user_agent` text DEFAULT 'unknown',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `log_error`
+--
+
+CREATE TABLE `log_error` (
+  `id` int(11) NOT NULL,
+  `category` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `username` varchar(255) DEFAULT 'guest',
+  `ip_address` varchar(45) DEFAULT 'unknown',
+  `user_agent` text DEFAULT 'unknown',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `log_error`
+--
+
+INSERT INTO `log_error` (`id`, `category`, `message`, `username`, `ip_address`, `user_agent`, `created_at`) VALUES
+(1, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 07:42:02'),
+(2, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 07:43:17'),
+(3, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 07:43:44'),
+(4, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 08:43:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `log_login`
+--
+
+CREATE TABLE `log_login` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) DEFAULT NULL,
+  `username` varchar(255) DEFAULT NULL,
+  `action` enum('login','logout','login_failed') DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `user_agent` text DEFAULT NULL,
+  `log_time` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `log_login`
+--
+
+INSERT INTO `log_login` (`id`, `user_id`, `username`, `action`, `ip_address`, `user_agent`, `log_time`) VALUES
+(1, 1, 'admin', 'logout', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-04 15:34:59'),
+(2, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-04 15:40:39'),
+(3, 2, 'user', 'logout', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-04 15:40:51'),
+(4, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-04 15:40:58'),
+(5, 1, 'admin', 'logout', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 10:53:53'),
+(6, 0, 'admin', 'login_failed', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 10:53:59'),
+(7, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 10:55:05');
 
 -- --------------------------------------------------------
 
@@ -395,11 +461,12 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`id`, `code`, `name`, `email`, `username`, `password`, `rank`, `telephone`, `create_date`, `update_date`, `is_pushhandup`, `is_admin`, `is_deleted`) VALUES
-(1, '65000000001', 'Adminitrator', 'admin@gmail.com', 'admin', 'admin', 0, '0987654321', '2025-03-03', '2025-03-03', 0, 1, 0),
-(2, '65000000002', 'user', 'user@gmail.com', 'user', '1234', 1, '1234567890', '2025-03-03', '2025-04-03', 0, 0, 0),
-(3, '65000000003', 'Adminitrator2', 'admin2@gmail.com', 'admin2', 'admin', 0, '0123456789', '2025-03-03', '2025-03-03', 0, 1, 0),
-(5, '65000000004', 'Adminitrator3', 'admin3@gmail.com', 'admin3', 'admin', 0, '0123456789', '2025-03-03', '2025-04-03', 0, 1, 0),
-(6, '65000000005', 'Nattawat muensa', 'nattawatmuensa@gmail.com', 'msnwatt', '1234', 0, '123456789', '2025-04-03', '2025-04-03', 0, 0, 0);
+(1, '65000000001', 'Jirawat Sisaard Reef', 'Jirawat@gmail.com', 'admin', 'admin', 0, '0987654321', '2025-03-03', '2025-03-03', 0, 1, 0),
+(2, '65000000002', 'Newbie olded gika', 'newbie@gmail.com', 'user', 'user', 1, '0984634583', '2025-04-04', '2025-04-04', 0, 0, 0),
+(3, '65000000003', 'Bancha Siripapan Jet', 'Bancha@gmail.com', 'Bancha.S.Admin', 'admin', 0, '0123456789', '2025-03-03', '2025-03-03', 0, 1, 0),
+(5, '65000000004', 'Kanya Sukseree Queen', 'Kanya@gmail.com', 'Kanya.S.Admin', 'admin', 0, '0123456789', '2025-03-03', '2025-04-03', 0, 1, 0),
+(6, '65000000005', 'Nichaporn Treesup Cha-em', 'Nichaporn@gmail.com', 'Nichaporn.T.User', '1234', 0, '123456789', '2025-04-03', '2025-04-03', 0, 0, 0),
+(8, '65000000006', 'Peeraya Tarawong Gigiasd', 'Peeraya@gmail.coms', 'Peeraya.T.User', '1234', 1, '1234567890', '2025-03-03', '2025-04-03', 0, 0, 0);
 
 --
 -- Indexes for dumped tables
@@ -474,9 +541,21 @@ ALTER TABLE `file`
   ADD KEY `content_id_file__id_content` (`content_id`);
 
 --
--- Indexes for table `logs_user`
+-- Indexes for table `log_action`
 --
-ALTER TABLE `logs_user`
+ALTER TABLE `log_action`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `log_error`
+--
+ALTER TABLE `log_error`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `log_login`
+--
+ALTER TABLE `log_login`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -531,7 +610,7 @@ ALTER TABLE `course_schedule`
 -- AUTO_INCREMENT for table `course_student`
 --
 ALTER TABLE `course_student`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT for table `days`
@@ -558,10 +637,22 @@ ALTER TABLE `file`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `logs_user`
+-- AUTO_INCREMENT for table `log_action`
 --
-ALTER TABLE `logs_user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `log_action`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `log_error`
+--
+ALTER TABLE `log_error`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `log_login`
+--
+ALTER TABLE `log_login`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `typefile`
@@ -579,7 +670,7 @@ ALTER TABLE `unit`
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Constraints for dumped tables
