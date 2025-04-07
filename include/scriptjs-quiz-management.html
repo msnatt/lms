@@ -1,11 +1,13 @@
 <!-- page product -->
 <script>
+    let questionIndex = 0;
     document.addEventListener('DOMContentLoaded', async () => {
 
 
     });
 
     function openExamCreate() {
+        questionIndex = 0;
         // ลบ modal_div เดิมถ้ามี
         const oldModal = document.getElementById('examCreateModal');
         if (oldModal) {
@@ -26,29 +28,46 @@
                     </div>
                     <div class="modal-body">
                         <form id="examCreateForm">
-                            <div class="d-flex w-100 justify-content-between px-5">
-                                <div>
+                            <div class="d-flex w-100 justify-content-between px-2 my-2 flex-wrap">
+                                <div class="col-12 col-lg-3">
                                     <label for="Title" class="form-label">Title</label>
-                                    <input type="text" class="form-control" id="title" required>
+                                    <input type="text" class="form-control" id="title" name="title" required>
                                 </div>
-                                <div>
+                                <div class="col-12 col-lg-3">
                                     <label for="Start-time" class="form-label">Start Time</label>
-                                    <input type="datetime-local" class="form-control" id="startTime" required>
+                                    <input type="datetime-local" class="form-control" id="startTime" name="startTime" required>
                                 </div>
-                                <div>
+                                <div class="col-12 col-lg-3">
                                     <label for="examination-period" class="form-label">Examination Period</label>
-                                    <input type="time" class="form-control" id="exam-period" required>
+                                    <input type="time" class="form-control" id="exam-period" name="exam-period" required>
                                 </div>
                             </div>
-                            <div>
-                                <div>    
+                            <div class="d-flex flex-wrap gap-1 my-3" style="min-height: 40vh;">
+                                <div class="rounded border p-2" style="width: 100%; max-width: 360px;">
+                                    <label for="Title" class="form-label">Description.</label>
+                                    <textarea class="form-control" style="min-height:150px;" id="description" name="description" required></textarea>
+                                    <label for="examType" class="form-label">Exam Type</label>
+                                    <div>
+                                        <input type="radio" id="pre-test" name="examType" value="pre-test" required> Pre-Test
+                                        <input type="radio" id="post-test" name="examType" value="post-test"> Post-Test
+                                        <input type="radio" id="quiz" name="examType" value="quiz"> Quiz
+                                    </div>
+                                </div>
+                                <div class="rounded border p-2" style="width: 100%; max-width: 560px;">
+                                    <div class="w-100 form-control d-flex justify-content-between">
+                                        <div>Question</div>
+                                        <button class="border-0 rounded-5 px-1" onclick="addQuestion()"><i class="bi bi-plus"></i></button>
+                                    </div>
+                                    <div id="question" class="w-100 p-2" style="max-height: 400px; overflow-y: auto;">
+
+                                    </div>
+                                </div>
                             </div>
-                        
                         </form>
                     </div>
-                    <div class="modal-footer">
+                    <div class="modal-footer gap-2">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" onclick="submitResetPassword()">Reset</button>
+                        <button type="button" class="btn btn-primary" onclick="submitExamFormModal()">Create</button>
                     </div>
                 </div>
             </div>
@@ -58,6 +77,106 @@
         let examCreateModal = new bootstrap.Modal(document.getElementById('examCreateModal'));
         examCreateModal.show();
     }
+
+    function addQuestion() {
+        const container = document.getElementById("question");
+
+        const questionDiv = document.createElement("div");
+        questionDiv.className = "w-100 p-3 mb-3";
+        questionDiv.innerHTML = `
+        <div class="mb-2">
+            <label class="form-label">Question ${questionIndex + 1}</label>
+            <input type="text" class="form-control" name="questions[${questionIndex}][text]" required>
+        </div>
+        <div id="choices-${questionIndex}" class="ps-3"></div>
+        <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="addChoice(${questionIndex})">
+            <i class="bi bi-plus-square"></i> Add Choice
+        </button>
+    `;
+        container.appendChild(questionDiv);
+        questionIndex++;
+    }
+
+    function addChoice(index) {
+        const choiceContainer = document.getElementById(`choices-${index}`);
+        const choiceIndex = choiceContainer.children.length;
+
+        const choiceDiv = document.createElement("div");
+        choiceDiv.className = "input-group mb-2";
+        choiceDiv.innerHTML = `
+        <div class="input-group-text">
+            <input class="form-check-input mt-0" type="radio" name="questions[${index}][correct]" value="${choiceIndex}" required>
+        </div>
+        <input type="text" class="form-control" name="questions[${index}][choices][]" placeholder="Choice ${choiceIndex + 1}" required>
+    `;
+        choiceContainer.appendChild(choiceDiv);
+    }
+
+    function submitExamFormModal() {
+        const form = document.getElementById("examCreateForm");
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData();
+        const title = document.getElementById("title").value;
+        const startTime = document.getElementById("startTime").value;
+        const examPeriod = document.getElementById("exam-period").value;
+        const description = document.getElementById("description").value;
+        const examType = document.querySelector('input[name="examType"]:checked').value;
+
+        formData.append("title", title);
+        formData.append("startTime", startTime);
+        formData.append("examPeriod", examPeriod);
+        formData.append("description", description);
+        formData.append("type", examType);
+
+        const questionDivs = document.querySelectorAll("#question > div");
+
+        let hasError = false;
+
+        questionDivs.forEach((div, qIndex) => {
+            const textInput = div.querySelector(`input[name="questions[${qIndex}][text]"]`);
+            const choiceInputs = div.querySelectorAll(`input[name="questions[${qIndex}][choices][]"]`);
+            const correctInput = div.querySelector(`input[name="questions[${qIndex}][correct]"]:checked`);
+
+            if (!correctInput) {
+                alert(`❌ กรุณาเลือกตัวเลือกที่ถูกต้องของคำถามข้อที่ ${qIndex + 1}`);
+                hasError = true;
+                return;
+            }
+
+            formData.append(`questions[${qIndex}][text]`, textInput.value);
+            formData.append(`questions[${qIndex}][correct]`, correctInput.value);
+
+            choiceInputs.forEach((input) => {
+                formData.append(`questions[${qIndex}][choices][]`, input.value);
+            });
+        });
+
+        if (hasError) return;
+
+        fetch("../config/exam_create.php", {
+            method: "POST",
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    showNotify(`✅ สร้างชุดข้อสอบสำเร็จ`);
+                    location.reload();
+                } else {
+                    showNotify("❌ เกิดข้อผิดพลาด: " + data.message);
+                    console.error(data.message);
+                }
+            })
+            .catch(err => {
+                alert("❗ เกิดข้อผิดพลาดในการเชื่อมต่อกับ server");
+                console.error(err);
+            });
+    }
+
 
 
 </script>
