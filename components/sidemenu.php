@@ -13,6 +13,10 @@
                 <i class="bi bi-chat-left-dots"></i>
                 <a class="nav-link text" href="../pages/user_management.php">User Management</a>
             </li>
+            <li class="d-flex align-items-center gap-2">
+                <i class="bi bi-chat-left-dots"></i>
+                <a class="nav-link text" href="../pages/quiz_management.php">Quiz Management</a>
+            </li>
             <li class="d-flex flex-column align-items-start gap-2">
                 <button class="btn btn-link nav-link text p-0" data-bs-toggle="collapse" data-bs-target="#systemSubNav" aria-expanded="false">
                     <i class="bi bi-gear"></i> System
@@ -20,7 +24,7 @@
                 <ul class="collapse nav flex-column " id="systemSubNav">
                     <li class="d-flex align-items-start gap-2">
                         <i class="bi bi-info-square"></i>
-                        <a class="nav-secondary text" href="../pages/infomation.php">infomation.</a>
+                        <a class="nav-secondary text" href="../pages/infomation.php">#infomation.</a>
                     </li>
                     <li class="d-flex align-items-start gap-2">
                         <i class="bi bi-bug"></i>

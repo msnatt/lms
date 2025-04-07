@@ -1,0 +1,63 @@
+<!-- page product -->
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+
+
+    });
+
+    function openExamCreate() {
+        // ลบ modal_div เดิมถ้ามี
+        const oldModal = document.getElementById('examCreateModal');
+        if (oldModal) {
+            oldModal.remove();
+        }
+
+        let examModal = document.createElement('div');
+        examModal.className = "modal fade";
+        examModal.id = "examCreateModal";
+        examModal.tabIndex = "-1";
+        // examModal.ariaHidden = "true";
+        examModal.innerHTML = `
+            <div class="modal-dialog" style="width:100vw; max-Width:960px;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="examCreateTitle">Create Examination.</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="examCreateForm">
+                            <div class="d-flex w-100 justify-content-between px-5">
+                                <div>
+                                    <label for="Title" class="form-label">Title</label>
+                                    <input type="text" class="form-control" id="title" required>
+                                </div>
+                                <div>
+                                    <label for="Start-time" class="form-label">Start Time</label>
+                                    <input type="datetime-local" class="form-control" id="startTime" required>
+                                </div>
+                                <div>
+                                    <label for="examination-period" class="form-label">Examination Period</label>
+                                    <input type="time" class="form-control" id="exam-period" required>
+                                </div>
+                            </div>
+                            <div>
+                                <div>    
+                            </div>
+                        
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" onclick="submitResetPassword()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(examModal);
+        let examCreateModal = new bootstrap.Modal(document.getElementById('examCreateModal'));
+        examCreateModal.show();
+    }
+
+
+</script>
