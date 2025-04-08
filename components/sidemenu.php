@@ -7,7 +7,7 @@
         <?php if ($_SESSION['user']['is_admin']): ?>
             <li class="d-flex align-items-center gap-2">
                 <i class="bi bi-book-half"></i>
-                <a class="nav-link text" href="../pages/course_catalogue.php">Catalogue</a>
+                <a class="nav-link text" href="../pages/student_management.php">Student management</a>
             </li>
             <li class="d-flex align-items-center gap-2">
                 <i class="bi bi-chat-left-dots"></i>

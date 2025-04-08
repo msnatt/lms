@@ -13,19 +13,19 @@
                 <div class=" ">
                     <!-- <div class="collapse navbar-collapse" id="navbarNav"> -->
                     <ul class="navbar-nav">
-                        <li class="nav-item">
+                        <li class="d-flex align-items-center gap-1">
+                            <!-- <i class="bi bi-house"></i> -->
                             <a class="nav-link active text" href="../pages/home.php">Home</a>
                         </li>
-                        <li class="nav-item">
+                        <li class="d-flex align-items-center gap-1">
+                            <!-- <i class="bi bi-journal-text"></i> -->
                             <a class="nav-link text" href="../pages/course.php">Course</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text" href="../pages/chat.php">Chat</a>
+                        <li class="d-flex align-items-center gap-1">
+                            <!-- <i class="bi bi-book-half"></i> -->
+                            <a class="nav-link text" href="../pages/course_catalogue.php">Catalogue</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text" href="../pages/news.php">News</a>
-                        </li>
-                        <li class="nav-item">
+                        <li class="d-flex align-items-center gap-1">
                             <a class="nav-link text" href="../pages/contect.php">Contact us</a>
                         </li>
                     </ul>

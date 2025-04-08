@@ -38,11 +38,11 @@ $user = $_SESSION['user'] ?? 'N/A';
                     <table id="table_user">
                         <thead>
                             <tr>
-                                <th> Name </th>
-                                <th> Code </th>
-                                <th> telephone </th>
-                                <th> roles </th>
-                                <th> Actions </th>
+                                <th style="width: 20%;"> name </th>
+                                <th style="width: 20%;"> Code </th>
+                                <th style="width: 20%;"> telephone </th>
+                                <th style="width: 20%;"> roles </th>
+                                <th style="width: 20%;"> Actions </th>
                             </tr>
                         </thead>
                         <tbody>

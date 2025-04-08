@@ -1,0 +1,82 @@
+<!-- page product -->
+<script>
+    var data = [];
+    document.addEventListener('DOMContentLoaded', async () => {
+        let course = await fetch("../config/Fetch_Course.php");
+        let json_res = await course.json();
+        console.log(json_res);
+        generate_select(json_res, 'select-course');
+        generate_student();
+
+    });
+
+    function generate_select(values, id) {
+        let select = document.getElementById(id);
+        values.forEach(value => {
+            const option = document.createElement('option');
+            option.value = value.id;
+            option.textContent = value.name;
+            select.appendChild(option);
+        });
+    }
+
+    async function generate_student() {
+        let users = await fetch("../config/Fetch_user.php");
+        let json_res = await users.json();
+        console.log(json_res);
+
+        let table = document.getElementById('table_list_student').getElementsByTagName('tbody')[0];
+        table.innerHTML = "";
+
+        json_res.forEach(each => {
+            let newRow = table.insertRow();
+            newRow.insertCell(0).innerHTML = `
+            <input type="checkbox" class="form-check w-75 h-75" value="${each.name}" onchange="preview()">
+            `;
+            newRow.insertCell(1).innerHTML = each.code;
+            newRow.insertCell(2).innerHTML = each.name;
+            newRow.insertCell(3).innerHTML = "";
+        });
+
+    }
+
+    function preview() {
+        let selectlist = document.getElementById('select-list');
+        selectlist.innerHTML = "";
+        data = [];
+        const checkboxes = document.querySelectorAll('#table_list_student input[type="checkbox"]:checked');
+        // const selectedNames = Array.from(checkboxes).map( cb =>" " + cb.value  );
+        // selectlist.innerHTML = selectedNames;
+        checkboxes.forEach(checkbox => {
+            let temp = document.createElement('div');
+            temp.className = "px-2";
+            temp.style.color = "#000";
+            temp.style.backgroundColor = "#fff";
+            temp.style.border = "1px solid #555";
+            temp.style.borderRadius = "2rem";
+            temp.textContent = checkbox.value;
+            selectlist.appendChild(temp);
+            data.push(checkbox.value);
+        });
+        console.log(data);
+    }
+
+    async function registerall() {
+        let select = document.getElementById('select-course');
+        console.log("select : " + select.value);
+
+        const response = await fetch(`../config/Find_Course.php?courseid=${select.value}`); // เรียกใช้ PHP
+        const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
+        let course = json_res;
+
+
+        console.log(course);
+        console.log("data : " + data);
+        // if (select && select.value !== "") {
+        //     const formdata = new FormData();
+        //     formdata.append("datas", data);
+
+        //     fetch("../config/")
+        // }
+    }
+</script>

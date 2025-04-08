@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 05, 2025 at 12:01 PM
+-- Generation Time: Apr 08, 2025 at 12:34 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,29 @@ SET time_zone = "+00:00";
 --
 -- Database: `lms_e_learning`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `choices`
+--
+
+CREATE TABLE `choices` (
+  `id` int(11) NOT NULL,
+  `question_id` int(11) NOT NULL,
+  `choice_text` text NOT NULL,
+  `is_correct` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `choices`
+--
+
+INSERT INTO `choices` (`id`, `question_id`, `choice_text`, `is_correct`) VALUES
+(1, 1, 'agasds', 1),
+(2, 1, 'dagsfasd', 0),
+(3, 1, 'agfasds', 0),
+(4, 1, 'aagdasd', 0);
 
 -- --------------------------------------------------------
 
@@ -162,7 +185,9 @@ CREATE TABLE `course_schedule` (
 
 INSERT INTO `course_schedule` (`id`, `course_id`, `day_id`, `start_time`, `end_time`, `is_deleted`) VALUES
 (1, 1, 4, '09:00', '12:00', 0),
-(2, 1, 3, '13:00', '16:00', 0);
+(2, 1, 3, '13:00', '16:00', 0),
+(3, 2, 4, '08:00', '11:00', 0),
+(4, 2, 5, '13:00', '16:00', 0);
 
 -- --------------------------------------------------------
 
@@ -322,6 +347,14 @@ CREATE TABLE `log_action` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `log_action`
+--
+
+INSERT INTO `log_action` (`id`, `category`, `message`, `username`, `ip_address`, `user_agent`, `created_at`) VALUES
+(5, 'general', 'Create examination Failed: Column count doesn\'t match value count at row 1', 'guest', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-07 10:39:23'),
+(6, 'general', 'Create examination success.', 'guest', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-07 10:40:50');
+
 -- --------------------------------------------------------
 
 --
@@ -346,7 +379,8 @@ INSERT INTO `log_error` (`id`, `category`, `message`, `username`, `ip_address`, 
 (1, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 07:42:02'),
 (2, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 07:43:17'),
 (3, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 07:43:44'),
-(4, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 08:43:17');
+(4, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 08:43:17'),
+(5, 'general', 'Column count doesn\'t match value count at row 1', 'guest', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-07 10:39:23');
 
 -- --------------------------------------------------------
 
@@ -376,6 +410,66 @@ INSERT INTO `log_login` (`id`, `user_id`, `username`, `action`, `ip_address`, `u
 (5, 1, 'admin', 'logout', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 10:53:53'),
 (6, 0, 'admin', 'login_failed', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 10:53:59'),
 (7, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 10:55:05');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `questions`
+--
+
+CREATE TABLE `questions` (
+  `id` int(11) NOT NULL,
+  `question_set_id` int(11) NOT NULL,
+  `question_text` text NOT NULL,
+  `question_type` enum('single_choice','multiple_choice','true_false','short_answer') DEFAULT 'multiple_choice',
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `questions`
+--
+
+INSERT INTO `questions` (`id`, `question_set_id`, `question_text`, `question_type`, `created_at`) VALUES
+(1, 3, 'agasdad', 'multiple_choice', '2025-04-07 17:40:46');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `question_sets`
+--
+
+CREATE TABLE `question_sets` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `type` enum('pre-test','post-test','quiz') NOT NULL,
+  `description` text DEFAULT NULL,
+  `start_time` datetime DEFAULT NULL,
+  `exam_period` tinyint(4) DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp(),
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `question_sets`
+--
+
+INSERT INTO `question_sets` (`id`, `title`, `type`, `description`, `start_time`, `exam_period`, `created_at`, `is_deleted`) VALUES
+(3, 'gagssad', 'pre-test', 'afagafa', '2025-04-04 17:40:00', 0, '2025-04-07 17:40:41', 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `test_results`
+--
+
+CREATE TABLE `test_results` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `question_set_id` int(11) NOT NULL,
+  `score` float DEFAULT NULL,
+  `started_at` datetime DEFAULT NULL,
+  `finished_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -468,9 +562,31 @@ INSERT INTO `user` (`id`, `code`, `name`, `email`, `username`, `password`, `rank
 (6, '65000000005', 'Nichaporn Treesup Cha-em', 'Nichaporn@gmail.com', 'Nichaporn.T.User', '1234', 0, '123456789', '2025-04-03', '2025-04-03', 0, 0, 0),
 (8, '65000000006', 'Peeraya Tarawong Gigiasd', 'Peeraya@gmail.coms', 'Peeraya.T.User', '1234', 1, '1234567890', '2025-03-03', '2025-04-03', 0, 0, 0);
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_answers`
+--
+
+CREATE TABLE `user_answers` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `question_id` int(11) NOT NULL,
+  `choice_id` int(11) DEFAULT NULL,
+  `answer_text` text DEFAULT NULL,
+  `answered_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `choices`
+--
+ALTER TABLE `choices`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `question_id` (`question_id`);
 
 --
 -- Indexes for table `content`
@@ -559,6 +675,27 @@ ALTER TABLE `log_login`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `questions`
+--
+ALTER TABLE `questions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `question_set_id` (`question_set_id`);
+
+--
+-- Indexes for table `question_sets`
+--
+ALTER TABLE `question_sets`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `test_results`
+--
+ALTER TABLE `test_results`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `question_set_id` (`question_set_id`);
+
+--
 -- Indexes for table `typefile`
 --
 ALTER TABLE `typefile`
@@ -579,8 +716,23 @@ ALTER TABLE `user`
   ADD UNIQUE KEY `email` (`email`) USING BTREE;
 
 --
+-- Indexes for table `user_answers`
+--
+ALTER TABLE `user_answers`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `question_id` (`question_id`),
+  ADD KEY `choice_id` (`choice_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `choices`
+--
+ALTER TABLE `choices`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `content`
@@ -604,7 +756,7 @@ ALTER TABLE `course_access`
 -- AUTO_INCREMENT for table `course_schedule`
 --
 ALTER TABLE `course_schedule`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `course_student`
@@ -640,19 +792,37 @@ ALTER TABLE `file`
 -- AUTO_INCREMENT for table `log_action`
 --
 ALTER TABLE `log_action`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `log_error`
 --
 ALTER TABLE `log_error`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `log_login`
 --
 ALTER TABLE `log_login`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `questions`
+--
+ALTER TABLE `questions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `question_sets`
+--
+ALTER TABLE `question_sets`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `test_results`
+--
+ALTER TABLE `test_results`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `typefile`
@@ -673,8 +843,20 @@ ALTER TABLE `user`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
+-- AUTO_INCREMENT for table `user_answers`
+--
+ALTER TABLE `user_answers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `choices`
+--
+ALTER TABLE `choices`
+  ADD CONSTRAINT `choices_ibfk_1` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`);
 
 --
 -- Constraints for table `content`
@@ -726,10 +908,31 @@ ALTER TABLE `file`
   ADD CONSTRAINT `content_id_file__id_content` FOREIGN KEY (`content_id`) REFERENCES `content` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Constraints for table `questions`
+--
+ALTER TABLE `questions`
+  ADD CONSTRAINT `questions_ibfk_1` FOREIGN KEY (`question_set_id`) REFERENCES `question_sets` (`id`);
+
+--
+-- Constraints for table `test_results`
+--
+ALTER TABLE `test_results`
+  ADD CONSTRAINT `test_results_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
+  ADD CONSTRAINT `test_results_ibfk_2` FOREIGN KEY (`question_set_id`) REFERENCES `question_sets` (`id`);
+
+--
 -- Constraints for table `unit`
 --
 ALTER TABLE `unit`
   ADD CONSTRAINT `course_id_unit__id_course` FOREIGN KEY (`course_id`) REFERENCES `course` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `user_answers`
+--
+ALTER TABLE `user_answers`
+  ADD CONSTRAINT `user_answers_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
+  ADD CONSTRAINT `user_answers_ibfk_2` FOREIGN KEY (`question_id`) REFERENCES `questions` (`id`),
+  ADD CONSTRAINT `user_answers_ibfk_3` FOREIGN KEY (`choice_id`) REFERENCES `choices` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

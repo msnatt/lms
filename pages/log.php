@@ -30,10 +30,10 @@ $user = $_SESSION['user'] ?? 'N/A';
                                 <table id="table_log">
                                     <thead>
                                         <tr>
-                                            <th> time </th>
-                                            <th> name </th>
-                                            <th> actions </th>
-                                            <th> note </th>
+                                <th style="width: 20%;"> time </th>
+                                <th style="width: 20%;"> Name </th>
+                                <th style="width: 20%;"> actions </th>
+                                <th style="width: 40%;"> note </th>
                                         </tr>
                                     </thead>
                                     <tbody>

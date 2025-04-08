@@ -68,6 +68,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 "course_name" => $row["course_name"],
                 "description" => $row["course_description"],
                 "objective" => $row["course_objective"],
+                "faculty_id" => $row["course_faculty_id"],
+                "department_id" => $row["course_department_id"],
                 "create_date" => $row["course_create_date"],
                 "update_date" => $row["course_update_date"],
                 "create_by" => $row["course_create_by"],

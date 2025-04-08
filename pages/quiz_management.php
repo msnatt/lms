@@ -24,7 +24,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                     <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="openExamCreate()">Create</button>
                 </div>
                 <div class="mt-3" style="min-height: 60vh;">
-                    <table class="container border rounded bg-secondary bg-opacity-10" id="table_exam" style="min-height: 70vh;">
+                    <table class="container border rounded bg-secondary bg-opacity-10" id="table_exam" >
                         <thead>
                             <tr>
                                 <th> Title </th>

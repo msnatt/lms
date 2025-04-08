@@ -9,7 +9,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const courseID = urlParams.get('courseid');
-        const res_course = await fetch(`../config/Find_Course.php?courseid=${courseID}`); // เรียกใช้ PHP
+        const res_course = await fetch(`../config/Find_CourseAll.php?courseid=${courseID}`); // เรียกใช้ PHP
         const json_res_course = await res_course.json(); // รับผลลัพธ์เป็น JSON
         let course_ = json_res_course;
 
@@ -20,6 +20,7 @@
         const response_unit = await fetch('../config/Fetch_Unit.php'); // เรียกใช้ PHP
         const json_res_unit = await response_unit.json(); // รับผลลัพธ์เป็น JSON
         let Units = json_res_unit;
+        
         const response_content = await fetch('../config/Fetch_content.php'); // เรียกใช้ PHP
         const json_res_content = await response_content.json(); // รับผลลัพธ์เป็น JSON
         let Contents = json_res_content;
