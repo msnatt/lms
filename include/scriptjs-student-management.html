@@ -65,18 +65,54 @@
         let select = document.getElementById('select-course');
         console.log("select : " + select.value);
 
-        const response = await fetch(`../config/Find_Course.php?courseid=${select.value}`); // เรียกใช้ PHP
+        const response = await fetch(`../config/Find_Course.php?courseid=${select.value}`); // เรียกใช้ PHP 
         const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
         let course = json_res;
 
-
         console.log(course);
         console.log("data : " + data);
-        // if (select && select.value !== "") {
-        //     const formdata = new FormData();
-        //     formdata.append("datas", data);
 
-        //     fetch("../config/")
+        let formdata = new FormData();
+        formdata.append("course_id", select.value);
+        formdata.append("users", data);
+
+        for (let pair of formdata.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
+
+        fetch("../config/mycourse_create_reg.php", {
+            method: 'POST',
+            body: formdata
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status == "success") {
+                    console.log(data.message);
+                }
+            });
+        // for (let pair of formdata.entries()) {
+        //     console.log(pair[0] + ': ' + pair[1]);
         // }
+
+        // units.forEach(unit => {
+        //     for (let i = 0; i < unit['contents'].length; i++) {
+        //         const content = unit['contents'][i];
+
+        //         formdata.append("course_id", course['course_id']);
+        //         formdata.append("unit_id", unit['unit_id']);
+        //         formdata.append("content_id", content['content_id']);
+
+        //         fetch("../config/mycourse_create.php", {
+        //             method: 'POST',
+        //             body: formdata
+        //         })
+        //             .then(response => response.json())
+        //             .then(data => {
+        //                 if (data.status == "success") {
+
+        //                 }
+        //             })
+        //     }
+        // });
     }
 </script>

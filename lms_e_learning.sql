@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 08, 2025 at 12:34 PM
+-- Generation Time: Apr 11, 2025 at 12:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,33 @@ SET time_zone = "+00:00";
 --
 -- Database: `lms_e_learning`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chat_messages`
+--
+
+CREATE TABLE `chat_messages` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `message` text NOT NULL,
+  `chat_room_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `chat_rooms`
+--
+
+CREATE TABLE `chat_rooms` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -245,7 +272,32 @@ INSERT INTO `course_student` (`id`, `course_id`, `unit_id`, `content_id`, `owner
 (70, 1, 1, 1, 3, 0, '2025-04-04', '2025-04-04', 0, 0),
 (71, 1, 2, 2, 3, 0, '2025-04-04', '2025-04-04', 0, 0),
 (72, 1, 1, 1, 5, 0, '2025-04-04', '2025-04-04', 0, 0),
-(73, 1, 2, 2, 5, 0, '2025-04-04', '2025-04-04', 0, 0);
+(73, 1, 2, 2, 5, 0, '2025-04-04', '2025-04-04', 0, 0),
+(74, 2, 10, 23, 3, 0, '2025-04-11', '2025-04-11', 0, 0),
+(75, 2, 3, 3, 5, 0, '2025-04-11', '2025-04-11', 0, 0),
+(76, 2, 3, 6, 5, 0, '2025-04-11', '2025-04-11', 0, 0),
+(77, 2, 4, 4, 5, 0, '2025-04-11', '2025-04-11', 0, 0),
+(78, 2, 4, 5, 5, 0, '2025-04-11', '2025-04-11', 0, 0),
+(79, 2, 10, 20, 5, 0, '2025-04-11', '2025-04-11', 0, 0),
+(80, 2, 10, 23, 5, 0, '2025-04-11', '2025-04-11', 0, 0),
+(81, 2, 3, 3, 6, 0, '2025-04-11', '2025-04-11', 0, 0),
+(82, 2, 3, 6, 6, 0, '2025-04-11', '2025-04-11', 0, 0),
+(83, 2, 4, 4, 6, 0, '2025-04-11', '2025-04-11', 0, 0),
+(84, 2, 4, 5, 6, 0, '2025-04-11', '2025-04-11', 0, 0),
+(85, 2, 10, 20, 6, 0, '2025-04-11', '2025-04-11', 0, 0),
+(86, 2, 10, 23, 6, 0, '2025-04-11', '2025-04-11', 0, 0),
+(87, 2, 3, 3, 8, 0, '2025-04-11', '2025-04-11', 0, 0),
+(88, 2, 3, 6, 8, 0, '2025-04-11', '2025-04-11', 0, 0),
+(89, 2, 4, 4, 8, 0, '2025-04-11', '2025-04-11', 0, 0),
+(90, 2, 4, 5, 8, 0, '2025-04-11', '2025-04-11', 0, 0),
+(91, 2, 10, 20, 8, 0, '2025-04-11', '2025-04-11', 0, 0),
+(92, 2, 10, 23, 8, 0, '2025-04-11', '2025-04-11', 0, 0),
+(93, 2, 10, 20, 2, 0, '2025-04-11', '2025-04-11', 0, 0),
+(94, 2, 10, 23, 2, 0, '2025-04-11', '2025-04-11', 0, 0),
+(95, 7, 7, 9, 1, 0, '2025-04-11', '2025-04-11', 0, 0),
+(96, 7, 7, 10, 1, 0, '2025-04-11', '2025-04-11', 0, 0),
+(97, 7, 7, 11, 1, 0, '2025-04-11', '2025-04-11', 0, 0),
+(98, 7, 7, 12, 1, 0, '2025-04-11', '2025-04-11', 0, 0);
 
 -- --------------------------------------------------------
 
@@ -353,7 +405,10 @@ CREATE TABLE `log_action` (
 
 INSERT INTO `log_action` (`id`, `category`, `message`, `username`, `ip_address`, `user_agent`, `created_at`) VALUES
 (5, 'general', 'Create examination Failed: Column count doesn\'t match value count at row 1', 'guest', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-07 10:39:23'),
-(6, 'general', 'Create examination success.', 'guest', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-07 10:40:50');
+(6, 'general', 'Create examination success.', 'guest', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-07 10:40:50'),
+(7, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 08:38:42'),
+(8, 'general', '[admin] Login successful.', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 08:40:17'),
+(9, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 09:08:42');
 
 -- --------------------------------------------------------
 
@@ -409,7 +464,12 @@ INSERT INTO `log_login` (`id`, `user_id`, `username`, `action`, `ip_address`, `u
 (4, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-04 15:40:58'),
 (5, 1, 'admin', 'logout', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 10:53:53'),
 (6, 0, 'admin', 'login_failed', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 10:53:59'),
-(7, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 10:55:05');
+(7, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 10:55:05'),
+(8, 1, 'admin', 'logout', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 15:26:40'),
+(9, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 15:38:42'),
+(10, 2, 'user', 'logout', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 15:40:07'),
+(11, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 15:40:17'),
+(12, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 16:08:42');
 
 -- --------------------------------------------------------
 
@@ -582,6 +642,20 @@ CREATE TABLE `user_answers` (
 --
 
 --
+-- Indexes for table `chat_messages`
+--
+ALTER TABLE `chat_messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `chat_room_id` (`chat_room_id`);
+
+--
+-- Indexes for table `chat_rooms`
+--
+ALTER TABLE `chat_rooms`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `choices`
 --
 ALTER TABLE `choices`
@@ -729,6 +803,18 @@ ALTER TABLE `user_answers`
 --
 
 --
+-- AUTO_INCREMENT for table `chat_messages`
+--
+ALTER TABLE `chat_messages`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `chat_rooms`
+--
+ALTER TABLE `chat_rooms`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `choices`
 --
 ALTER TABLE `choices`
@@ -762,7 +848,7 @@ ALTER TABLE `course_schedule`
 -- AUTO_INCREMENT for table `course_student`
 --
 ALTER TABLE `course_student`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=99;
 
 --
 -- AUTO_INCREMENT for table `days`
@@ -792,7 +878,7 @@ ALTER TABLE `file`
 -- AUTO_INCREMENT for table `log_action`
 --
 ALTER TABLE `log_action`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `log_error`
@@ -804,7 +890,7 @@ ALTER TABLE `log_error`
 -- AUTO_INCREMENT for table `log_login`
 --
 ALTER TABLE `log_login`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `questions`
@@ -851,6 +937,13 @@ ALTER TABLE `user_answers`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `chat_messages`
+--
+ALTER TABLE `chat_messages`
+  ADD CONSTRAINT `chat_messages_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`),
+  ADD CONSTRAINT `chat_messages_ibfk_2` FOREIGN KEY (`chat_room_id`) REFERENCES `chat_rooms` (`id`);
 
 --
 -- Constraints for table `choices`

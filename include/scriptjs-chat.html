@@ -1,0 +1,31 @@
+<!-- page product -->
+<script>
+    const socket = new WebSocket("ws://localhost:8085");
+
+    socket.onopen = function () {
+        console.log("Connected to WebSocket");
+    };
+
+    socket.onmessage = function (event) {
+        const messageData = JSON.parse(event.data);
+        displayMessage(messageData.user_name, messageData.message);
+    };
+
+    // ฟังก์ชันที่ใช้แสดงข้อความใน chat box
+    function displayMessage(user_name, message) {
+        const chatBox = document.getElementById("chat-box");
+        const messageDiv = document.createElement("div");
+        messageDiv.innerHTML = `<b>${user_name}:</b> ${message}`;
+        chatBox.appendChild(messageDiv);
+    }
+
+    function sendMessage() {
+        const input = document.getElementById("msg");
+        const msg = input.value;
+        if (msg.trim() !== "") {
+            conn.send(msg);
+            input.value = "";
+        }
+    }
+
+</script>

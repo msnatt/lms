@@ -108,7 +108,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 return $c["content_id"] == $row["content_id"];
             });
 
-            if (!$contentExists) {
+            if (!$contentExists && $value['unit_id'] == $row['content_unit_id']) {
                 $data["course"]["units"][$key]["contents"][] = [
                     "content_id" => $row["content_id"],
                     "unit_id" => $row["content_unit_id"],

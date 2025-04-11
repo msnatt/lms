@@ -21,9 +21,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ip_address = $_SERVER['REMOTE_ADDR'];
         $user_agent = $_SERVER['HTTP_USER_AGENT'];
 
-        $log_sql = "INSERT INTO login_log (user_id, username, action, ip_address, user_agent) 
+        $log_sql = "INSERT INTO log_login (user_id, username, action, ip_address, user_agent) 
             VALUES ('$user_id', '$username', 'login', '$ip_address', '$user_agent')";
         $conn->query($log_sql);
+        log_action("[" . $username . "] Login successful.");
 
 
         header("Location: ../pages/home.php");
@@ -31,9 +32,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $ip_address = $_SERVER['REMOTE_ADDR'];
         $user_agent = $_SERVER['HTTP_USER_AGENT'];
 
-        $log_sql = "INSERT INTO login_log (user_id, username, action, ip_address, user_agent) 
+        $log_sql = "INSERT INTO log_login (user_id, username, action, ip_address, user_agent) 
             VALUES (0, '$username', 'login_failed', '$ip_address', '$user_agent')";
         $conn->query($log_sql);
+        log_action($username . "An unknown user attempted to access the account.");
+        log_error($username . "An unknown user attempted to access the account.");
         echo "<script>alert('Invalid username or password!'); window.location.href='../pages/login.php';</script>";
     }
 }
