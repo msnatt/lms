@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 11, 2025 at 12:02 PM
+-- Generation Time: Apr 17, 2025 at 12:36 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -24,6 +24,29 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `chat_access`
+--
+
+CREATE TABLE `chat_access` (
+  `id` int(11) NOT NULL,
+  `chat_room_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `is_deleted` int(11) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chat_access`
+--
+
+INSERT INTO `chat_access` (`id`, `chat_room_id`, `user_id`, `is_deleted`) VALUES
+(1, 1, 1, 0),
+(2, 2, 1, 0),
+(3, 1, 2, 0),
+(4, 2, 3, 0);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `chat_messages`
 --
 
@@ -35,6 +58,24 @@ CREATE TABLE `chat_messages` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `chat_messages`
+--
+
+INSERT INTO `chat_messages` (`id`, `user_id`, `message`, `chat_room_id`, `created_at`) VALUES
+(14, 1, 'Test data', 1, '2025-04-17 06:19:30'),
+(15, 1, 'Test chat', 1, '2025-04-17 06:19:30'),
+(16, 2, 'Hi', 1, '2025-04-17 06:24:47'),
+(17, 1, 'Gg', 1, '2025-04-17 06:26:38'),
+(18, 1, 'GGGG', 1, '2025-04-17 06:27:17'),
+(19, 1, 'admin', 1, '2025-04-17 06:27:48'),
+(20, 2, 'Hola', 1, '2025-04-17 06:27:57'),
+(21, 1, 'This is Chat 2', 2, '2025-04-17 07:33:31'),
+(22, 1, 'Test Chat in 2 box', 2, '2025-04-17 07:39:47'),
+(23, 1, 'Chat box 2', 2, '2025-04-17 07:40:37'),
+(24, 1, 'Hola im in chat 1', 1, '2025-04-17 07:41:00'),
+(25, 1, 'Hi', 1, '2025-04-17 07:41:20');
+
 -- --------------------------------------------------------
 
 --
@@ -45,8 +86,17 @@ CREATE TABLE `chat_rooms` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `is_deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `chat_rooms`
+--
+
+INSERT INTO `chat_rooms` (`id`, `name`, `created_at`, `updated_at`, `is_deleted`) VALUES
+(1, 'Test rooms 1', '2025-04-17 02:30:01', '2025-04-17 02:30:01', 0),
+(2, 'Test rooms 2', '2025-04-17 02:30:01', '2025-04-17 02:30:01', 0);
 
 -- --------------------------------------------------------
 
@@ -408,7 +458,10 @@ INSERT INTO `log_action` (`id`, `category`, `message`, `username`, `ip_address`,
 (6, 'general', 'Create examination success.', 'guest', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-07 10:40:50'),
 (7, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 08:38:42'),
 (8, 'general', '[admin] Login successful.', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 08:40:17'),
-(9, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 09:08:42');
+(9, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 09:08:42'),
+(10, 'general', '[admin] Login successful.', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 01:50:35'),
+(11, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 04:24:16'),
+(12, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 04:57:00');
 
 -- --------------------------------------------------------
 
@@ -469,7 +522,10 @@ INSERT INTO `log_login` (`id`, `user_id`, `username`, `action`, `ip_address`, `u
 (9, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 15:38:42'),
 (10, 2, 'user', 'logout', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 15:40:07'),
 (11, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 15:40:17'),
-(12, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 16:08:42');
+(12, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 16:08:42'),
+(13, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 08:50:35'),
+(14, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 11:24:16'),
+(15, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 11:57:00');
 
 -- --------------------------------------------------------
 
@@ -642,6 +698,14 @@ CREATE TABLE `user_answers` (
 --
 
 --
+-- Indexes for table `chat_access`
+--
+ALTER TABLE `chat_access`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `chat_room_id__fk` (`chat_room_id`),
+  ADD KEY `user_id_fk` (`user_id`);
+
+--
 -- Indexes for table `chat_messages`
 --
 ALTER TABLE `chat_messages`
@@ -803,16 +867,22 @@ ALTER TABLE `user_answers`
 --
 
 --
+-- AUTO_INCREMENT for table `chat_access`
+--
+ALTER TABLE `chat_access`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `chat_messages`
 --
 ALTER TABLE `chat_messages`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `chat_rooms`
 --
 ALTER TABLE `chat_rooms`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `choices`
@@ -878,7 +948,7 @@ ALTER TABLE `file`
 -- AUTO_INCREMENT for table `log_action`
 --
 ALTER TABLE `log_action`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `log_error`
@@ -890,7 +960,7 @@ ALTER TABLE `log_error`
 -- AUTO_INCREMENT for table `log_login`
 --
 ALTER TABLE `log_login`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `questions`
@@ -937,6 +1007,13 @@ ALTER TABLE `user_answers`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `chat_access`
+--
+ALTER TABLE `chat_access`
+  ADD CONSTRAINT `chat_room_id__fk` FOREIGN KEY (`chat_room_id`) REFERENCES `chat_rooms` (`id`),
+  ADD CONSTRAINT `user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`);
 
 --
 -- Constraints for table `chat_messages`
