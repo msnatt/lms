@@ -4,28 +4,150 @@
 
     socket.onopen = function () {
         console.log("Connected to WebSocket");
+        // ส่งข้อมูล "เข้าร่วมห้อง" ให้ server ทันทีที่เชื่อมต่อเสร็จ
+        socket.send(JSON.stringify({
+            type: "join",
+            room_id: 0, // หรือจะใส่เลขตรงๆเช่น 2 ก็ได้
+            user_id: "<?php echo $_SESSION['user']['id']; ?>" // ดึงจาก PHP session
+        }));
     };
 
     socket.onmessage = function (event) {
         const messageData = JSON.parse(event.data);
-        displayMessage(messageData.user_name, messageData.message);
+        displayMessage(messageData.name, messageData.message);
     };
 
     // ฟังก์ชันที่ใช้แสดงข้อความใน chat box
-    function displayMessage(user_name, message) {
+    function displayMessage(name, message) {
         const chatBox = document.getElementById("chat-box");
         const messageDiv = document.createElement("div");
-        messageDiv.innerHTML = `<b>${user_name}:</b> ${message}`;
+        messageDiv.innerHTML = `<b>${name}:</b> ${message}`;
         chatBox.appendChild(messageDiv);
     }
 
     function sendMessage() {
-        const input = document.getElementById("msg");
+        const select = document.getElementById("chat-room-select");
+        const input = document.getElementById("chat-message");
+        const selectedRoomId = select.value;
         const msg = input.value;
+
+        const message = {
+            type: "chat",
+            room_id: selectedRoomId, // ไอดีห้องแชทที่เลือก
+            user_id: "<?php echo $_SESSION['user_id']; ?>",
+            name: "<?php echo $_SESSION['user']['name']; ?>",
+            message: input.value
+        };
+
         if (msg.trim() !== "") {
-            conn.send(msg);
+            socket.send(JSON.stringify(message)); // ส่งไปยัง WebSocket server
             input.value = "";
         }
     }
 
+    document.addEventListener("DOMContentLoaded", () => {
+        loadChatRooms();
+    });
+
+    async function loadChatRooms() {
+        try {
+            const chatAccessRes = await fetch("../config/chat_access.php");
+            const chat_access = await chatAccessRes.json();
+
+            const res = await fetch("../config/chat-loadrooms.php");
+            const data = await res.json();
+
+            const select = document.getElementById("list-room-chat");
+            const currentUserId = "<?php echo $_SESSION['user_id']; ?>"; // ใช้เฉพาะถ้า JS อยู่ใน .php
+
+            for (const room of data) {
+                for (const ca of chat_access) {
+                    if (ca.user_id == currentUserId && ca.chat_room_id == room.id) {
+
+                        // fetch ข้อความล่าสุด
+                        const response_ = await fetch(`../config/chat-last.php?room_id=${room.id}`);
+                        const chatroom = await response_.json();
+                        const lastMessage = chatroom.message ?? "[ไม่มีข้อความ]";
+
+                        // สร้าง div สำหรับห้อง
+                        const div = document.createElement("div");
+                        div.id = "room_" + room.id;
+                        div.className = "gap-1 box-chat m-1";
+                        div.onclick = () => selectRoomChat(room.id, room.name);
+
+                        // ✅ ชื่อห้อง
+                        const name = document.createElement("div");
+                        name.className = "fw-bold";
+                        name.innerText = room.name;
+
+                        // ✅ ข้อความล่าสุด
+                        const preview = document.createElement("div");
+                        preview.className = "text-muted small";
+                        preview.innerText = lastMessage;
+
+                        // ใส่ใน div หลัก
+                        div.appendChild(name);
+                        div.appendChild(preview);
+                        select.appendChild(div);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("เกิดข้อผิดพลาด:", error);
+        }
+    }
+
+
+    async function selectRoomChat(roomId, roomName) {
+        let response = await fetch("../config/chat_users.php?roomId=" + roomId);
+        let chatroom = await response.json();
+        let users = chatroom['users'];
+        console.log(users);
+
+        fetch("../config/chat-load.php?room_id=" + roomId)
+            .then(res => res.json())
+            .then(data => {
+                const chatBox = document.getElementById("chat-box");
+                chatBox.innerHTML = ""; // ล้างของเก่า
+                data.forEach(msg => {
+                    chatBox.innerHTML += `<div><strong>${msg.name}:</strong> ${msg.message}</div>`;
+                });
+                socket.send(JSON.stringify({
+                    type: "join",
+                    room_id: roomId, // หรือจะใส่เลขตรงๆเช่น 2 ก็ได้
+                    user_id: "<?php echo $_SESSION['user']['id']; ?>" // ดึงจาก PHP session
+                }));
+            });
+
+        let statusChat = document.getElementById("status-chat");
+        statusChat.textContent = "";
+        let nameChat = document.getElementById("name-chat");
+        nameChat.textContent = roomName;
+        users.forEach(user => {
+            const div = document.createElement('div');
+            div.className = "py-2";
+            div.textContent = `${user.code} - ${user.name}`;
+            // div.innerHTML = `
+
+            // `;
+            statusChat.appendChild(div);
+        });
+
+    };
+
+    async function loadChatHistory(roomId) {
+        fetch(`../config/chat-load.php?room_id=${roomId}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                const chatBox = document.getElementById("chat-box");
+                chatBox.innerHTML = ""; // ล้างกล่องแชทก่อน
+                data.forEach(msg => {
+                    const messageDiv = document.createElement("div");
+                    messageDiv.innerHTML = `<b>${msg.name}:</b> ${msg.message}`;
+                    chatBox.appendChild(messageDiv);
+                });
+            })
+            .catch(error => console.error("Error loading chat history:", error));
+    }
 </script>

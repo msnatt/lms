@@ -4,7 +4,7 @@
             <i class="bi bi-house"></i>
             <span><a class="nav-link active text" href="../pages/chat.php">General Chat</a></span>
         </li>
-        <?php if ($_SESSION['user']['is_admin']): ?>
+        <?php if (isset($_SESSION['user']) && $_SESSION['user']['is_admin']): ?>
             <li class="d-flex align-items-center gap-2">
                 <i class="bi bi-book-half"></i>
                 <a class="nav-link text" href="../pages/student_management.php">Student management</a>
@@ -17,9 +17,10 @@
                 <i class="bi bi-chat-left-dots"></i>
                 <a class="nav-link text" href="../pages/quiz_management.php">Quiz Management</a>
             </li>
-            <li class="d-flex flex-column align-items-start gap-2">
-                <button class="btn btn-link nav-link text p-0" data-bs-toggle="collapse" data-bs-target="#systemSubNav" aria-expanded="false">
-                    <i class="bi bi-gear"></i> System
+            <li class="d-flex align-items-center gap-2">
+                <i class="bi bi-gear"></i>
+                <button class="btn btn-link nav-link text px-0" data-bs-toggle="collapse" data-bs-target="#systemSubNav" aria-expanded="false">
+                    System
                 </button>
                 <ul class="collapse nav flex-column " id="systemSubNav">
                     <li class="d-flex align-items-start gap-2">
