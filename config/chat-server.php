@@ -35,8 +35,23 @@ class Chat implements MessageComponentInterface
         if ($data['type'] === 'join') {
             $from->room_id = $data['room_id'];
             $from->user_id = $data['user_id'];
-            echo "[" . $data['user_id'] . "] joined room " . $from->room_id . "\n";
-            return;
+            echo "[" . $data['user_id'] . "] joined Meeting room " . $from->room_id . "\n";
+
+            $roomId = $data['room_id'];
+            $user_id = $data['user_id'];
+            $name = "&lt;server&gt;";
+            $message = "[" . $user_id . "] Joined meeting.";
+
+            // ✅ ส่งเฉพาะคนในห้องเดียวกัน
+            foreach ($this->clients as $client) {
+                if (isset($client->room_id) && $client->room_id === $roomId) {
+                    $client->send(json_encode([
+                        'type' => 'join',
+                        'name' => $name,
+                        'message' => $message
+                    ]));
+                }
+            }
         } else if ($data['type'] === 'chat') {
 
             $roomId = $data['room_id'];
@@ -55,11 +70,63 @@ class Chat implements MessageComponentInterface
             foreach ($this->clients as $client) {
                 if (isset($client->room_id) && $client->room_id === $roomId) {
                     $client->send(json_encode([
+                        'type' => 'chat',
                         'name' => $name,
                         'message' => $message
                     ]));
                 }
             }
+        } else if ($data['type'] === 'offer') {
+            foreach ($this->clients as $client) {
+                if ($client->room_id == $from->room_id && $client->user_id == $data['to_user_id']) {
+                    $client->send(json_encode([
+                        'type' => 'offer',
+                        'offer' => $data['offer'],
+                        'from_user_id' => $from->user_id,
+                        'room_id' => $from->room_id
+                    ]));
+                }
+            }
+        } else if ($data['type'] === 'answer') {
+            foreach ($this->clients as $client) {
+                if ($client->room_id == $from->room_id && $client->user_id == $data['to_user_id']) {
+                    $client->send(json_encode([
+                        'type' => 'answer',
+                        'answer' => $data['answer'],
+                        'from_user_id' => $from->user_id,
+                        'room_id' => $from->room_id
+                    ]));
+                }
+            }
+        } else if ($data['type'] === 'candidate') {
+            foreach ($this->clients as $client) {
+                if ($client->room_id == $from->room_id && $client->user_id == $data['to_user_id']) {
+                    $client->send(json_encode([
+                        'type' => 'candidate',
+                        'candidate' => $data['candidate'],
+                        'from_user_id' => $from->user_id,
+                        'room_id' => $from->room_id
+                    ]));
+                }
+            }
+        } else if ($data['type'] === 'leave') {
+
+            $roomId = $data['room_id'];
+            $user_id = $data['user_id'];
+            $name = "&lt;server&gt;";
+            $message = "[" . $user_id . "] leave.";
+
+            // ✅ ส่งเฉพาะคนในห้องเดียวกัน
+            foreach ($this->clients as $client) {
+                if (isset($client->room_id) && $client->room_id === $roomId) {
+                    $client->send(json_encode([
+                        'type' => 'leave',
+                        'name' => $name,
+                        'message' => $message
+                    ]));
+                }
+            }
+            echo "[" . $data['user_id'] . "] leave room " . $from->room_id . "\n";
         }
     }
 

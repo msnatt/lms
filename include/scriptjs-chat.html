@@ -1,49 +1,9 @@
 <!-- page product -->
 <script>
     const socket = new WebSocket("ws://localhost:8085");
-
-    socket.onopen = function () {
-        console.log("Connected to WebSocket");
-        // ส่งข้อมูล "เข้าร่วมห้อง" ให้ server ทันทีที่เชื่อมต่อเสร็จ
-        socket.send(JSON.stringify({
-            type: "join",
-            room_id: 0, // หรือจะใส่เลขตรงๆเช่น 2 ก็ได้
-            user_id: "<?php echo $_SESSION['user']['id']; ?>" // ดึงจาก PHP session
-        }));
-    };
-
-    socket.onmessage = function (event) {
-        const messageData = JSON.parse(event.data);
-        displayMessage(messageData.name, messageData.message);
-    };
-
-    // ฟังก์ชันที่ใช้แสดงข้อความใน chat box
-    function displayMessage(name, message) {
-        const chatBox = document.getElementById("chat-box");
-        const messageDiv = document.createElement("div");
-        messageDiv.innerHTML = `<b>${name}:</b> ${message}`;
-        chatBox.appendChild(messageDiv);
-    }
-
-    function sendMessage() {
-        const select = document.getElementById("chat-room-select");
-        const input = document.getElementById("chat-message");
-        const selectedRoomId = select.value;
-        const msg = input.value;
-
-        const message = {
-            type: "chat",
-            room_id: selectedRoomId, // ไอดีห้องแชทที่เลือก
-            user_id: "<?php echo $_SESSION['user_id']; ?>",
-            name: "<?php echo $_SESSION['user']['name']; ?>",
-            message: input.value
-        };
-
-        if (msg.trim() !== "") {
-            socket.send(JSON.stringify(message)); // ส่งไปยัง WebSocket server
-            input.value = "";
-        }
-    }
+    let currentRoomId = 0;
+    let peerConnection = null;
+    const currentUserId = "<?php echo $_SESSION['user']['id']; ?>";
 
     document.addEventListener("DOMContentLoaded", () => {
         loadChatRooms();
@@ -97,12 +57,202 @@
         }
     }
 
+    async function toggleControl() {
+        const videocallbox = document.getElementById('videocall-box');
+        const infobox = document.getElementById('infomation-box');
+        const commubox = document.getElementById('commu-box');
+        await toggleDisplay(videocallbox, infobox);
+        togglewidthVideoandChats(commubox, videocallbox);
+    }
+
+    async function toggleDisplay(Element1, Element2) {
+        const meetbox = document.getElementById('meet-box');
+        let toggle = Element1.style.display == 'none';
+        if (toggle) {
+            Element1.style.display = 'block';
+            Element2.style.display = 'none';
+            meetbox.style.display = 'none';
+            await videocall();
+        } else {
+            Element1.style.display = 'none';
+            Element2.style.display = 'block';
+            meetbox.style.display = 'block';
+        }
+    }
+
+    function togglewidthVideoandChats(commubox, videocallbox) {
+        let toggleclass = commubox.classList.contains('col-lg-8');
+        commubox.classList.replace(toggleclass ? 'col-lg-8' : 'col-lg-2', toggleclass ? 'col-lg-2' : 'col-lg-8')
+        if (videocallbox.classList.contains('col-8')) {
+            videocallbox.classList.remove('col-8');
+        } else {
+            videocallbox.classList.add('col-8');
+        }
+    }
+
+    async function videocall() {
+
+        const localVideo = document.getElementById('localVideo');
+        const remoteVideo = document.getElementById('remoteVideo');
+        peerConnection = new RTCPeerConnection();
+
+        let localStream = null;
+
+        // show device ID connected to this pc.
+        // navigator.mediaDevices.enumerateDevices()
+        //     .then(devices => {
+        //         devices.forEach(device => {
+        //             console.log(`${device.kind}: ${device.label} [${device.deviceId}]`);
+        //         });
+        //     });
+
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                localVideo.srcObject = stream;
+                localStream = stream;
+
+                // ✅ ย้ายการ addTrack มาที่นี่
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+
+                // ✅ ย้ายการ createOffer มาที่นี่
+                peerConnection.createOffer().then(offer => {
+                    peerConnection.setLocalDescription(offer);
+                    socket.send(JSON.stringify({ type: "join", room_id: currentRoomId, user_id: currentUserId }));
+                    socket.send(JSON.stringify({ type: "offer", offer }));
+                });
+            })
+            .catch(err => {
+                console.error("Cannot access media devices:", err);
+            });
+
+        // เมื่อได้รับสัญญาณ remote
+        peerConnection.ontrack = event => {
+            remoteVideo.srcObject = event.streams[0];
+        };
+
+
+    }
+
+    socket.onopen = function () {
+        console.log("Connected to WebSocket");
+        // ส่งข้อมูล "เข้าร่วมห้อง" ให้ server ทันทีที่เชื่อมต่อเสร็จ
+
+    };
+
+    socket.onmessage = async function (event) {
+        const data = JSON.parse(event.data);
+        switch (data.type) {
+            case "join":
+                displayMessage(data.name, data.message);
+                break;
+            case "leave":
+                displayMessage(data.name, data.message);
+                break;
+            case "chat":
+                displayMessage(data.name, data.message);
+                break;
+            case "offer":
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                socket.send(JSON.stringify({
+                    type: "answer",
+                    answer: answer,
+                    to_user_id: data.from_user_id // 👈 เพิ่มเพื่อส่งกลับถูกฝั่ง
+                }));
+                break;
+            case "answer":
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                break;
+            case "candidate":
+                if (data.candidate) {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                }
+                break;
+            default:
+                console.warn("Unknown message type:", data.type);
+        }
+    };
+
+    async function shareScreen() {
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+        screenStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, screenStream);
+        });
+    }
+    // ฟังก์ชันที่ใช้แสดงข้อความใน chat box
+    function displayMessage(name, message) {
+        const chatBox = document.getElementById("chat-box");
+        const messageDiv = document.createElement("div");
+        messageDiv.innerHTML = `<b>${name}:</b> ${message}`;
+        chatBox.appendChild(messageDiv);
+    }
+
+    function sendMessage() {
+        const input = document.getElementById("chat-message");
+        const msg = input.value;
+
+        const message = {
+            type: "chat",
+            room_id: currentRoomId, // ไอดีห้องแชทที่เลือก
+            user_id: "<?php echo $_SESSION['user_id']; ?>",
+            name: "<?php echo $_SESSION['user']['name']; ?>",
+            message: input.value
+        };
+
+        if (msg.trim() !== "") {
+            socket.send(JSON.stringify(message)); // ส่งไปยัง WebSocket server
+            input.value = "";
+        }
+    }
 
     async function selectRoomChat(roomId, roomName) {
-        let response = await fetch("../config/chat_users.php?roomId=" + roomId);
-        let chatroom = await response.json();
-        let users = chatroom['users'];
-        console.log(users);
+        // หยุดเชื่อมต่อ(ถ้ามี)
+        if (peerConnection) {
+            leaveMeet();
+        }
+
+        const chatHeader = document.getElementById("chat-header");
+        const chatBox = document.getElementById("chat-box");
+        const meetbox = document.getElementById("meet-box");
+        meetbox.style.display = 'block';
+
+        // 1. อัปเดตหัวข้อห้อง
+        chatHeader.innerText = `${roomName}`;
+
+
+        // กำหนดห้องปัจจุบันใหม่ จาก div ที่เลือก
+        currentRoomId = roomId;
+        // โหลดแชทของห้องแชทใหม่
+        await loadChat(roomId, roomName);
+
+    };
+
+    function leaveMeet() {
+        // ส่งสถานะ leave chat บอก server 
+        if (currentRoomId !== 0) {
+            socket.send(JSON.stringify({
+                type: "leave",
+                room_id: currentRoomId,
+                user_id: currentUserId
+            }));
+        }
+
+        // ลบการเชื่อมต่อ
+        peerConnection.close();
+        peerConnection = null;
+
+        // 5. ล้าง video stream
+        const localVideo = document.getElementById("localVideo");
+        const remoteVideo = document.getElementById("remoteVideo");
+        if (localVideo) localVideo.srcObject = null;
+        if (remoteVideo) remoteVideo.srcObject = null;
+
+    }
+
+    async function loadChat(roomId, roomName) {
 
         fetch("../config/chat-load.php?room_id=" + roomId)
             .then(res => res.json())
@@ -112,12 +262,11 @@
                 data.forEach(msg => {
                     chatBox.innerHTML += `<div><strong>${msg.name}:</strong> ${msg.message}</div>`;
                 });
-                socket.send(JSON.stringify({
-                    type: "join",
-                    room_id: roomId, // หรือจะใส่เลขตรงๆเช่น 2 ก็ได้
-                    user_id: "<?php echo $_SESSION['user']['id']; ?>" // ดึงจาก PHP session
-                }));
             });
+
+        let response = await fetch("../config/chat_users.php?roomId=" + roomId);
+        let chatroom = await response.json();
+        let users = chatroom['users'];
 
         let statusChat = document.getElementById("status-chat");
         statusChat.textContent = "";
@@ -132,8 +281,7 @@
             // `;
             statusChat.appendChild(div);
         });
-
-    };
+    }
 
     async function loadChatHistory(roomId) {
         fetch(`../config/chat-load.php?room_id=${roomId}`)
@@ -150,4 +298,6 @@
             })
             .catch(error => console.error("Error loading chat history:", error));
     }
+
+
 </script>
