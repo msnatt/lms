@@ -2,6 +2,12 @@
 
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
+use Ratchet\Http\HttpServer;
+use Ratchet\WebSocket\WsServer;
+use Ratchet\Server\IoServer;
+use React\EventLoop\Loop;
+use React\Socket\SecureServer;
+use React\Socket\SocketServer;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 require_once dirname(__DIR__) . '../config/connect.php';
@@ -14,12 +20,9 @@ class Chat implements MessageComponentInterface
     public function __construct()
     {
         $this->clients = new \SplObjectStorage;
-
-        // ✅ ดึง conn จาก global หรือใช้จาก include
         global $conn;
         $this->conn = $conn;
-
-        echo "Chat server started and MySQLi connected\n";
+        echo "Chat server started and MySQLi connected (WSS)\n";
     }
 
     public function onOpen(ConnectionInterface $conn)
@@ -35,50 +38,34 @@ class Chat implements MessageComponentInterface
         if ($data['type'] === 'join') {
             $from->room_id = $data['room_id'];
             $from->user_id = $data['user_id'];
-            echo "[" . $data['user_id'] . "] joined Meeting room " . $from->room_id . "\n";
+            echo "[" . $data['user_id'] . "] joined room " . $from->room_id . "\n";
 
-            $roomId = $data['room_id'];
-            $user_id = $data['user_id'];
-            $name = "&lt;server&gt;";
-            $message = "[" . $user_id . "] Joined meeting.";
-
-            // ✅ ส่งเฉพาะคนในห้องเดียวกัน
             foreach ($this->clients as $client) {
-                if (isset($client->room_id) && $client->room_id === $roomId) {
+                if (isset($client->room_id) && $client->room_id === $from->room_id) {
                     $client->send(json_encode([
                         'type' => 'join',
-                        'name' => $name,
-                        'message' => $message
+                        'name' => '&lt;server&gt;',
+                        'message' => "[" . $from->user_id . "] Joined meeting."
                     ]));
                 }
             }
         } else if ($data['type'] === 'chat') {
-
-            $roomId = $data['room_id'];
-            $user_id = $data['user_id'];
-            $name = $data['name'];
-            $message = $data['message'];
-
-            //กำหนด room_id ให้กับ client
-            // $from->room_id = $roomId;
-
             $stmt = $this->conn->prepare("INSERT INTO chat_messages (chat_room_id, user_id, message) VALUES (?, ?, ?)");
-            $stmt->bind_param("iis", $roomId, $user_id, $message);
+            $stmt->bind_param("iis", $data['room_id'], $data['user_id'], $data['message']);
             $stmt->execute();
 
-            // ✅ ส่งเฉพาะคนในห้องเดียวกัน
             foreach ($this->clients as $client) {
-                if (isset($client->room_id) && $client->room_id === $roomId) {
+                if (isset($client->room_id) && $client->room_id === $data['room_id']) {
                     $client->send(json_encode([
                         'type' => 'chat',
-                        'name' => $name,
-                        'message' => $message
+                        'name' => $data['name'],
+                        'message' => $data['message']
                     ]));
                 }
             }
         } else if ($data['type'] === 'offer') {
             foreach ($this->clients as $client) {
-                if ($client->room_id == $from->room_id && $client->user_id == $data['to_user_id']) {
+                if ($client->room_id === $from->room_id) {
                     $client->send(json_encode([
                         'type' => 'offer',
                         'offer' => $data['offer'],
@@ -89,7 +76,7 @@ class Chat implements MessageComponentInterface
             }
         } else if ($data['type'] === 'answer') {
             foreach ($this->clients as $client) {
-                if ($client->room_id == $from->room_id && $client->user_id == $data['to_user_id']) {
+                if ($client->room_id === $from->room_id && $client->user_id === $data['to_user_id']) {
                     $client->send(json_encode([
                         'type' => 'answer',
                         'answer' => $data['answer'],
@@ -100,7 +87,7 @@ class Chat implements MessageComponentInterface
             }
         } else if ($data['type'] === 'candidate') {
             foreach ($this->clients as $client) {
-                if ($client->room_id == $from->room_id && $client->user_id == $data['to_user_id']) {
+                if ($client->room_id === $from->room_id) {
                     $client->send(json_encode([
                         'type' => 'candidate',
                         'candidate' => $data['candidate'],
@@ -110,23 +97,16 @@ class Chat implements MessageComponentInterface
                 }
             }
         } else if ($data['type'] === 'leave') {
-
-            $roomId = $data['room_id'];
-            $user_id = $data['user_id'];
-            $name = "&lt;server&gt;";
-            $message = "[" . $user_id . "] leave.";
-
-            // ✅ ส่งเฉพาะคนในห้องเดียวกัน
             foreach ($this->clients as $client) {
-                if (isset($client->room_id) && $client->room_id === $roomId) {
+                if ($client->room_id === $data['room_id']) {
                     $client->send(json_encode([
                         'type' => 'leave',
-                        'name' => $name,
-                        'message' => $message
+                        'name' => '&lt;server&gt;',
+                        'message' => "[" . $data['user_id'] . "] leave."
                     ]));
                 }
             }
-            echo "[" . $data['user_id'] . "] leave room " . $from->room_id . "\n";
+            echo "[" . $data['user_id'] . "] left room " . $from->room_id . "\n";
         }
     }
 
@@ -143,13 +123,30 @@ class Chat implements MessageComponentInterface
     }
 }
 
-use Ratchet\Server\IoServer;
-use Ratchet\Http\HttpServer;
-use Ratchet\WebSocket\WsServer;
+// ✅ สร้าง WebSocket Server แบบปลอดภัย (WSS)
+$loop = Loop::get();
 
-$server = IoServer::factory(
-    new HttpServer(new WsServer(new Chat())),
-    8085
+
+// เปิด socket พอร์ต 8085
+$socket = new SocketServer('0.0.0.0:8085', [], $loop);
+
+// เพิ่มการเข้ารหัส SSL
+$secure_socket = new SecureServer($socket, $loop, [
+    'local_cert' => 'C:/xampp/apache/conf/ssl.crt/49.0.69.152.pem', // 👈 เปลี่ยนเป็น path ของคุณ
+    'local_pk' => 'C:/xampp/apache/conf/ssl.crt/49.0.69.152-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
+    'allow_self_signed' => true,
+    'verify_peer' => false
+]);
+
+$server = new IoServer(
+    new HttpServer(
+        new WsServer(
+            new Chat()
+        )
+    ),
+    $secure_socket,
+    $loop
 );
 
-$server->run();
+echo "Secure WSS server started on port 8085...\n";
+$loop->run();

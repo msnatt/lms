@@ -26,9 +26,60 @@ $user = $_SESSION['user'] ?? 'N/A';
                         </div>
                     </div>
                 </div>
-                <div class="d-flex flex-wrap " id="videocall-box" style="display: none;">
-                    <video id="localVideo" autoplay muted class="w-100 rounded shadow-sm"></video>
-                    <video id="remoteVideo" autoplay class="w-100 rounded shadow-sm"></video>
+                <div class="d-flex flex-wrap " id="videocall-box" style="visibility: hidden;">
+                    <!-- วิดีโอแชท -->
+                    <div class="position-relative bg-dark" style="height: 500px;">
+                        <!-- remote video อยู่ด้านหลัง -->
+                        <video id="remoteVideo" autoplay class="w-100 h-100 object-fit-cover rounded"></video>
+
+                        <!-- local video ลอยบนมุมขวาล่าง -->
+                        <video id="localVideo" autoplay muted
+                            class="position-absolute rounded shadow border border-white"
+                            style="width: 200px; bottom: 100px; right: 20px; z-index: 10;"></video>
+
+                        <!-- control panel -->
+                        <div class="position-absolute bottom-0 start-50 translate-middle-x p-3 d-flex gap-3 bg-dark bg-opacity-50 rounded shadow"
+                            style="z-index: 11;">
+                            <!-- Setting Icon -->
+                            <button class="btn btn-outline-light" title="Settings" onclick="toggleSettingPanel()">
+                                <i class="bi bi-gear-fill"></i>
+                            </button>
+
+                            <!-- Toggle Camera -->
+                            <button class="btn btn-outline-light" title="Toggle Camera" onclick="toggleCamera()">
+                                <i class="bi bi-camera-video-fill"></i>
+                            </button>
+
+                            <!-- Toggle Mic -->
+                            <button class="btn btn-outline-light" title="Toggle Mic" onclick="toggleMic()">
+                                <i class="bi bi-mic-fill"></i>
+                            </button>
+
+                            <!-- Share Screen -->
+                            <button class="btn btn-outline-light" title="Share Screen" onclick="shareScreen()">
+                                <i class="bi bi-display-fill"></i>
+                            </button>
+
+                            <!-- Hang Up -->
+                            <button class="btn btn-danger" title="Hang Up" onclick="toggleControl()">
+                                <i class="bi bi-telephone-x-fill"></i>
+                            </button>
+                        </div>
+                        <!-- setting -->
+                        <div id="settingPanel" class="position-absolute translate-middle-x p-3 gap-3 bg-white rounded shadow flex-column"
+                            style="display:flex; left: 50%; bottom: 20%; z-index: 11; width: 100%; max-width: 300px; height: 100%; max-height: 300px;">
+                            <div class="d-flex justify-content-between">
+                                <div class="fs-4">Settings</div>
+                                <button style="border: 0; background-color: #ffffff00;" onclick="toggleSettingPanel()">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                            <div class="fs-6">Camera</div>
+                            <select id="cam-select"></select>
+                            <div class="fs-6">Audio</div>
+                            <select id="mic-select"></select>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-12 col-lg-8 border rounded bg-light shadow-sm" id="commu-box" style="display: block;">
                     <div id="" class="d-flex justify-content-between align-items-center px-3 py-1 bg-light" style="min-height: 50px;">
