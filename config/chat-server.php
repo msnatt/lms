@@ -9,6 +9,9 @@ use React\EventLoop\Loop;
 use React\Socket\SecureServer;
 use React\Socket\SocketServer;
 
+echo dirname(__DIR__) . '/vendor/autoload.php'; // ตรวจสอบว่าถูกไหม
+
+
 require dirname(__DIR__) . '/vendor/autoload.php';
 require_once dirname(__DIR__) . '../config/connect.php';
 
@@ -133,11 +136,13 @@ $socket = new SocketServer('0.0.0.0:8085', [], $loop);
 // เพิ่มการเข้ารหัส SSL
 $secure_socket = new SecureServer($socket, $loop, [
     'local_cert' => 'C:/xampp/apache/conf/ssl.crt/49.0.69.152.pem', // 👈 เปลี่ยนเป็น path ของคุณ
-    'local_pk' => 'C:/xampp/apache/conf/ssl.crt/49.0.69.152-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
+    'local_pk' => 'C:/xampp/apache/conf/ssl.key/49.0.69.152-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
     'allow_self_signed' => true,
     'verify_peer' => false
 ]);
 
+    // 'local_cert' => 'C:/xampp/apache/conf/ssl.crt/localhost.pem', // 👈 เปลี่ยนเป็น path ของคุณ
+    // 'local_pk' => 'C:/xampp/apache/conf/ssl.key/localhost-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
 $server = new IoServer(
     new HttpServer(
         new WsServer(
