@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 17, 2025 at 12:36 PM
+-- Generation Time: Apr 21, 2025 at 06:13 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -165,7 +165,9 @@ INSERT INTO `content` (`id`, `unit_id`, `type_id`, `content`, `create_date`, `up
 (25, 11, 2, '../uploads/admin2/images.png', '2025-03-24', '2025-03-24', 0),
 (26, 12, 1, 'This Image', '2025-03-24', '2025-03-24', 0),
 (27, 12, 2, '../uploads/admin2/instagram-pin-posts.png', '2025-03-24', '2025-03-24', 0),
-(28, 12, 2, '../uploads/admin2/canva-black-and-beige-photo-new.png', '2025-03-24', '2025-03-24', 0);
+(28, 12, 2, '../uploads/admin2/canva-black-and-beige-photo-new.png', '2025-03-24', '2025-03-24', 0),
+(30, 2, 5, 'https://kahoot.it/', '2025-04-21', '2025-04-21', 0),
+(31, 2, 5, 'https://kahoot.it/', '2025-04-21', '2025-04-21', 1);
 
 -- --------------------------------------------------------
 
@@ -461,7 +463,19 @@ INSERT INTO `log_action` (`id`, `category`, `message`, `username`, `ip_address`,
 (9, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 09:08:42'),
 (10, 'general', '[admin] Login successful.', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 01:50:35'),
 (11, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 04:24:16'),
-(12, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 04:57:00');
+(12, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 04:57:00'),
+(13, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-18 04:04:46'),
+(14, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0', '2025-04-18 06:20:41'),
+(15, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0', '2025-04-18 07:51:31'),
+(16, 'general', '[user] Login successful.', 'user', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0', '2025-04-19 02:31:51'),
+(17, 'general', '[user] Login successful.', 'user', '49.0.69.152', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 02:39:29'),
+(18, 'general', '[admin] Login successful.', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 03:31:32'),
+(19, 'general', '[admin] Login successful.', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 04:09:50'),
+(20, 'general', '[user] Login successful.', 'user', '192.168.1.108', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 09:24:21'),
+(21, 'general', '[user] Login successful.', 'user', '49.0.69.152', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 09:37:47'),
+(22, 'general', 'adminAn unknown user attempted to access the account.', 'guest', '49.0.69.152', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 10:08:35'),
+(23, 'general', '[admin] Login successful.', 'admin', '49.0.69.152', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 10:08:41'),
+(24, 'general', '[user] Login successful.', 'user', '49.237.40.220', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-20 20:56:02');
 
 -- --------------------------------------------------------
 
@@ -488,7 +502,8 @@ INSERT INTO `log_error` (`id`, `category`, `message`, `username`, `ip_address`, 
 (2, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 07:43:17'),
 (3, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 07:43:44'),
 (4, 'export', 'การ export database ล้มเหลว (code: 1)', 'admin', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-05 08:43:17'),
-(5, 'general', 'Column count doesn\'t match value count at row 1', 'guest', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-07 10:39:23');
+(5, 'general', 'Column count doesn\'t match value count at row 1', 'guest', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36', '2025-04-07 10:39:23'),
+(6, 'general', 'adminAn unknown user attempted to access the account.', 'guest', '49.0.69.152', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 10:08:35');
 
 -- --------------------------------------------------------
 
@@ -525,7 +540,19 @@ INSERT INTO `log_login` (`id`, `user_id`, `username`, `action`, `ip_address`, `u
 (12, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-11 16:08:42'),
 (13, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 08:50:35'),
 (14, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 11:24:16'),
-(15, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 11:57:00');
+(15, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-17 11:57:00'),
+(16, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-18 11:04:46'),
+(17, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0', '2025-04-18 13:20:41'),
+(18, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0', '2025-04-18 14:51:31'),
+(19, 2, 'user', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.0.0', '2025-04-19 09:31:51'),
+(20, 2, 'user', 'login', '49.0.69.152', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 09:39:29'),
+(21, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 10:31:32'),
+(22, 1, 'admin', 'login', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 11:09:50'),
+(23, 2, 'user', 'login', '192.168.1.108', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 16:24:21'),
+(24, 2, 'user', 'login', '49.0.69.152', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 16:37:47'),
+(25, 0, 'admin', 'login_failed', '49.0.69.152', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 17:08:35'),
+(26, 1, 'admin', 'login', '49.0.69.152', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-19 17:08:41'),
+(27, 2, 'user', 'login', '49.237.40.220', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36', '2025-04-21 03:56:02');
 
 -- --------------------------------------------------------
 
@@ -609,7 +636,9 @@ INSERT INTO `typefile` (`id`, `name`, `create_date`, `update_date`, `is_deleted`
 (1, 'Text Box', '2025-03-06', '2025-03-06', 0),
 (2, 'Image', '2025-03-06', '2025-03-06', 0),
 (3, 'Video', '2025-03-06', '2025-03-06', 0),
-(4, 'PDF', '2025-03-06', '2025-03-06', 0);
+(4, 'PDF', '2025-03-06', '2025-03-06', 0),
+(5, 'Activity', '2025-04-21', '2025-04-21', 0),
+(6, '3D model', '2025-04-21', '2025-04-21', 0);
 
 -- --------------------------------------------------------
 
@@ -894,7 +923,7 @@ ALTER TABLE `choices`
 -- AUTO_INCREMENT for table `content`
 --
 ALTER TABLE `content`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `course`
@@ -948,19 +977,19 @@ ALTER TABLE `file`
 -- AUTO_INCREMENT for table `log_action`
 --
 ALTER TABLE `log_action`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `log_error`
 --
 ALTER TABLE `log_error`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `log_login`
 --
 ALTER TABLE `log_login`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `questions`
@@ -984,7 +1013,7 @@ ALTER TABLE `test_results`
 -- AUTO_INCREMENT for table `typefile`
 --
 ALTER TABLE `typefile`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `unit`
