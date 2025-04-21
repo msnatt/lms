@@ -14,7 +14,7 @@ if ($conn->connect_error) {
 }
 
 // ดึงข้อมูลจากตาราง categories
-$sql = "SELECT * FROM unit";
+$sql = "SELECT * FROM unit WHERE is_deleted = 0";
 $result = $conn->query($sql);
 
 $options = [];

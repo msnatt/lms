@@ -20,7 +20,7 @@
         const response_unit = await fetch('../config/Fetch_Unit.php'); // เรียกใช้ PHP
         const json_res_unit = await response_unit.json(); // รับผลลัพธ์เป็น JSON
         let Units = json_res_unit;
-        
+
         const response_content = await fetch('../config/Fetch_content.php'); // เรียกใช้ PHP
         const json_res_content = await response_content.json(); // รับผลลัพธ์เป็น JSON
         let Contents = json_res_content;
@@ -166,7 +166,7 @@
         <h5>Members</h5>
         <div id="last_options" onclick="toggle_users_content()"><i class="bi bi-three-dots"></i></div>
         `;
-        
+
         info_.appendChild(viewer_);
         let ex_user_count = 0;
         json_res_user_course['users'].forEach(user => {
@@ -365,10 +365,14 @@
                                 break;
                             case "5": // PDF
                                 innercontentDiv.innerHTML = `
-                                    
+                                    <a href="${content.content}"  target="_blank">${content.content}</a>
                                     `;
                                 break;
-
+                            case "6": // PDF
+                                innercontentDiv.innerHTML = `
+                                    <div id="viewer"></div>
+                                    `;
+                                break;
                             default:
                                 innercontentDiv.innerHTML = `<p>Unsupported content type</p>`;
                         }

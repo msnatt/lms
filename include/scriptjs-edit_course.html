@@ -114,7 +114,14 @@
                             <embed id="content_${row['id']}" src="${row['content']}" type="application/pdf" width="100%" height="50%" />
                             `;
                         break;
-
+                    case 5:
+                        content_.innerHTML = `<a id="content_${row['id']}">${row['content']}</a>`;
+                        break;
+                    case 6:
+                        // content_.innerHTML = `<a id="content_${row['id']}">${row['content']}</a>`;
+                        // 3D viewer
+                        content_.innerHTML = `<div id="viewer"></div>`;
+                        break;
                     default:
                         content_.innerHTML = "ไม่พบข้อมูลที่ตรงกับชนิดข้อมูล โปรดติดต่อแอดมิน.";
                         break;
@@ -178,7 +185,7 @@
             id_.id = "id_schedule[]";
             id_.name = "id_schedule[]";
             id_.value = schedule['id'];
-            
+
             var deleted_ = document.createElement('input');
             deleted_.type = "hidden";
             deleted_.id = "schedule_is_deleted[]";
@@ -274,7 +281,7 @@
                 <div class="modal-dialog" style="max-width: 50vw;">
                     <div class="modal-content" style="min-height: 70vh;">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">New Header</h5>
+                            <h5 class="modal-title" id="exampleModalLabel">New content</h5>
                             <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -352,6 +359,22 @@
                 `;
                     break;
 
+                case "5": // PDF
+                    innerHTML = `
+                    <br>
+                    <label for="pdfInput">write link activity : </label>
+                    <input type="text" id="inputContent" class="form-control">
+                    <br>
+                `;
+                    break;
+
+                case "6": // 3D
+                    innerHTML = `
+                    <div id="dropZone">drag or drop here. (.glb .gltf)</div>
+                    <input type="file" id="inputContent" class="form-control" accept=".glb, .gltf, .bin, .jpg, .png" multiple />
+                    <br>
+                `;
+                    break;
                 default:
                     innerHTML = "<p>Please select a content type.</p>";
             }
@@ -390,10 +413,10 @@
 
         var dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
-        if (selectedValue === '1') { // Text
+        if (['1', '5'].includes(selectedValue)) { // Text
             data.push({ id: 0, type: 'content', selecttype: selectedValue, content: inputContent.value, is_deleted: 0 });
             header_div.textContent = inputContent.value;
-        } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
+        } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
             var filename = await upload_file_temp(inputContent, selectedValue);
             header_div.textContent = filename;
         }
@@ -414,16 +437,17 @@
         form_course.forEach((value, key) => {
             console.log(`${key}: ${value}`);
         });
+        console.log(data);
 
-        try {
-            const response = await fetch('../config/course_edit.php', {
-                method: 'POST',
-                body: form_course
-            });
+        // try {
+        //     const response = await fetch('../config/course_edit.php', {
+        //         method: 'POST',
+        //         body: form_course
+        //     });
 
-        } catch (error) {
-            console.error('Error Create course:', error);
-        }
+        // } catch (error) {
+        //     console.error('Error Create course:', error);
+        // }
         // RedirectToPage('course');
     }
 
@@ -517,14 +541,14 @@
         const ele_header = document.getElementById('header_' + id);
         ele_header.textContent = content;
 
-        var dropdown_content = document.getElementById('select_content');
-        const selectedValue = dropdown_content.value;
-        if (selectedValue === '1') { // Text
-            header_div.textContent = inputContent.value;
-        } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
-            var [filename, massage] = await upload_file_temp(inputContent, selectedValue);
-            header_div.textContent = filename;
-        }
+        // var dropdown_content = document.getElementById('select_content');
+        // const selectedValue = dropdown_content.value;
+        // if (selectedValue === '1') { // Text
+        //     header_div.textContent = inputContent.value;
+        // } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
+        //     var [filename, massage] = await upload_file_temp(inputContent, selectedValue);
+        //     header_div.textContent = filename;
+        // }
 
         console.log('Updated Data:', data);
         updateIndata(id, "header", content);
@@ -578,16 +602,15 @@
     }
 
     async function update_content(id, content) {
-        const ele_header = document.getElementById('content_' + id);
-        console.log(ele_header);
+        const ele_content = document.getElementById('content_' + id);
 
         var dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
-        if (selectedValue === '1') { // Text
-            ele_header.textContent = content.value;
-        } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
-            var [filename, massage] = await upload_file_temp(inputContent, selectedValue);
-            ele_header.src = massage;
+        if (['1', '5'].includes(selectedValue)) { // Text
+            ele_content.textContent = content.value;
+        } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
+            var [filename, massage] = await upload_file_temp(ele_content, selectedValue);
+            ele_content.src = massage;
         }
 
         console.log('Updated Data:', data);
@@ -617,8 +640,9 @@
                 console.error('Upload failed:', result.message);
             }
             return [file.name, result.filePath];
+        } else {
+            return [file.name, "Upload failed ;("]
         }
-        return [file.name, "Upload failed ;("]
     }
 
     btn_schedule.addEventListener('click', () => {

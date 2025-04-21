@@ -18,6 +18,10 @@
                 <a class="nav-link text" href="../pages/quiz_management.php">Quiz Management</a>
             </li>
             <li class="d-flex align-items-center gap-2">
+                <i class="bi bi-chat-left-dots"></i>
+                <a class="nav-link text" href="../pages/certificate.php">Certificate</a>
+            </li>
+            <li class="d-flex align-items-center gap-2">
                 <i class="bi bi-gear"></i>
                 <button class="btn btn-link nav-link text px-0" data-bs-toggle="collapse" data-bs-target="#systemSubNav" aria-expanded="false">
                     System

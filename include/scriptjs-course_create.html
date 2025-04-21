@@ -135,6 +135,22 @@
                 `;
                     break;
 
+                case "5": // Activity
+                    innerHTML = `
+                    <label for="pdfInput">write link activity : </label>
+                    <input type="text" id="inputContent" class="form-control">
+                    <br>
+                `;
+                    break;
+
+                case "6": // 3D
+                    innerHTML = `
+                    <br>
+                    <div id="dropZone">drag or drop here. (.glb .gltf)</div>
+                    <input type="file" id="upload" accept=".glb, .gltf, .bin, .jpg, .png" multiple />
+                    <br>
+                `;
+                    break;
                 default:
                     innerHTML = "<p>Please select a content type.</p>";
             }
@@ -184,9 +200,9 @@
         const selectedValue = dropdown_content.value;
         const inputContent = document.getElementById('inputContent');
 
-        if (selectedValue === '1') { // Text
+        if (['1', '5'].includes(selectedValue)) { // Text
             data.push({ id: countNo, type: 'content', selecttype: parseInt(selectedValue), content: inputContent.value, is_deleted: 0 });
-        } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
+        } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
             var filename = await upload_file_temp(inputContent, parseInt(selectedValue));
         }
 
@@ -284,7 +300,13 @@
                             <embed id="content_${row['id']}" src="${row['content']}" type="application/pdf" width="100%" height="50%" />
                             `;
                         break;
-
+                    case 5:
+                        content_.innerHTML = `<a id="content_${row['id']}">${row['content']}</a>`;
+                        break;
+                    case 6:
+                        // content_.innerHTML = `<a id="content_${row['id']}">${row['content']}</a>`;
+                        // 3D viewer
+                        break;
                     default:
                         content_.innerHTML = "ไม่พบข้อมูลที่ตรงกับชนิดข้อมูล โปรดติดต่อแอดมิน.";
                         break;
@@ -347,7 +369,7 @@
     }
 
     //schedule course
-    
+
     var btn_schedule = document.getElementById('btn_schedule');
     var div_schedule = document.getElementById('div_schedule');
 
