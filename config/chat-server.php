@@ -52,6 +52,10 @@ class Chat implements MessageComponentInterface
                     ]));
                 }
             }
+        } else if ($data['type'] === 'meet') {
+            $from->room_id = $data['room_id'];
+            $from->user_id = $data['user_id'];
+            echo "[" . $data['user_id'] . "] joined room " . $from->room_id . "\n";
         } else if ($data['type'] === 'chat') {
             $stmt = $this->conn->prepare("INSERT INTO chat_messages (chat_room_id, user_id, message) VALUES (?, ?, ?)");
             $stmt->bind_param("iis", $data['room_id'], $data['user_id'], $data['message']);
@@ -135,14 +139,14 @@ $socket = new SocketServer('0.0.0.0:8085', [], $loop);
 
 // เพิ่มการเข้ารหัส SSL
 $secure_socket = new SecureServer($socket, $loop, [
-    'local_cert' => 'C:/xampp/apache/conf/ssl.crt/49.0.69.152.pem', // 👈 เปลี่ยนเป็น path ของคุณ
-    'local_pk' => 'C:/xampp/apache/conf/ssl.key/49.0.69.152-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
+    // 'local_cert' => 'C:/xampp/apache/conf/ssl.crt/49.0.69.152.pem', // 👈 เปลี่ยนเป็น path ของคุณ
+    // 'local_pk' => 'C:/xampp/apache/conf/ssl.key/49.0.69.152-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
+    'local_cert' => 'C:/xampp/apache/conf/ssl.crt/localhost.pem', // 👈 เปลี่ยนเป็น path ของคุณ
+    'local_pk' => 'C:/xampp/apache/conf/ssl.key/localhost-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
     'allow_self_signed' => true,
     'verify_peer' => false
 ]);
 
-    // 'local_cert' => 'C:/xampp/apache/conf/ssl.crt/localhost.pem', // 👈 เปลี่ยนเป็น path ของคุณ
-    // 'local_pk' => 'C:/xampp/apache/conf/ssl.key/localhost-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
 $server = new IoServer(
     new HttpServer(
         new WsServer(

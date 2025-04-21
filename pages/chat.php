@@ -89,9 +89,6 @@ $user = $_SESSION['user'] ?? 'N/A';
                             <button id="btnVideoCall" class="btn btn-success" onclick="toggleControl() ">
                                 <i class="bi bi-camera-video"></i> Video Call
                             </button>
-                            <button id="btnShareScreen" class="btn btn-primary">
-                                <i class="bi bi-display"></i> Share Screen
-                            </button>
                         </div>
                     </div>
 
