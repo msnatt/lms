@@ -28,7 +28,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                 </div>
                 <div class="d-flex flex-wrap " id="videocall-box" style="visibility: hidden;">
                     <!-- วิดีโอแชท -->
-                    <div class="position-relative bg-dark" style="height: 500px;">
+                    <div class="position-relative" style="height: 500px;">
                         <!-- remote video อยู่ด้านหลัง -->
                         <video id="remoteVideo" autoplay class="w-100 h-100 object-fit-cover rounded"></video>
 

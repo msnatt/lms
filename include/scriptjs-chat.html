@@ -1,13 +1,19 @@
 <!-- page product -->
 <script>
-    const socket = new WebSocket("wss://localhost:8085/");
-    // const socket = new WebSocket("wss://49.0.69.152:8085/");
+    // const socket = new WebSocket("wss://localhost:8085/");
+    const socket = new WebSocket("wss://49.0.69.152:8085/");
 
 
     let currentRoomId = 0;
     let peerConnection = null;
     let localStream = null;
     const currentUserId = "<?php echo $_SESSION['user']['id']; ?>";
+    createPeerConnection();
+    const config = {
+        iceServers: [
+            { urls: "stun:stun.l.google.com:19302" } // STUN Server
+        ]
+    };
 
     document.addEventListener("DOMContentLoaded", () => {
         loadChatRooms();
@@ -237,7 +243,7 @@
     socket.onopen = function () {
         console.log("Connected to WebSocket");
         // ส่งข้อมูล "เข้าร่วมห้อง" ให้ server ทันทีที่เชื่อมต่อเสร็จ
-
+        joinRoom();
     };
 
     socket.onmessage = async function (event) {
@@ -254,12 +260,12 @@
                 displayMessage(data.name, data.message);
                 break;
             case "offer":
-                if (!peerConnection) {
-                    createPeerConnection();
-                }
+                if (!peerConnection) createPeerConnection();
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
+
                 socket.send(JSON.stringify({
                     type: "answer",
                     answer: answer,
@@ -267,14 +273,11 @@
                     from_user_id: currentUserId
                 }));
                 break;
+
             case "answer":
-                console.log("State before setting answer:", peerConnection?.signalingState);
-                if (peerConnection && peerConnection.signalingState === "have-local-offer") {
-                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-                } else {
-                    console.warn("Ignored answer: wrong signaling state", peerConnection?.signalingState);
-                }
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
                 break;
+
             case "candidate":
                 if (data.candidate) {
                     await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
@@ -284,14 +287,24 @@
                 console.warn("Unknown message type:", data.type);
         }
     };
+    // เรียกตอนผู้ใช้เข้าห้อง
+    async function joinRoom() {
+        createPeerConnection();
+        await startCamera();
+        await sendOffer(); // หรือรอรับ offer ถ้าเป็นฝั่งตอบ
+    }
+
 
     function createPeerConnection() {
         peerConnection = new RTCPeerConnection();
 
+        // เมื่อมี remote track เข้ามา
         peerConnection.ontrack = event => {
+            console.log("📥 Remote stream received");
             document.getElementById('remoteVideo').srcObject = event.streams[0];
         };
 
+        // ส่ง candidate
         peerConnection.onicecandidate = event => {
             if (event.candidate) {
                 socket.send(JSON.stringify({
@@ -302,7 +315,35 @@
                 }));
             }
         };
+    };
+    // 📷 เรียกกล้องและใส่เข้า peer
+    async function startCamera() {
+        try {
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('localVideo').srcObject = localStream;
+
+            // เพิ่ม track ไปยัง peerConnection
+            localStream.getTracks().forEach(track => {
+                peerConnection.addTrack(track, localStream);
+            });
+        } catch (error) {
+            console.error("🚫 ไม่สามารถเข้าถึงกล้อง/ไมค์:", error);
+        }
     }
+
+    // 📤 แชร์กล้องให้คนอื่น (เริ่มต้นการเชื่อมต่อ)
+    async function sendOffer() {
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
+
+        socket.send(JSON.stringify({
+            type: "offer",
+            offer: offer,
+            room_id: currentRoomId,
+            from_user_id: currentUserId
+        }));
+    }
+
 
     document.getElementById('chat-message').addEventListener("keydown", function (e) {
         if (e.key === "Enter") {

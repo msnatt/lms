@@ -351,7 +351,9 @@
             console.log(pair[0] + ': ' + pair[1]);
         }
 
-
+        data.forEach($row, () => {
+            consile.log($row);
+        });
         try {
             const response = await fetch('../config/course_create.php', {
                 method: 'POST',
@@ -361,7 +363,7 @@
         } catch (error) {
             console.error('Error Create course:', error);
         }
-        RedirectToPage('course');
+        // RedirectToPage('course');
     }
 
     function RedirectToPage(page) {

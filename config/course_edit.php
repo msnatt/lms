@@ -119,7 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $stmt->execute();
                 $stmt->store_result();
                 // เช็คว่าเป็นประเภท "content" และ selecttype เป็น 2, 3, หรือ 4
-                if (in_array($unit['selecttype'], [2, 3, 4])) {
+                if (in_array($unit['selecttype'], [2, 3, 4, 6])) {
                     $oldPath = $unit['content']; // ไฟล์ต้นทาง
                     $filename = basename($oldPath); // ดึงเฉพาะชื่อไฟล์
                     $newPath = $uploadFolder . $filename; // กำหนดปลายทางใหม่

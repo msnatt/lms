@@ -1,4 +1,5 @@
 <!-- page product -->
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 <script>
     let course_detail_id = 0;
     let data = {};
@@ -28,6 +29,7 @@
         const res_user_course = await fetch(`../config/Fetch_usercourse.php?courseid=${courseID}`); // เรียกใช้ PHP
         const json_res_user_course = await res_user_course.json(); // รับผลลัพธ์เป็น JSON
         let user_course = json_res_user_course;
+        console.log(user_course);
 
         const detail_div = document.getElementById("detail_div");
 
@@ -123,7 +125,7 @@
         content_.style.opacity = "1";
         content_.style.zIndex = "1";
         content_.innerHTML = `
-            <h4 class="ps-2">Contents</h4>
+            <h3 class="ps-2 py-3 d-flex justify-content-center">Contents</h3>
         `;
 
         const users_ = document.createElement("div");
@@ -139,7 +141,7 @@
         users_.style.zIndex = "0";
         users_.innerHTML = `
             <h4>All Members</h4>
-            <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder="search course you interest!"> 
+            <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder="Search name you interest!"> 
             <button id="btn_schedule" class="btn py-0" style="position: absolute; top: 0; right: 0;" onclick="toggle_users_content()">
                 <i class="bi bi-x-circle"></i>
             </button>
@@ -164,7 +166,11 @@
         viewer_.className = "d-flex justify-content-between px-2";
         viewer_.innerHTML = `
         <h5>Members</h5>
-        <div id="last_options" onclick="toggle_users_content()"><i class="bi bi-three-dots"></i></div>
+        <?php if (isset($_SESSION['user']['is_admin']) && $_SESSION['user']['is_admin'] == 1): ?>
+            <div id="last_options" onclick="toggle_users_content()">
+                <i class="bi bi-three-dots"></i>
+            </div>
+        <?php endif; ?>
         `;
 
         info_.appendChild(viewer_);
@@ -326,6 +332,7 @@
                         data[String(unit.id)].push(String(content.id));
 
                         const innercontentDiv = document.createElement("div");
+                        innercontentDiv.className = "bg-secondary bg-opacity-10";
                         innercontentDiv.style.padding = "10px";
                         switch (content.type_id) {
                             case "1": // Text
@@ -369,8 +376,17 @@
                                     `;
                                 break;
                             case "6": // PDF
+                                // แปลง path สำหรับ HTML
+                                let publicPath = content.content.replace('../', '/lms/');
+
                                 innercontentDiv.innerHTML = `
-                                    <div id="viewer"></div>
+                                    <model-viewer src="${publicPath}"
+                                                alt="3D model"
+                                                auto-rotate
+                                                camera-controls
+                                                ar
+                                                style="width:100%; max-width: 600px; height:50vh; max-height: 400px;">
+                                    </model-viewer>
                                     `;
                                 break;
                             default:
@@ -420,7 +436,7 @@
             cell04.style.textAlign = "center"; // จัดให้อยู่ตรงกลาง
             cell04.innerHTML = `
                 <div style="display: flex; gap: 5px; width: 100%;">
-                    <button class="btn btn-danger" onclick="openDeleteUserModal(${user.id},'${user.name}')">
+                    <button class="btn btn-danger" onclick="openDeleteUserModal(${user.user_id},'${user.name}')">
                         <i class="bi bi-trash3"></i> Delete
                     </button>
                 </div>
@@ -479,5 +495,29 @@
 
         let deleteUserModal = new bootstrap.Modal(document.getElementById("deleteUserModal"));
         deleteUserModal.show(); // เปิด Modal
+    }
+
+    // submit deleted
+    async function deleteUser(userId) {
+        console.log("ลบผู้ใช้ ID:", userId); // Debug ดูว่าได้ค่า userId ไหม
+        let formData = new FormData();
+        formData.append("user_id", userId);
+
+        fetch("../config/user_deleted.php", {
+            method: "POST",
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log(data)
+                }
+            })
+            .catch(error => console.error("Error:", error));
+
+        let deleteUserModal = bootstrap.Modal.getInstance(document.getElementById("deleteUserModal"));
+        deleteUserModal.hide(); // ปิด Modal
+
+        await generate_user();
     }
 </script>

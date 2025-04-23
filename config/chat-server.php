@@ -83,7 +83,7 @@ class Chat implements MessageComponentInterface
             }
         } else if ($data['type'] === 'answer') {
             foreach ($this->clients as $client) {
-                if ($client->room_id === $from->room_id && $client->user_id === $data['to_user_id']) {
+                if ($client->room_id === $from->room_id) {
                     $client->send(json_encode([
                         'type' => 'answer',
                         'answer' => $data['answer'],
@@ -139,10 +139,10 @@ $socket = new SocketServer('0.0.0.0:8085', [], $loop);
 
 // เพิ่มการเข้ารหัส SSL
 $secure_socket = new SecureServer($socket, $loop, [
-    // 'local_cert' => 'C:/xampp/apache/conf/ssl.crt/49.0.69.152.pem', // 👈 เปลี่ยนเป็น path ของคุณ
-    // 'local_pk' => 'C:/xampp/apache/conf/ssl.key/49.0.69.152-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
-    'local_cert' => 'C:/xampp/apache/conf/ssl.crt/localhost.pem', // 👈 เปลี่ยนเป็น path ของคุณ
-    'local_pk' => 'C:/xampp/apache/conf/ssl.key/localhost-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
+    'local_cert' => 'C:/xampp/apache/conf/ssl.crt/49.0.69.152.pem', // 👈 เปลี่ยนเป็น path ของคุณ
+    'local_pk' => 'C:/xampp/apache/conf/ssl.key/49.0.69.152-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
+    // 'local_cert' => 'C:/xampp/apache/conf/ssl.crt/localhost.pem', // 👈 เปลี่ยนเป็น path ของคุณ
+    // 'local_pk' => 'C:/xampp/apache/conf/ssl.key/localhost-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
     'allow_self_signed' => true,
     'verify_peer' => false
 ]);

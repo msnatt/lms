@@ -13,9 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
     $destination = $uploadDir . $fileName;
 
     if (move_uploaded_file($fileTmpPath, $destination)) {
-        echo json_encode(['success' => true, 'filePath' => $destination, 'filename' => $fileName]);
+        echo json_encode(['success' => true, 'results' => $destination, 'filename' => $fileName]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to move file', 'filename' => $fileName]);
+        echo json_encode(['success' => false, 'results' => 'Failed to move file', 'filename' => $fileName]);
     }
     exit;
 }

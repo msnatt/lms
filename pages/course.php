@@ -25,17 +25,20 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="bg-light d-flex" style="width: 100%;">
             <?php include "../components/sidemenu.php"; ?>
             <div class="d-flex flex-column justify-content-center w-100">
-                <h2 class="p-4" style="max-width: 100%">Courses</h2>
+                <h2 class="p-4" style="max-width: 100%">หลักสูตรทั้งหมด</h2>
                 <div class="d-flex">
                     <div class="d-flex flex-column col-lg-2 col-12 rounded" style="padding: 0.2rem 0.25rem;">
-                        <div class="p-4 rounded bg-opacity-10" style="min-height: 100%;">
+                        <div class="px-4 rounded bg-opacity-10" style="min-height: 100%;">
+                            <div class="d-flex g-5 justify-content-around">
+                                <h3><i class="bi bi-funnel-fill"></i> ตัวกรอง</h3>
+                            </div>
                             <div>
                                 <label class="form-label">Code</label>
-                                <input type="text" id="code_filter" name="code_filter" class="form-control" oninput="validateNumberInput(event) ">
+                                <input type="text" id="code_filter" name="code_filter" class="form-control" oninput="validateNumberInput(event)" placeholder="Enter course code">
                             </div>
                             <div>
                                 <label class="form-label">Name</label>
-                                <input type="text" id="name_filter" name="name_filter" class="form-control" oninput="filterCourses()">
+                                <input type="text" id="name_filter" name="name_filter" class="form-control" oninput="filterCourses()" placeholder="Enter course name">
                             </div>
                             <label class="form-label">Faculty</label>
                             <select class="form-select" name="select_faculty" id="select_faculty" onchange="filterCourses()">
@@ -69,11 +72,6 @@ $user = $_SESSION['user'] ?? 'N/A';
                                 </optgroup>
                             </select>
 
-                            <div class="mt-5 d-flex g-5 justify-content-around">
-                                <button type="button" class="btn btn-danger" onclick="" style="width: 40%;">
-                                    Search
-                                </button>
-                            </div>
                         </div>
                     </div>
                     <div class="w-100">

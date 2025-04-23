@@ -55,11 +55,11 @@
         datas.forEach(row => {
             if (row['type'] == "header" && row['is_deleted'] == 0) {
                 const unit_ = document.createElement('div');
-                unit_.className = 'p-2 rounded bg-shadow-10 d-flex justify-content-between';
+                unit_.className = 'p-2 rounded bg-shadow-10 bg-white bg-opacity-50 d-flex justify-content-between';
                 unit_.style.width = '100%';
                 unit_.style.fontSize = '1.25rem';
                 unit_.style.border = '1px solid #eee';
-                unit_.innerHTML = `<div id="header_${row['id']}">${row['content']}</div>`;
+                unit_.innerHTML = `<div id="header_${row['id']}">- ${row['content']}</div>`;
 
                 // ปุ่มแก้ไข Unit
                 const editUnitBtn = document.createElement('button');
@@ -79,13 +79,15 @@
                 delUnitBtn.onclick = () => deleteIndata(row['id'], "header");
 
                 const end_header = document.createElement('div');
+                end_header.style.minWidth = "11%";
 
                 end_header.appendChild(editUnitBtn);
                 end_header.appendChild(delUnitBtn);
                 unit_.appendChild(end_header);
                 div_degree_course.appendChild(unit_);
 
-            } else if (row['type'] == "content" && row['is_deleted'] == 0) {
+            }
+            else if (row['type'] == "content" && row['is_deleted'] == 0) {
                 const content_ = document.createElement('div');
                 content_.className = 'rounded p-2 d-flex justify-content-between';
                 content_.style.width = '100%';
@@ -118,9 +120,9 @@
                         content_.innerHTML = `<a id="content_${row['id']}">${row['content']}</a>`;
                         break;
                     case 6:
-                        // content_.innerHTML = `<a id="content_${row['id']}">${row['content']}</a>`;
-                        // 3D viewer
-                        content_.innerHTML = `<div id="viewer"></div>`;
+                        let filepath = row['content'];
+                        let filename = filepath.split('/').pop(); // ตัดเอาเฉพาะชื่อไฟล์
+                        content_.innerHTML = `<div id="content_${row['id']}">${filename}</div>`;
                         break;
                     default:
                         content_.innerHTML = "ไม่พบข้อมูลที่ตรงกับชนิดข้อมูล โปรดติดต่อแอดมิน.";
@@ -145,6 +147,7 @@
                 delcontentBtn.onclick = () => deleteIndata(row['id'], "content");
 
                 const end_content = document.createElement('div');
+                end_content.style.minWidth = "11%";
 
                 end_content.appendChild(editContentBtn);
                 end_content.appendChild(delcontentBtn);
@@ -414,42 +417,20 @@
         var dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
         if (['1', '5'].includes(selectedValue)) { // Text
-            data.push({ id: 0, type: 'content', selecttype: selectedValue, content: inputContent.value, is_deleted: 0 });
+            data.push({ id: 0, type: 'content', selecttype: parseInt(selectedValue), content: inputContent.value, is_deleted: 0 });
             header_div.textContent = inputContent.value;
         } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
-            var filename = await upload_file_temp(inputContent, selectedValue);
+            var [filename, message] = await upload_file_temp(inputContent, selectedValue);
             header_div.textContent = filename;
+            data.push({ id: 0, type: 'content', selecttype: parseInt(selectedValue), content: message, is_deleted: 0 }); // ได้ path กลับมา
         }
 
-        console.log('Updated Data:', data);
         div_degree_course.appendChild(header_div);
 
         clearModal('modal_div');
     }
 
     // ========================= End Header and content =======================
-
-    async function update_course() {
-        const formcourse = document.getElementById('form-course');
-        const form_course = new FormData(formcourse);
-        form_course.append('data', JSON.stringify(data));
-
-        form_course.forEach((value, key) => {
-            console.log(`${key}: ${value}`);
-        });
-        console.log(data);
-
-        // try {
-        //     const response = await fetch('../config/course_edit.php', {
-        //         method: 'POST',
-        //         body: form_course
-        //     });
-
-        // } catch (error) {
-        //     console.error('Error Create course:', error);
-        // }
-        // RedirectToPage('course');
-    }
 
     function is_deleted_course() {
         const deleted = document.getElementById('is_deleted');
@@ -462,7 +443,6 @@
     function RedirectToPage(page) {
         window.location.href = '../pages/' + page + '.php';
     }
-
 
     // ========================== update Header and content ===================
 
@@ -581,7 +561,7 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id="update-header" data-bs-dismiss="modal">Create</button>
+                            <button type="button" class="btn btn-primary" id="update-content" data-bs-dismiss="modal">Create</button>
                             <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
                         </div>
                     </div>
@@ -593,7 +573,7 @@
         dynamicModal.show();
         fetch_typefile();
         changedropdown();
-        document.getElementById('update-header').addEventListener('click', () => {
+        document.getElementById('update-content').addEventListener('click', () => {
             var new_content = document.getElementById('inputContent');
             if (new_content) {
                 update_content(id, new_content);
@@ -603,19 +583,19 @@
 
     async function update_content(id, content) {
         const ele_content = document.getElementById('content_' + id);
-
+        console.log(ele_content);
         var dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
         if (['1', '5'].includes(selectedValue)) { // Text
             ele_content.textContent = content.value;
         } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
-            var [filename, massage] = await upload_file_temp(ele_content, selectedValue);
-            ele_content.src = massage;
+            var [filename, message] = await upload_file_temp(content, selectedValue);
+            ele_content.innerHTML = filename;
         }
 
         console.log('Updated Data:', data);
 
-        updateIndata(id, "content", content.value);
+        updateIndata(id, "content", message);
         clearModal('modal_div');
     };
 
@@ -635,14 +615,14 @@
             const result = await response.json();
             if (result.success) {
                 console.log('Upload "', result.filename, '" success.');
-                // data.push({ id: 0, type: 'content', selecttype: selectedValue, content: result.filePath }); // ได้ path กลับมา
             } else {
-                console.error('Upload failed:', result.message);
+                console.error('Upload failed:', result.results);
             }
-            return [file.name, result.filePath];
+            return [file.name, result.results];
         } else {
-            return [file.name, "Upload failed ;("]
+            return [file.name, "Upload failed file error."]
         }
+
     }
 
     btn_schedule.addEventListener('click', () => {
@@ -692,4 +672,44 @@
         }
     });
 
+    async function update_course() {
+        const formcourse = document.getElementById('form-course');
+        const form_course = new FormData(formcourse);
+        form_course.append('data', JSON.stringify(data));
+
+        form_course.forEach((value, key) => {
+            console.log(`${key}: ${value}`);
+        });
+
+        // let contentItems = new FormData();
+        // contentItems.append('contentItems', JSON.stringify(data));
+
+        // let uploadcompleted = await fetch('../config/upload_check.php', {
+        //     method: 'POST',
+        //     body: contentItems
+        // });
+
+        // if (uploadcompleted.ok) {
+        //     let response = await uploadcompleted.json();
+        //     if (response.status === 'success') {
+        //         console.log('ย้ายไฟล์เสร็จแล้ว:', response.updatedItems);
+        //     } else {
+        //         console.error('เกิดข้อผิดพลาด:', response.message);
+        //     }
+        // } else {
+        //     console.error('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+        // }
+
+
+        try {
+            const response = await fetch('../config/course_edit.php', {
+                method: 'POST',
+                body: form_course
+            });
+
+        } catch (error) {
+            console.error('Error Create course:', error);
+        }
+        RedirectToPage('course');
+    }
 </script>
