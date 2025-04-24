@@ -30,7 +30,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                     <!-- วิดีโอแชท -->
                     <div class="position-relative w-100" style="height: 500px;">
                         <!-- remote video อยู่ด้านหลัง -->
-                        <div id="remoteVideos" class="w-100 h-100 bg-info" style="display: flex; gap: 10px;"></div>
+                        <div id="remoteVideos" class="w-100 h-100" style="display: flex; gap: 10px;"></div>
 
                         <!-- local video ลอยบนมุมขวาล่าง -->
                         <video id="localVideo" autoplay muted
@@ -68,16 +68,6 @@ $user = $_SESSION['user'] ?? 'N/A';
                         <!-- setting -->
                         <div id="settingPanel" class="position-absolute translate-middle-x p-3 gap-2 bg-white rounded shadow flex-column"
                             style="display:flex; left: 50%; bottom: 20%; z-index: 11; width: 100%; max-width: 300px; height: 100%; max-height: 300px;">
-                            <div class="d-flex justify-content-between">
-                                <div class="fs-4">Settings</div>
-                                <button style="border: 0; background-color: #ffffff00;" onclick="toggleSettingPanel()">
-                                    <i class="bi bi-x"></i>
-                                </button>
-                            </div>
-                            <div class="fs-6">Camera</div>
-                            <select id="cam-select"></select>
-                            <div class="fs-6">Audio</div>
-                            <select id="mic-select"></select>
                         </div>
                     </div>
                 </div>

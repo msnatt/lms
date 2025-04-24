@@ -82,12 +82,16 @@
         if (toggle) {
             Element1.style.visibility = "visible";
             Element2.style.visibility = "hidden";
+            Element1.style.display = "block";
+            Element2.style.display = "none";
             meetbox.style.display = 'none';
             await videocall();
 
         } else {
             Element1.style.visibility = "hidden";
             Element2.style.visibility = "visible";
+            Element1.style.display = "none";
+            Element2.style.display = "block";
             meetbox.style.display = 'block';
             leaveMeet();
         }
@@ -267,19 +271,30 @@
         } else {
             console.error("navigator.mediaDevices is not available");
         }
-        const camSelect = document.getElementById('cam-select');
-        const micSelect = document.getElementById('mic-select');
         const panel = document.getElementById("settingPanel");
+        panel.style.display = "flex";
+        panel.innerHTML = `
+        <div class="d-flex justify-content-between">
+            <div class="fs-4">Settings</div>
+            <button style="border: 0; background-color: #ffffff00;" onclick="toggleControl()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="fs-6">Camera</div>
+        <select id="cam-select"></select>
+        <div class="fs-6">Audio</div>
+        <select id="mic-select"></select>
+        `;
 
         navigator.mediaDevices.enumerateDevices()
             .then(devices => {
                 const videoDevices = devices.filter(device => device.kind === 'videoinput');
                 const audioDevices = devices.filter(device => device.kind === 'audioinput');
 
-                camSelect.id = 'cam-select';
+                const camSelect = document.getElementById('cam-select');
                 camSelect.className = 'form-select mb-2';
 
-                micSelect.id = 'mic-select';
+                const micSelect = document.getElementById('mic-select');
                 micSelect.className = 'form-select mb-2';
 
                 // สร้างตัวเลือกกล้อง
@@ -337,6 +352,7 @@
     }
 
     async function Confirm_connect(camSelect, micSelect) {
+        const videoEl = document.getElementById("localVideo");
         console.log("Confirming connection with selected camera and microphone.");
         if (Object.keys(peerConnections).length > 0) {
             console.log("Closing active peer connections before confirming.");
@@ -344,6 +360,7 @@
         }
 
         toggleSettingPanel();
+        const panel = document.getElementById("settingPanel");
         const stream = await startVideo(camSelect.value, micSelect.value);
         if (stream) {
             console.log("Starting video with selected devices.");
@@ -399,7 +416,7 @@
             case "join":
             case "leave":
             case "chat":
-                handleTextMessage(data);
+                displayMessage(data.name, data.message);
                 break;
             case "offer":
                 console.log(`Handling offer from user ${fromId}`);
