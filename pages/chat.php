@@ -71,7 +71,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-lg-8 border rounded bg-light shadow-sm" id="commu-box" style="display: block;">
+                <div class="col-12 col-lg-7 border rounded bg-light shadow-sm" id="commu-box" style="display: block;">
                     <div id="" class="d-flex justify-content-between align-items-center px-3 py-1 bg-light" style="min-height: 50px;">
                         <div id="chat-header" class="fw-bold fs-5 p-2"></div>
 
@@ -94,11 +94,11 @@ $user = $_SESSION['user'] ?? 'N/A';
                         <button class="btn btn-primary" onclick="sendMessage()">Send</button>
                     </div>
                 </div>
-                <div id="infomation-box" class="col-lg-2 p-3 border rounded bg-light shadow-sm" style="display: block;">
+                <div id="infomation-box" class="col-lg-3 p-3 border rounded bg-light shadow-sm" style="display: block;">
                     <div class="d-flex flex-column gap-2">
                         <h4 id="name-chat" class="mb-1">Unknown</h4>
                         <h6 class="text-muted mb-2">Member</h6>
-                        <div id="status-chat" class="p-2 rounded bg-secondary text-white">
+                        <div id="status-chat" class="p-2 rounded bg-secondary bg-opacity-10 text-black">
                             -- Empty --
                         </div>
                     </div>
@@ -114,3 +114,11 @@ $user = $_SESSION['user'] ?? 'N/A';
 </body>
 
 </html>
+
+
+
+
+
+
+
+
