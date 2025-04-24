@@ -28,9 +28,9 @@ $user = $_SESSION['user'] ?? 'N/A';
                 </div>
                 <div class="d-flex flex-wrap " id="videocall-box" style="visibility: hidden;">
                     <!-- วิดีโอแชท -->
-                    <div class="position-relative" style="height: 500px;">
+                    <div class="position-relative w-100" style="height: 500px;">
                         <!-- remote video อยู่ด้านหลัง -->
-                        <video id="remoteVideo" autoplay class="w-100 h-100 object-fit-cover rounded"></video>
+                        <div id="remoteVideos" class="w-100 h-100 bg-info" style="display: flex; gap: 10px;"></div>
 
                         <!-- local video ลอยบนมุมขวาล่าง -->
                         <video id="localVideo" autoplay muted
@@ -66,7 +66,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                             </button>
                         </div>
                         <!-- setting -->
-                        <div id="settingPanel" class="position-absolute translate-middle-x p-3 gap-3 bg-white rounded shadow flex-column"
+                        <div id="settingPanel" class="position-absolute translate-middle-x p-3 gap-2 bg-white rounded shadow flex-column"
                             style="display:flex; left: 50%; bottom: 20%; z-index: 11; width: 100%; max-width: 300px; height: 100%; max-height: 300px;">
                             <div class="d-flex justify-content-between">
                                 <div class="fs-4">Settings</div>
