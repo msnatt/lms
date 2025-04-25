@@ -95,6 +95,5 @@
             </div>
         </nav>
     </div>
-    <hr style="margin: 0; border-color: #888; opacity: 100%;">
 
 </header>

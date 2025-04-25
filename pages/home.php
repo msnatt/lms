@@ -9,7 +9,7 @@ include '../components/session.php';
 <?php include "../include/style.html"; ?>
 
 
-<body class="bg-custom ">
+<body class="bg-light">
     <?php include "../include/header.php"; ?>
     <div class="d-flex justify-content-center" style="min-height: 70vh;">
         <?php include "../components/sidemenu.php"; ?>

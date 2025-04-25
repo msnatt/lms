@@ -4,10 +4,15 @@
 
     let peerConnections = {};
     let localStream = null;
+    let secondSteam = null;
     let currentRoomId = null;
+    let currentRoomName = null;
     let currentUserId = "<?php echo $_SESSION['user']['id']; ?>";
     let remoteVideo = document.getElementById("remoteVideo");
     let localVideo = document.getElementById('localVideo');
+
+    let micEnabled = true;
+    let camEnabled = true;
 
     const config = {
         iceServers: [
@@ -97,13 +102,15 @@
         }
     }
 
-    function togglewidthVideoandChats(commubox, videocallbox) {
-        let toggleclass = commubox.classList.contains('col-lg-7');
-        commubox.classList.replace(toggleclass ? 'col-lg-7' : 'col-lg-3', toggleclass ? 'col-lg-3' : 'col-lg-7')
+    function togglewidthVideoandChats(chatbox, videocallbox) {
+        let toggleclass = chatbox.classList.contains('col-lg-7');
+        chatbox.classList.replace(toggleclass ? 'col-lg-7' : 'col-lg-3', toggleclass ? 'col-lg-3' : 'col-lg-7')
         if (videocallbox.classList.contains('col-7')) {
             videocallbox.classList.remove('col-7');
+            videocallbox.classList.remove('d-flex');
         } else {
             videocallbox.classList.add('col-7');
+            videocallbox.classList.add('d-flex');
         }
     }
 
@@ -147,8 +154,11 @@
         }
     }
 
-    async function loadChat(roomId, roomName) {
+    function createRoomChat() {
+        
+    }
 
+    async function loadChat(roomId, roomName) {
         fetch("../config/chat-load.php?room_id=" + roomId)
             .then(res => res.json())
             .then(data => {
@@ -158,37 +168,129 @@
                     chatBox.innerHTML += `<div><strong>${msg.name}:</strong> ${msg.message}</div>`;
                 });
             });
+        let statusChat = document.getElementById("status-chat");
+        await loadMember(roomId, roomName, statusChat);
+    }
 
+    async function loadMember(roomId, roomName, statusChat) {
         let response = await fetch("../config/chat-users.php?roomId=" + roomId);
         let chatroom = await response.json();
         let users_access = chatroom['users'];
 
-        let statusChat = document.getElementById("status-chat");
-        statusChat.textContent = "";
+        statusChat.innerHTML = "";
+
         let nameChat = document.getElementById("name-chat");
         nameChat.textContent = roomName;
         users_access.forEach(user => {
             const div = document.createElement('div');
             div.className = "py-2";
             div.textContent = `${user.code} - ${user.name}`;
-            // div.innerHTML = `
-
-            // `;
             statusChat.appendChild(div);
         });
 
-        let res = await fetch("../config/chat-users.php?roomId=" + roomId);
+        let res = await fetch("../config/Fetch_user.php");
         let users = await res.json();
+        listMemberOfChatroom(users, statusChat);
+    }
+
+    function listMemberOfChatroom(users, statusChat) {
+        // สร้าง container ล้อม input กับ suggestionBox ให้จัดตำแหน่งแบบ relative
+        let inputWrapper = document.createElement('div');
+        inputWrapper.style.position = 'relative';
+        inputWrapper.style.width = '300px'; // ปรับตามความเหมาะสม
+        inputWrapper.className = 'mb-3';
+
+        // สร้าง input สำหรับค้นหา
         let addmember = document.createElement('input');
         addmember.className = "form-control";
         addmember.placeholder = "Add member to chat";
-        addmember.addEventListener('keyup', function (event) {
+
+        // สร้าง suggestion box (ลอยใต้ input)
+        let suggestionBox = document.createElement('div');
+        suggestionBox.style.position = 'absolute';
+        suggestionBox.style.top = '100%';
+        suggestionBox.style.left = '0';
+        suggestionBox.style.right = '0';
+        suggestionBox.style.zIndex = '1000';
+        suggestionBox.className = "list-group shadow";
+
+        // แทรก input และ suggestionBox เข้าใน wrapper
+        inputWrapper.appendChild(addmember);
+        inputWrapper.appendChild(suggestionBox);
+        statusChat.appendChild(inputWrapper);
+
+        addmember.addEventListener('input', function () {
+            let query = addmember.value.toLowerCase();
+            suggestionBox.innerHTML = ''; // ล้างรายการเก่า
+            let matchedUsers = users.filter(user =>
+                user['code'].toLowerCase().includes(query) ||
+                user['name'].toLowerCase().includes(query)
+            );
+
+            matchedUsers.slice(0, 5).forEach(user => {
+                let item = document.createElement('div');
+                item.className = 'list-group-item list-group-item-action';
+                item.textContent = user.name;
+
+                item.addEventListener('click', async () => {
+                    console.log("Selected user:", user.name);
+                    addmember.value = '';
+                    suggestionBox.innerHTML = '';
+                    addUserToChatRoom(currentRoomId, user['id']);
+                    await loadMember(currentRoomId, currentRoomName, statusChat);
+                });
+
+                suggestionBox.appendChild(item);
+            });
+        });
+
+        addmember.addEventListener('keyup', async function (event) {
             if (event.key === 'Enter') {
-                let memberName = addmember.value;
-                addmember.value = '';
+                let query = addmember.value.toLowerCase();
+                let matchedUsers = users.filter(user =>
+                    user['code'].toLowerCase().includes(query) ||
+                    user['name'].toLowerCase().includes(query)
+                );
+
+                if (matchedUsers.length > 0) {
+                    let selectedUser = matchedUsers[0];
+                    console.log("Selected (Enter) user:", selectedUser.name);
+                    addmember.value = '';
+                    suggestionBox.innerHTML = '';
+                    addUserToChatRoom(currentRoomId, selectedUser['id']);
+                }
+                await loadMember(currentRoomId, currentRoomName, statusChat);
+            }
+            if (event.key === 'Escape') { // ใช้ 'Escape' ไม่ใช่ 'esc'
+                suggestionBox.innerHTML = '';
             }
         });
-        statusChat.appendChild(addmember);
+
+        addmember.addEventListener('blur', function () {
+            setTimeout(() => {
+                suggestionBox.innerHTML = '';
+            }, 150); // หน่วงนิดนึง เผื่อผู้ใช้กำลังกดเลือก suggestion
+        });
+
+    }
+
+    function addUserToChatRoom(chatRoomId, userId) {
+        const formData = new FormData();
+        formData.append('chat_room_id', chatRoomId);
+        formData.append('user_id', userId);
+
+        fetch('../config/chat-access-create.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.text())
+            .then(result => {
+                console.log(result);
+            })
+            .catch(error => {
+                console.error('เกิดข้อผิดพลาด:', error);
+                alert('เกิดข้อผิดพลาดในการเพิ่มผู้ใช้');
+            });
     }
 
     async function loadChatHistory(roomId) {
@@ -208,7 +310,7 @@
     }
 
     function leaveMeet() {
-        console.log("leave meet.");
+        console.log("leaving meet.");
 
         if (currentRoomId !== 0) {
             console.log(`Sending leave message for room: ${currentRoomId} and user: ${currentUserId}`);
@@ -246,6 +348,23 @@
         }
 
         console.log("✅ All peer connections closed and video streams cleared.");
+
+    }
+
+    function deletedRemoteVideo(sender_id) {
+
+        let remote_sender = document.getElementById("remote-" + sender_id);
+        // 1. ปิด PeerConnection
+        if (peerConnections[sender_id]) {
+            peerConnections[sender_id].close();
+            delete peerConnections[sender_id];
+        }
+
+        if (remote_sender) {
+            remote_sender.remove();
+        }
+
+        console.log(`👤 User ${sender_id} left the room`);
     }
 
     async function selectRoomChat(roomId, roomName) {
@@ -266,6 +385,7 @@
             chatHeader.innerText = `${roomName}`;
 
             // กำหนดห้องปัจจุบันใหม่ จาก div ที่เลือก
+            currentRoomName = roomName;
             currentRoomId = roomId;
             console.log(`Joining room ${currentRoomId} for user: ${currentUserId}`);
             socket.send(JSON.stringify({
@@ -289,14 +409,22 @@
         panel.innerHTML = `
         <div class="d-flex justify-content-between">
             <div class="fs-4">Settings</div>
-            <button style="border: 0; background-color: #ffffff00;" onclick="toggleControl()">
+            <button style="border: 0; background-color: #ffffff00;" onclick="toggleSettingPanel()">
                 <i class="bi bi-x"></i>
             </button>
         </div>
         <div class="fs-6">Camera</div>
         <select id="cam-select"></select>
+        <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="enableCamera" checked>
+            <label class="form-check-label" for="enableCamera">เปิดกล้อง</label>
+        </div>
         <div class="fs-6">Audio</div>
         <select id="mic-select"></select>
+        <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" id="enableMic" checked>
+            <label class="form-check-label" for="enableMic">เปิดไมค์</label>
+        </div>
         `;
 
         navigator.mediaDevices.enumerateDevices()
@@ -366,6 +494,7 @@
 
     async function Confirm_connect(camSelect, micSelect) {
         const videoEl = document.getElementById("localVideo");
+
         console.log("Confirming connection with selected camera and microphone.");
         if (Object.keys(peerConnections).length > 0) {
             console.log("Closing active peer connections before confirming.");
@@ -380,11 +509,14 @@
             socket.send(JSON.stringify({
                 type: "new-peer",
             }));
+            const enableCamera = document.getElementById("enableCamera").checked;
+            const enableMic = document.getElementById("enableMic").checked;
+            EnableCam(enableCamera);
+            EnableMic(enableMic);
         }
     }
 
     async function startVideo(deviceId, audioId) {
-        console.log(`Starting video with deviceId: ${deviceId}, audioId: ${audioId}`);
         try {
             let stream;
 
@@ -427,25 +559,27 @@
         const fromId = data.sender_id;
         switch (data.type) {
             case "join":
-            case "leave":
             case "chat":
                 displayMessage(data.name, data.message);
                 break;
             case "offer":
                 console.log(`Handling offer from user ${fromId}`);
-                await handleOffer(data.offer, data.sender_id);
+                await handleOffer(data.offer, fromId);
                 break;
             case "answer":
                 console.log(`Handling answer from user ${fromId}`);
-                await handleAnswer(data.answer, data.sender_id);
+                await handleAnswer(data.answer, fromId);
                 break;
             case "candidate":
                 console.log(`Handling candidate from user ${fromId}`);
-                await handleCandidate(data.candidate, data.sender_id);
+                await handleCandidate(data.candidate, fromId);
                 break;
             case "new-peer":
                 console.log(`Handling new peer connection for user ${data.new_user_id}`);
                 await createOfferTo(data.new_user_id);
+                break;
+            case "leave":
+                await deletedRemoteVideo(fromId);
                 break;
             default:
                 console.warn("Unknown message type:", data.type);
@@ -538,4 +672,192 @@
         }));
     }
 
+    async function startScreenShare() {
+        console.log("🔁 Starting screen share...");
+
+        try {
+            const screenStream = await navigator.mediaDevices.getDisplayMedia({
+                video: true,
+                audio: true // ถ้าต้องการแชร์เสียงหน้าจอ
+            });
+
+            // ตั้งค่าแสดง preview ที่ localVideo
+            const localVideo = document.getElementById("localVideo");
+            if (localVideo) {
+                localVideo.srcObject = screenStream;
+            }
+
+            // เก็บไว้เป็น local stream ใหม่
+            secondSteam = localStream;
+            localStream = screenStream;
+
+            // ส่ง track ใหม่ไปยัง peer ทุกคน
+            for (let id in peerConnections) {
+                const pc = peerConnections[id];
+
+                // ลบ track เดิม
+                const senders = pc.getSenders();
+                senders.forEach(sender => {
+                    if (sender.track && sender.track.kind === "video") {
+                        pc.removeTrack(sender);
+                    }
+                });
+
+                // เพิ่ม track ใหม่จากหน้าจอ
+                screenStream.getTracks().forEach(track => {
+                    pc.addTrack(track, screenStream);
+                });
+
+                // Re-negotiate ด้วย offer ใหม่
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                socket.send(JSON.stringify({
+                    type: "offer",
+                    offer,
+                    room_id: currentRoomId,
+                    from_user_id: currentUserId,
+                    target_id: id
+                }));
+            }
+
+            console.log("✅ Screen sharing started.");
+
+            // เมื่อผู้ใช้กดหยุดแชร์หน้าจอ
+            screenStream.getVideoTracks()[0].addEventListener("ended", () => {
+                console.log("🛑 Screen sharing stopped.");
+                // เรียกกลับไปยัง startVideo() เพื่อใช้กล้องแทน
+                document.getElementById('btn-scrn-stop').style.display = 'none';
+                document.getElementById('btn-scrn-start').style.display = 'block';
+                startVideo();
+            });
+
+            document.getElementById('btn-scrn-start').style.display = 'none';
+            document.getElementById('btn-scrn-stop').style.display = 'block';
+        } catch (err) {
+            console.error("❌ Failed to share screen:", err);
+        }
+    }
+
+    async function stopScreenShare() {
+        console.log("🛑 Stop screen sharing");
+
+        // สลับ stream กลับ
+        let screenStream = localStream;
+        localStream = secondSteam;
+        secondSteam = screenStream;
+
+        // หยุด track ของ screen จริง ๆ (browser จะหยุดแชร์)
+        screenStream.getTracks().forEach(track => {
+            if (track.readyState === "live") {
+                track.stop();
+            }
+        });
+
+        // อัปเดต stream กลับไปยัง peer
+        for (let id in peerConnections) {
+            const pc = peerConnections[id];
+
+            // หา sender เดิม
+            const videoSender = pc.getSenders().find(s => s.track?.kind === "video");
+            if (videoSender) {
+                const newVideoTrack = localStream.getVideoTracks()[0];
+                if (newVideoTrack) {
+                    await videoSender.replaceTrack(newVideoTrack);
+                }
+            }
+
+            const audioSender = pc.getSenders().find(s => s.track?.kind === "audio");
+            if (audioSender) {
+                const newAudioTrack = localStream.getAudioTracks()[0];
+                if (newAudioTrack) {
+                    await audioSender.replaceTrack(newAudioTrack);
+                }
+            }
+
+            // (ถ้าจำเป็น) renegotiate ใหม่
+            const offer = await pc.createOffer();
+            await pc.setLocalDescription(offer);
+            socket.send(JSON.stringify({
+                type: "offer",
+                offer,
+                room_id: currentRoomId,
+                from_user_id: currentUserId,
+                target_id: id
+            }));
+        }
+
+        // แสดงกล้องบน localVideo อีกครั้ง
+        const localVideo = document.getElementById("localVideo");
+        if (localVideo) {
+            localVideo.srcObject = localStream;
+        }
+
+        // ปรับ UI
+        document.getElementById('btn-scrn-start').style.display = 'inline-block';
+        document.getElementById('btn-scrn-stop').style.display = 'none';
+
+        console.log("🎥 Reverted to camera stream.");
+    }
+
+    function toggleMic() {
+        if (!localStream) return;
+
+        micEnabled = !micEnabled;
+        localStream.getAudioTracks().forEach(track => {
+            track.enabled = micEnabled;
+        });
+
+        const micBtn = document.getElementById("btn-mic");
+        micBtn.innerHTML = micEnabled ? `<i class="bi bi-mic-fill"></i>` : `<i class="bi bi-mic-mute-fill"></i>`;
+        micBtn.className = micEnabled ? "btn btn-outline-light" : "btn btn-danger";
+    }
+
+    function toggleCam() {
+        if (!localStream) return;
+
+        camEnabled = !camEnabled;
+        localStream.getVideoTracks().forEach(track => {
+            track.enabled = camEnabled;
+        });
+
+        const camBtn = document.getElementById("btn-cam");
+        camBtn.innerHTML = camEnabled ? `<i class="bi bi-camera-video-fill"></i>` : `<i class="bi bi-camera-video-off-fill"></i>`;
+        camBtn.className = camEnabled ? "btn btn-outline-light" : "btn btn-danger";
+    }
+
+    function EnableMic(enabled) {
+        const micBtn = document.getElementById("btn-mic");
+        if (enabled) {
+            micBtn.removeAttribute("disabled");
+            micBtn.innerHTML = `<i class="bi bi-mic-fill"></i>`;
+            micBtn.className = "btn btn-outline-light";
+        }
+        else {
+            micBtn.setAttribute("disabled", "disabled");
+            micBtn.innerHTML = `<i class="bi bi-mic-mute-fill"></i>`;
+            micBtn.className = "btn btn-danger";
+            localStream.getAudioTracks().forEach(track => {
+                track.enabled = false;
+            });
+        }
+        return;
+    }
+
+    function EnableCam(enabled) {
+        const camBtn = document.getElementById("btn-cam");
+        if (enabled) {
+            camBtn.removeAttribute("disabled");
+            camBtn.innerHTML = `<i class="bi bi-camera-video-fill"></i>`;
+            camBtn.className = "btn btn-outline-light";
+        }
+        else {
+            camBtn.setAttribute("disabled", "disabled");
+            camBtn.innerHTML = `<i class="bi bi-camera-video-off-fill"></i>`;
+            camBtn.className = "btn btn-danger";
+            localStream.getVideoTracks().forEach(track => {
+                track.enabled = false;
+            });
+        }
+        return;
+    }
 </script>

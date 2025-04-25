@@ -20,10 +20,9 @@ $user = $_SESSION['user'] ?? 'N/A';
             <?php include "../components/sidemenu.php"; ?>
             <div class="d-flex flex-column justify-content-center w-100">
                 <h2 class="p-4" style="max-width: 100%">All Users</h2>
-                <div class="px-4 d-flex justify-content-end gap-2">
+                <div class="px-4 d-flex justify-content-start gap-2 mb-2">
                     <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Import_csv()">Import</button>
                     <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Export_csv()">Export</button>
-                    <button class="btn btn-secondary" style="width: 33%; max-width: 100px;">Filter</button>
                 </div>
                 <!-- ซ่อน input file -->
                 <input type="file" id="csvInput" class="d-none" accept=".csv" onchange="handleFileUpload(event)">

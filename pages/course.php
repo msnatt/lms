@@ -27,8 +27,8 @@ $user = $_SESSION['user'] ?? 'N/A';
             <div class="d-flex flex-column justify-content-center w-100">
                 <h2 class="p-4" style="max-width: 100%">หลักสูตรทั้งหมด</h2>
                 <div class="d-flex">
-                    <div class="d-flex flex-column col-lg-2 col-12 rounded" style="padding: 0.2rem 0.25rem;">
-                        <div class="px-4 rounded bg-opacity-10" style="min-height: 100%;">
+                    <div class="d-flex flex-wrap rounded" style="padding: 0.2rem 0.25rem;">
+                        <div id="filter-box" class="d-flex flex-column col-12 col-lg-2 px-4 rounded">
                             <div class="d-flex g-5 justify-content-around">
                                 <h3><i class="bi bi-funnel-fill"></i> ตัวกรอง</h3>
                             </div>
@@ -73,46 +73,46 @@ $user = $_SESSION['user'] ?? 'N/A';
                             </select>
 
                         </div>
-                    </div>
-                    <div class="w-100">
-                        <div class="d-flex justify-content-center px-4">
-                            <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder="search course you interest!">
-                        </div>
-                        <div class="d-flex justify-content-between px-4 pt-3">
-                            <div>
-                                Number of search results :
-                                <span id="numofresult"></span>
+                        <div id="result-box" class="d-flex flex-column col-12 col-lg-10">
+                            <div class="d-flex justify-content-center px-4">
+                                <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder="search course you interest!">
                             </div>
-                            <div>
-                                <button type="button" class="form-control"><i class="bi bi-arrow-clockwise"></i>refresh</button>
+                            <div class="d-flex justify-content-between px-4 pt-3">
+                                <div>
+                                    Number of search results :
+                                    <span id="numofresult"></span>
+                                </div>
+                                <div>
+                                    <button type="button" class="form-control"><i class="bi bi-arrow-clockwise"></i>refresh</button>
+                                </div>
                             </div>
-                        </div>
-                        <div id="course_div" name="course_div" class="d-flex flex-wrap justify-content-center"></div>
+                            <div id="course_div" name="course_div" class="d-flex flex-wrap justify-content-center"></div>
 
-                        <br>
-                        <br>
-                        <!-- Pagination -->
-                        <div class="pagination mt-4">
-                            <div class="row">
-                                <div class="col-4 d-flex justify-content-center">
-                                    <button class="page-link" id="prev-page" disabled>&lt;</button>
-                                </div>
-                                <div class="col-4 d-flex justify-content-center align-items-center">
-                                    <span class="page-link" id="current-page">1</span> / <span id="total-pages">1</span>
-                                </div>
-                                <div class="col-4 d-flex justify-content-center">
-                                    <button class="page-link" id="next-page">&gt;</button>
+                            <br>
+                            <br>
+                            <!-- Pagination -->
+                            <div class="pagination mt-4">
+                                <div class="row">
+                                    <div class="col-4 d-flex justify-content-center">
+                                        <button class="page-link" id="prev-page" disabled>&lt;</button>
+                                    </div>
+                                    <div class="col-4 d-flex justify-content-center align-items-center">
+                                        <span class="page-link" id="current-page">1</span> / <span id="total-pages">1</span>
+                                    </div>
+                                    <div class="col-4 d-flex justify-content-center">
+                                        <button class="page-link" id="next-page">&gt;</button>
+                                    </div>
                                 </div>
                             </div>
+                            <br>
+                            <?php if ($user['is_admin'] == "1"): ?>
+                                <div style="position: fixed; bottom: 10%; right: 3%;">
+                                    <button class="menuquickly" onclick="window.location.href = '../pages/course_create.php'">
+                                        <img src="../assets/images/add.png" width="25px" height="25px" />
+                                    </button>
+                                </div>
+                            <?php endif; ?>
                         </div>
-                        <br>
-                        <?php if ($user['is_admin'] == "1"): ?>
-                            <div style="position: fixed; bottom: 10%; right: 3%;">
-                                <button class="menuquickly" onclick="window.location.href = '../pages/course_create.php'">
-                                    <img src="../assets/images/add.png" width="25px" height="25px" />
-                                </button>
-                            </div>
-                        <?php endif; ?>
                     </div>
                 </div>
             </div>

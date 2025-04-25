@@ -33,6 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $description = $_POST['textBoxDescription'];
         $objective = $_POST['textBoxObjective'];
         $id_schedule = $_POST["id_schedule"] ?? [];
+        $is_publish = $_POST["is_publish"] == "on" ? 1 : 0;
         $select_day = $_POST["select_day"] ?? [];
         $select_start = $_POST["select_start"] ?? [];
         $select_end = $_POST["select_end"] ?? [];
@@ -49,9 +50,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($stmt->num_rows > 0) {
             // อัปเดตข้อมูล course
-            $sql_update_course = "UPDATE course SET code = ?, name = ?, description = ?, objective = ?, update_by = ?, is_deleted = ? WHERE id = ? ";
+            $sql_update_course = "UPDATE course SET code = ?, name = ?, description = ?, objective = ?, update_by = ?,is_publish = ?, is_deleted = ? WHERE id = ? ";
             $stmt = $conn->prepare($sql_update_course);
-            $stmt->bind_param("ssssiii", $code, $name, $description, $objective, $user['id'], $is_deleted, $course_id);
+            $stmt->bind_param("ssssiiii", $code, $name, $description, $objective, $user['id'], $is_publish, $is_deleted, $course_id);
             $stmt->execute();
         } else {
             die("Error: Course ID not found.");

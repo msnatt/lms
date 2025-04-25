@@ -34,50 +34,6 @@ class Chat implements MessageComponentInterface
         echo "New connection! ({$conn->resourceId})\n";
     }
 
-    // public function onMessage(ConnectionInterface $from, $msg)
-    // {
-    //     $data = json_decode($msg, true);
-
-    //     if ($data['type'] === 'join') {
-    //         $from->room_id = $data['room_id'];
-    //         $from->user_id = $data['user_id'];
-    //         echo "[{$from->user_id}] joined room {$from->room_id}\n";
-    //     }
-
-    //     // 🎯 เพิ่ม support สำหรับ offer ที่มี target_id
-    //     elseif ($data['type'] === 'offer' || $data['type'] === 'answer' || $data['type'] === 'candidate') {
-    //         foreach ($this->clients as $client) {
-    //             if (
-    //                 isset($client->room_id, $client->user_id) &&
-    //                 $client->room_id === $from->room_id &&
-    //                 $client->user_id === $data['target_id']
-    //             ) {
-    //                 $client->send(json_encode([
-    //                     'type' => $data['type'],
-    //                     $data['type'] => $data[$data['type']], // offer/answer/candidate
-    //                     'room_id' => $from->room_id,
-    //                     'sender_id' => $from->user_id
-    //                 ]));
-    //             }
-    //         }
-    //     } elseif ($data['type'] === 'chat') {
-    //         $stmt = $this->conn->prepare("INSERT INTO chat_messages (chat_room_id, user_id, message) VALUES (?, ?, ?)");
-    //         $stmt->bind_param("iis", $data['room_id'], $data['user_id'], $data['message']);
-    //         $stmt->execute();
-
-    //         foreach ($this->clients as $client) {
-    //             if (isset($client->room_id) && $client->room_id === $from->room_id) {
-    //                 $client->send(json_encode([
-    //                     'type' => 'chat',
-    //                     'name' => $data['name'],
-    //                     'message' => $data['message']
-    //                 ]));
-    //             }
-    //         }
-    //     } elseif ($data['type'] === 'leave') {
-    //         echo "[{$from->user_id}] left room {$from->room_id}\n";
-    //     }
-    // }
     public function onMessage(ConnectionInterface $from, $msg)
     {
         $data = json_decode($msg, true);
@@ -136,6 +92,18 @@ class Chat implements MessageComponentInterface
                 }
             }
         } elseif ($data['type'] === 'leave') {
+            foreach ($this->clients as $client) {
+                if ( isset($client->room_id, $client->user_id) &&
+                    $client->room_id === $from->room_id &&
+                    $client !== $from
+                ) {
+                    $client->send(json_encode([
+                        'type' => 'leave',
+                        'sender_id' => $from->user_id,
+                        'room_id' => $from->room_id
+                    ]));
+                }
+            }
             echo "[{$from->user_id}] left room {$from->room_id}\n";
         }
     }

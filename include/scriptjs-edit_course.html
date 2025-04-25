@@ -681,27 +681,7 @@
             console.log(`${key}: ${value}`);
         });
 
-        // let contentItems = new FormData();
-        // contentItems.append('contentItems', JSON.stringify(data));
-
-        // let uploadcompleted = await fetch('../config/upload_check.php', {
-        //     method: 'POST',
-        //     body: contentItems
-        // });
-
-        // if (uploadcompleted.ok) {
-        //     let response = await uploadcompleted.json();
-        //     if (response.status === 'success') {
-        //         console.log('ย้ายไฟล์เสร็จแล้ว:', response.updatedItems);
-        //     } else {
-        //         console.error('เกิดข้อผิดพลาด:', response.message);
-        //     }
-        // } else {
-        //     console.error('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
-        // }
-
-
-        try {
+          try {
             const response = await fetch('../config/course_edit.php', {
                 method: 'POST',
                 body: form_course

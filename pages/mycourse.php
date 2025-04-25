@@ -26,7 +26,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                     <h3>&nbsp;&nbsp; My Course</h3>
                 </div>
                 <hr>
-                <div id="course_div" name="course_div" class="row justify-content-center mt-4" style="min-height: 50vh;"></div>
+                <div id="course_div" name="course_div" class="row justify-content-center mt-4" style="min-height: 40vh;"></div>
 
                 <br>
                 <br>

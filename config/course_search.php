@@ -45,7 +45,7 @@ $sql = "SELECT  course_access.id AS ca_id,
 
             FROM course_access
             LEFT JOIN course ON course_access.course_id = course.id
-            WHERE course.is_deleted = 0 AND course_access.is_deleted = 0 AND course_access.user_id = ?";
+            WHERE course.is_publish = 1 AND course.is_deleted = 0 AND course_access.is_deleted = 0 AND course_access.user_id = ?";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user['id']);

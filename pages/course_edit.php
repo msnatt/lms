@@ -19,8 +19,22 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="d-flex" style="min-height: 70vh;">
             <?php include "../components/sidemenu.php"; ?>
             <div class="bg-light main-container p-4 w-100" style="min-height: 60vh;">
-                <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>
-                <span id="title_edit" style="font-size: 2rem; font-weight: 600;">Edit Course</span>
+                <div class="d-flex align-items-center gap-5">
+                    <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>
+                    <div id="title_edit" style="font-size: 2rem; font-weight: 600;"> Edit Course</div>
+                    <div class="d-flex g-5">
+                        <button type="button" class="btn btn-primary" onclick="update_course()" style="width: 40%;">
+                            Update
+                        </button>
+                        <button type="button" class="btn btn-light" onclick="window.history.back();" style="width: 40%; border: 1px solid #ccc;">
+                            Cancel
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="is_deleted_course()" style="width: 40%;">
+                            <i class="bi bi-trash"></i>
+                            Bin
+                        </button>
+                    </div>
+                </div>
                 <form id="form-course" class="d-flex flex-wrap">
                     <input type="hidden" id="course_id" name="course_id" value="<?php echo $courseid; ?>">
                     <input type="hidden" id="is_deleted" name="is_deleted" value="0">
@@ -40,20 +54,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                             <textarea id="textBoxDescription" name="textBoxDescription" rows="4" cols="50" class="form-control"></textarea>
                             <label class="form-label">Objective</label>
                             <textarea id="textBoxObjective" name="textBoxObjective" rows="4" cols="50" class="form-control"></textarea>
-                            <div class="mt-5 d-flex g-5 justify-content-around">
-                                <button type="button" class="btn btn-primary" onclick="update_course()" style="width: 40%;">
-                                    Update
-                                </button>
-                                <button type="button" class="btn btn-light" onclick="window.history.back();" style="width: 40%; border: 1px solid #ccc;">
-                                    Cancel
-                                </button>
-                            </div>
-                            <div class="p-3">
-                                <button type="button" class="btn btn-danger w-100" onclick="is_deleted_course()" style="width: 40%;">
-                                    <i class="bi bi-trash"></i>
-                                    Bin
-                                </button>
-                            </div>
+
                         </div>
                     </div>
                     <div class="d-flex flex-column col-lg-7 col-12 rounded" style="padding: 0.2rem 0.25rem;">

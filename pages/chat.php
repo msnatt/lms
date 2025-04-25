@@ -46,19 +46,23 @@ $user = $_SESSION['user'] ?? 'N/A';
                             </button>
 
                             <!-- Toggle Camera -->
-                            <button class="btn btn-outline-light" title="Toggle Camera" onclick="toggleCamera()">
+                            <button id="btn-cam" class="btn btn-outline-light" title="Toggle Camera" onclick="toggleCam()">
                                 <i class="bi bi-camera-video-fill"></i>
                             </button>
 
                             <!-- Toggle Mic -->
-                            <button class="btn btn-outline-light" title="Toggle Mic" onclick="toggleMic()">
+                            <button id="btn-mic" class="btn btn-outline-light" title="Toggle Mic" onclick="toggleMic()">
                                 <i class="bi bi-mic-fill"></i>
                             </button>
 
                             <!-- Share Screen -->
-                            <button class="btn btn-outline-light" title="Share Screen" onclick="shareScreen()">
+                            <button id="btn-scrn-start" class="btn btn-outline-light" onclick="startScreenShare()" style="display: block;">
                                 <i class="bi bi-display-fill"></i>
                             </button>
+                            <button id="btn-scrn-stop" class="btn btn-danger" onclick="stopScreenShare()" style="display: none;">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+
 
                             <!-- Hang Up -->
                             <button class="btn btn-danger" title="Hang Up" onclick="toggleControl()">
@@ -66,8 +70,8 @@ $user = $_SESSION['user'] ?? 'N/A';
                             </button>
                         </div>
                         <!-- setting -->
-                        <div id="settingPanel" class="position-absolute translate-middle-x p-3 gap-2 bg-white rounded shadow flex-column"
-                            style="display:flex; left: 50%; bottom: 20%; z-index: 11; width: 100%; max-width: 300px; height: 100%; max-height: 300px;">
+                        <div id="settingPanel" class="position-absolute translate-middle-x p-3 gap-1 bg-white rounded shadow flex-column"
+                            style="display:flex; left: 50%; bottom: 20%; z-index: 11; width: 100%; max-width: 300px; height: 100%; max-height: 350px;">
                         </div>
                     </div>
                 </div>
@@ -114,11 +118,3 @@ $user = $_SESSION['user'] ?? 'N/A';
 </body>
 
 </html>
-
-
-
-
-
-
-
-

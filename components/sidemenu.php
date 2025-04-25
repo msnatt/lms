@@ -21,10 +21,9 @@
                 <i class="bi bi-chat-left-dots"></i>
                 <a class="nav-link text" href="../pages/certificate.php">Certificate</a>
             </li>
-            <li class="d-flex align-items-center gap-2">
-                <i class="bi bi-gear"></i>
+            <li class="gap-2">
                 <button class="btn btn-link nav-link text px-0" data-bs-toggle="collapse" data-bs-target="#systemSubNav" aria-expanded="false">
-                    System
+                    <i class="bi bi-gear"></i> System
                 </button>
                 <ul class="collapse nav flex-column " id="systemSubNav">
                     <li class="d-flex align-items-start gap-2">
