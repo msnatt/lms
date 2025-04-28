@@ -33,6 +33,7 @@
             const data = await res.json();
 
             const select = document.getElementById("list-room-chat");
+            select.innerHTML = "";
             const currentUserId = "<?php echo $_SESSION['user_id']; ?>"; // ใช้เฉพาะถ้า JS อยู่ใน .php
 
             for (const room of data) {
@@ -42,23 +43,28 @@
                         // fetch ข้อความล่าสุด
                         const response_ = await fetch(`../config/chat-last.php?room_id=${room.id}`);
                         const chatroom = await response_.json();
-                        const lastMessage = chatroom.message ?? "[ไม่มีข้อความ]";
+                        const lastMessage = chatroom && chatroom.message ? chatroom.message : "[ไม่มีข้อความ]";
+
+                        // จำกัดความยาวของข้อความ
+                        const maxLength = 30; // ความยาวสูงสุดของข้อความที่จะแสดง
+                        const truncatedMessage = lastMessage.length > maxLength ? lastMessage.substring(0, maxLength) + "..." : lastMessage;
 
                         // สร้าง div สำหรับห้อง
                         const div = document.createElement("div");
                         div.id = "room_" + room.id;
-                        div.className = "gap-1 box-chat m-1";
+                        div.className = "gap-1 box-chat ";
+                        div.style.borderBottom = "1px solid #ddd";
                         div.onclick = () => selectRoomChat(room.id, room.name);
 
                         // ✅ ชื่อห้อง
                         const name = document.createElement("div");
-                        name.className = "fw-bold";
+                        name.className = "fw-bold py-2";
                         name.innerText = room.name;
 
                         // ✅ ข้อความล่าสุด
                         const preview = document.createElement("div");
-                        preview.className = "text-muted small";
-                        preview.innerText = lastMessage;
+                        preview.className = "text-muted small pb-2";
+                        preview.innerText = truncatedMessage;
 
                         // ใส่ใน div หลัก
                         div.appendChild(name);
@@ -123,6 +129,33 @@
         }
     }
 
+    function toggleChatRoom() {
+        let listRoomChatBox = document.getElementById('box-list-room-chat');
+        let commubox = document.getElementById('commu-box');
+        // ตรวจสอบค่าของ display
+        if (listRoomChatBox.style.display === "none") {
+            listRoomChatBox.style.display = "block";
+            commubox.style.display = "none";
+        } else {
+            listRoomChatBox.style.display = "none";
+            commubox.style.display = "block";
+        }
+
+    }
+
+    window.addEventListener("resize", () => {
+        let listRoomChatBox = document.getElementById('box-list-room-chat');
+        let chatBox = document.getElementById("commu-box");
+        // ตรวจสอบขนาดหน้าจอ
+        if (window.innerWidth < 992) {
+            listRoomChatBox.style.display = "none";
+            // chatBox.style.display.display = "none";
+        } else {
+            listRoomChatBox.style.display = "block";
+            // chatBox.style.display.display = "block";
+        }
+    });
+
     document.getElementById('chat-message').addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
             sendMessage(); // หรือฟังก์ชันของคุณ
@@ -154,8 +187,87 @@
         }
     }
 
-    function createRoomChat() {
-        
+    async function createRoomChat() {
+        let headerBox = document.getElementById('header-box');
+
+        let res = await fetch("../config/Fetch_user.php");
+        let users = await res.json();
+        // สร้าง container ล้อม input กับ suggestionBox ให้จัดตำแหน่งแบบ relative
+        let inputWrapper = document.createElement('div');
+        inputWrapper.style.position = 'relative';
+        inputWrapper.style.width = '300px'; // ปรับตามความเหมาะสม
+        inputWrapper.className = 'my-2 w-100';
+
+        // สร้าง input สำหรับค้นหา
+        let addmember = document.createElement('input');
+        addmember.className = "form-control";
+        addmember.placeholder = "ค้นหาเพื่อน เพื่อเริ่มแชท!";
+
+        // สร้าง suggestion box (ลอยใต้ input)
+        let suggestionBox = document.createElement('div');
+        suggestionBox.style.position = 'absolute';
+        suggestionBox.style.top = '100%';
+        suggestionBox.style.left = '0';
+        suggestionBox.style.right = '0';
+        suggestionBox.style.zIndex = '1000';
+        suggestionBox.className = "list-group shadow";
+
+        // แทรก input และ suggestionBox เข้าใน wrapper
+        inputWrapper.appendChild(addmember);
+        inputWrapper.appendChild(suggestionBox);
+        headerBox.appendChild(inputWrapper);
+
+        addmember.addEventListener('input', function () {
+            let query = addmember.value.toLowerCase();
+            suggestionBox.innerHTML = ''; // ล้างรายการเก่า
+            let matchedUsers = users.filter(user =>
+                user['code'].toLowerCase().includes(query) ||
+                user['name'].toLowerCase().includes(query)
+            );
+
+            matchedUsers.slice(0, 5).forEach(user => {
+                let item = document.createElement('div');
+                item.className = 'list-group-item list-group-item-action';
+                item.textContent = user.name;
+
+                item.addEventListener('click', async () => {
+                    console.log("Selected user:", user.name);
+                    addmember.value = '';
+                    suggestionBox.innerHTML = '';
+                    addRoomOfUser(currentUserId, user['id'], `new_chat[${currentUserId}${user['id']}]`);
+                });
+
+                suggestionBox.appendChild(item);
+            });
+        });
+
+        addmember.addEventListener('keyup', async function (event) {
+            if (event.key === 'Enter') {
+                let query = addmember.value.toLowerCase();
+                let matchedUsers = users.filter(user =>
+                    user['code'].toLowerCase().includes(query) ||
+                    user['name'].toLowerCase().includes(query)
+                );
+
+                if (matchedUsers.length > 0) {
+                    let selectedUser = matchedUsers[0];
+                    console.log("Selected (Enter) user:", selectedUser.name);
+                    addmember.value = '';
+                    suggestionBox.innerHTML = '';
+                    addRoomOfUser(currentUserId, user['id'], `direct_room[${currentUserId}${user['id']}]`);
+                }
+            }
+            if (event.key === 'Escape') { // ใช้ 'Escape' ไม่ใช่ 'esc'
+                suggestionBox.innerHTML = '';
+            }
+        });
+
+        addmember.addEventListener('blur', function () {
+            setTimeout(() => {
+                suggestionBox.innerHTML = '';
+            }, 150); // หน่วงนิดนึง เผื่อผู้ใช้กำลังกดเลือก suggestion
+        });
+
     }
 
     async function loadChat(roomId, roomName) {
@@ -194,10 +306,12 @@
     }
 
     function listMemberOfChatroom(users, statusChat) {
+        let Chatroom = document.getElementById('list-room-chat');
+
         // สร้าง container ล้อม input กับ suggestionBox ให้จัดตำแหน่งแบบ relative
         let inputWrapper = document.createElement('div');
         inputWrapper.style.position = 'relative';
-        inputWrapper.style.width = '300px'; // ปรับตามความเหมาะสม
+        inputWrapper.style.width = '200px'; // ปรับตามความเหมาะสม
         inputWrapper.className = 'mb-3';
 
         // สร้าง input สำหรับค้นหา
@@ -293,6 +407,51 @@
             });
     }
 
+    async function addRoomOfUser(currentUserId, user_id, roomName) {
+        try {
+            // 1. เริ่มจากการสร้างห้องใหม่
+            const createRoomResponse = await fetch('../config/chat-room-create.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ room_name: roomName })
+            });
+
+            const roomResult = await createRoomResponse.json();
+
+            if (!roomResult.success) {
+                console.error("❌ ไม่สามารถสร้างห้องได้:", roomResult.message);
+                alert("ไม่สามารถสร้างห้องได้: " + roomResult.message);
+                return;
+            }
+
+            const newRoomId = roomResult.room_id;
+
+            await chat_access_create(newRoomId, currentUserId);
+            await chat_access_create(newRoomId, user_id);
+
+            await loadChatRooms();
+
+        } catch (error) {
+            console.error("เกิดข้อผิดพลาด:", error);
+            alert("เกิดข้อผิดพลาด: " + error.message);
+        }
+    }
+
+    async function chat_access_create(newRoomId, user_id) {
+        // 2. หลังจากสร้างห้องแล้ว บันทึก chat_access
+        const addAccessResponse = await fetch('../config/chat-access-create.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `chat_room_id=${encodeURIComponent(newRoomId)}&user_id=${encodeURIComponent(user_id)}`
+        });
+
+
+    }
+
     async function loadChatHistory(roomId) {
         fetch(`../config/chat-load.php?room_id=${roomId}`)
             .then(response => response.json())
@@ -369,11 +528,12 @@
 
     async function selectRoomChat(roomId, roomName) {
         console.log(`Attempting to select room: ${roomId} (${roomName})`);
+        if (window.innerWidth < 992) { toggleChatRoom(); }
         if (roomId !== currentRoomId) {
 
-            if (Object.keys(peerConnections).length > 0) {
-                console.log("There are active peer connections, leaving the meeting...");
+            if (localStream || document.getElementById('videocall-box').style.display == "block") {
                 leaveMeet();
+                toggleControl();
             }
 
             const chatHeader = document.getElementById("chat-header");
@@ -654,6 +814,8 @@
         // เพิ่ม local track
         localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
 
+        console.log("peer list");
+        console.log(pc);
         return pc;
     }
 
@@ -860,4 +1022,73 @@
         }
         return;
     }
+
+    function toggleChat() {
+        const chatBox = document.getElementById('chatBotBox');
+        const btnBot = document.getElementById('btn-bot');
+        if (chatBox.style.display === 'none') {
+            chatBox.style.display = 'block';
+            btnBot.innerHTML = `<i class="bi bi-x-lg px-1"></i>`;
+
+        } else {
+            chatBox.style.display = 'none';
+            btnBot.innerHTML = `<i class="bi bi-robot px-1"></i>`;
+        }
+    }
+
+    function sendMessageToBot() {
+
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        if (message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const newMsg = document.createElement('div');
+            newMsg.className = "w-100 text-end"
+            newMsg.textContent = message;
+            newMsg.style.margin = '5px 0';
+            chatMessages.appendChild(newMsg);
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight; // เลื่อนลงล่างสุด
+
+            // 2. ส่งข้อความไปที่ chatbot.php
+            fetch('../config/chat-bot.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    // 3. แสดงข้อความตอบกลับของบอท
+                    const botMsg = document.createElement('div');
+                    const boxmessage = document.createElement('div');
+                    boxmessage.className = "w-100 d-flex";
+                    boxmessage.style.textAlign = 'left';
+                    boxmessage.innerHTML = `
+                        <i class="bi bi-robot px-1">
+                        `;
+                    botMsg.textContent = data.reply;
+                    botMsg.style.margin = '5px 0';
+                    boxmessage.appendChild(botMsg);
+                    chatMessages.appendChild(boxmessage);
+
+                    // เลื่อนลงล่างสุด
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    }
+
+    // ฟังการกดปุ่ม Escape เพื่อปิด Chat Box
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            const chatBox = document.getElementById('chatBotBox');
+            if (chatBox.style.display == "block") {
+                toggleChat();
+            }
+        }
+    });
 </script>

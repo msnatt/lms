@@ -1,0 +1,25 @@
+<!-- page product -->
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const response = await fetch("../config/Fetch_MyCourse.php?user_id=<?php echo $_SESSION['user']['id']; ?>"); // เรียกใช้ PHP
+        const json_res = await response.json();
+        let mycourse = json_res;
+
+        mycourse['courses'].forEach(course => {
+            console.log(course);
+        });
+    });
+
+    async function create_Table(Course) {
+        const table = document.createElement('table');
+        table.classList.add('table', 'table-bordered', 'table-striped');
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+            <tr>
+                <th>Course Code</th>
+                <th>Course Name</th>
+                <th>Description</th>
+            </tr>
+        `;
+    }
+</script>

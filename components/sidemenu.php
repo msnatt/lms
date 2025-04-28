@@ -4,6 +4,10 @@
             <i class="bi bi-house"></i>
             <span><a class="nav-link active text" href="../pages/chat.php">General Chat</a></span>
         </li>
+        <li class="d-flex align-items-center gap-2">
+            <i class="bi bi-file-person"></i>
+            <span><a class="nav-link active text" href="../pages/results.php">ผลการเรียน</a></span>
+        </li>
         <?php if (isset($_SESSION['user']) && $_SESSION['user']['is_admin']): ?>
             <li class="d-flex align-items-center gap-2">
                 <i class="bi bi-book-half"></i>

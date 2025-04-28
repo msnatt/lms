@@ -143,6 +143,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 "content_id" => $row["content_id"],
                 "unit_id" => $row["content_unit_id"],
                 "type_id" => $row["content_type_id"],
+                "point" => $row["point"],
                 "content" => $row["content_content"],
                 "create_date" => $row["content_create_date"],
                 "update_date" => $row["content_update_date"],
