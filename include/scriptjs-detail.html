@@ -389,6 +389,13 @@
                                     </model-viewer>
                                     `;
                                 break;
+                            case "7":
+                                const [id, name] = content.content.split('_');
+                                innercontentDiv.innerHTML = `
+                                    <a href="pages/examination?exam=${id}"  target="_blank">${name}</a>
+                                    `;
+
+                                break;
                             default:
                                 innercontentDiv.innerHTML = `<p>Unsupported content type</p>`;
                         }

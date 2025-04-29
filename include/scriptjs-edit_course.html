@@ -13,12 +13,10 @@
         const response_details = await fetch("../config/Fetch_DetailCourse.php?course_id=<?php echo $courseid; ?>"); // เรียกใช้ PHP
         const json_res_details = await response_details.json(); // รับผลลัพธ์เป็น JSON
         let detail_course = json_res_details;
-        console.log(detail_course['course']);
 
         const response_schedule = await fetch("../config/Fetch_schedule.php?course_id=<?php echo $courseid; ?>"); // เรียกใช้ PHP
         const json_res_schedule = await response_schedule.json(); // รับผลลัพธ์เป็น JSON
         let schedule = json_res_schedule;
-        console.log(schedule);
         generate_course_schedule(schedule);
 
         const course_name = document.getElementById('name_course');
@@ -123,6 +121,10 @@
                         let filepath = row['content'];
                         let filename = filepath.split('/').pop(); // ตัดเอาเฉพาะชื่อไฟล์
                         content_.innerHTML = `<div id="content_${row['id']}">${filename}</div>`;
+                        break;
+                    case 7:
+                    const [id, name] = row['content'].split('_');
+                        content_.innerHTML = `แบบทดสอบ  ${name}`;
                         break;
                     default:
                         content_.innerHTML = "ไม่พบข้อมูลที่ตรงกับชนิดข้อมูล โปรดติดต่อแอดมิน.";
@@ -326,7 +328,7 @@
 
     function changedropdown() {
         var dropdown_content = document.getElementById('select_content');
-        dropdown_content.addEventListener('change', () => {
+        dropdown_content.addEventListener('change', async () => {
             var dropdown_content = document.getElementById('select_content');
             const selectedValue = dropdown_content.value;
             const content_div = document.getElementById('contentofcontent');
@@ -378,10 +380,33 @@
                     <br>
                 `;
                     break;
+                case "7": // 3D
+                    innerHTML = `
+                    <br>
+                    <div>select Examination / Quiz</div>
+                    <select type="text" id="inputContent" class="form-select"></select>
+                    <br>
+                    <br>
+                    <p class="text-danger">Don't forget create in quiz managment before do this.</p>                   
+                `;
+                    break;
                 default:
                     innerHTML = "<p>Please select a content type.</p>";
             }
             content_div.innerHTML = innerHTML;
+            if (selectedValue === "7") {
+                let allExam = await fetch('../config/Fetch_question_sets.php');
+                let json_res = await allExam.json();
+                const selectQuiz = document.getElementById("inputContent");
+
+                // ตรวจว่าได้ array มาจริงหรือไม่
+                json_res.forEach(item => {
+                    const option = document.createElement("option");
+                    option.value = item.id + "_" + item.title;        // หรือ field ที่คุณใช้เป็น id
+                    option.textContent = item.title; // หรือ field ที่คุณใช้เป็นชื่อข้อสอบ
+                    selectQuiz.appendChild(option);
+                });
+            }
         });
     }
 
@@ -403,6 +428,7 @@
         div_degree_course.appendChild(header_div);
 
         clearModal('modal_div');
+        console.log(data);
     }
 
     async function create_content_div() {
@@ -416,7 +442,7 @@
 
         var dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
-        if (['1', '5'].includes(selectedValue)) { // Text
+        if (['1', '5', '7'].includes(selectedValue)) { // Text
             data.push({ id: 0, type: 'content', selecttype: parseInt(selectedValue), content: inputContent.value, is_deleted: 0 });
             header_div.textContent = inputContent.value;
         } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
@@ -428,6 +454,7 @@
         div_degree_course.appendChild(header_div);
 
         clearModal('modal_div');
+        console.log(data);
     }
 
     // ========================= End Header and content =======================
@@ -586,7 +613,7 @@
         console.log(ele_content);
         var dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
-        if (['1', '5'].includes(selectedValue)) { // Text
+        if (['1', '5', '7'].includes(selectedValue)) { // Text
             ele_content.textContent = content.value;
         } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
             var [filename, message] = await upload_file_temp(content, selectedValue);
@@ -681,7 +708,7 @@
             console.log(`${key}: ${value}`);
         });
 
-          try {
+        try {
             const response = await fetch('../config/course_edit.php', {
                 method: 'POST',
                 body: form_course

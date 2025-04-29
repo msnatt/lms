@@ -99,8 +99,7 @@
 
     function changedropdown() {
         var dropdown_content = document.getElementById('select_content');
-        dropdown_content.addEventListener('change', () => {
-            var dropdown_content = document.getElementById('select_content');
+        dropdown_content.addEventListener('change', async () => {
             const selectedValue = dropdown_content.value;
             const content_div = document.getElementById('contentofcontent');
             switch (selectedValue) {
@@ -147,14 +146,38 @@
                     innerHTML = `
                     <br>
                     <div id="dropZone">drag or drop here. (.glb .gltf)</div>
-                    <input type="file" id="upload" accept=".glb, .gltf, .bin, .jpg, .png" multiple />
+                    <input type="file" id="inputContent" accept=".glb, .gltf, .bin, .jpg, .png" multiple />
                     <br>
+                `;
+                    break;
+                case "7": // 3D
+                    innerHTML = `
+                    <br>
+                    <div>select Examination / Quiz</div>
+                    <select type="text" id="inputContent" class="form-select"></select>
+                    <br>
+                    <br>
+                    <p class="text-danger">Don't forget create in quiz managment before do this.</p>                   
                 `;
                     break;
                 default:
                     innerHTML = "<p>Please select a content type.</p>";
             }
             content_div.innerHTML = innerHTML;
+            console.log(selectedValue);
+            if (selectedValue === "7") {
+                let allExam = await fetch('../config/Fetch_question_sets.php');
+                let json_res = await allExam.json();
+                const selectQuiz = document.getElementById("inputContent");
+
+                // ตรวจว่าได้ array มาจริงหรือไม่
+                json_res.forEach(item => {
+                    const option = document.createElement("option");
+                    option.value = item.id;        // หรือ field ที่คุณใช้เป็น id
+                    option.textContent = item.title; // หรือ field ที่คุณใช้เป็นชื่อข้อสอบ
+                    selectQuiz.appendChild(option);
+                });
+            }
         });
     }
 
@@ -200,7 +223,7 @@
         const selectedValue = dropdown_content.value;
         const inputContent = document.getElementById('inputContent');
 
-        if (['1', '5'].includes(selectedValue)) { // Text
+        if (['1', '5', '7'].includes(selectedValue)) { // Text
             data.push({ id: countNo, type: 'content', selecttype: parseInt(selectedValue), content: inputContent.value, is_deleted: 0 });
         } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
             var filename = await upload_file_temp(inputContent, parseInt(selectedValue));
@@ -304,8 +327,12 @@
                         content_.innerHTML = `<a id="content_${row['id']}">${row['content']}</a>`;
                         break;
                     case 6:
-                        // content_.innerHTML = `<a id="content_${row['id']}">${row['content']}</a>`;
-                        // 3D viewer
+                        let filepath = row['content'];
+                        let filename = filepath.split('/').pop(); // ตัดเอาเฉพาะชื่อไฟล์
+                        content_.innerHTML = `<div id="content_${row['id']}">${filename}</div>`;
+                        break;
+                    case 7:
+                        content_.innerHTML = `<div>this is ${row['content']}.</div>`;
                         break;
                     default:
                         content_.innerHTML = "ไม่พบข้อมูลที่ตรงกับชนิดข้อมูล โปรดติดต่อแอดมิน.";

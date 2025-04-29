@@ -1,0 +1,151 @@
+<!-- page product -->
+<script>
+    let exam = null;
+    let timeLimit = null;
+    let startTime = null; // UNIX timestamp
+    let timerInterval = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const params = new URLSearchParams(window.location.search);
+        const examId = params.get('exam');
+
+        const response = await fetch(`../config/fetch_questionall.php?exam_id=${examId}`);
+        exam = await response.json();
+        timeLimit = exam.exam_period * 60;
+
+        console.log(exam);
+
+        document.getElementById('exam-title').innerText = exam.title;
+        document.getElementById('exam-description').innerText = exam.description;
+
+        // ถ้ามีเวลาเริ่มสอบใน localStorage ให้โหลดเลย
+        const storedStart = localStorage.getItem(`exam_${examId}_start`);
+        if (storedStart) {
+            startTime = parseInt(storedStart);
+            document.getElementById('startExamBtn').classList.add('d-none');
+            document.getElementById('toggle-form').classList.replace('d-none', 'd-flex');
+            document.getElementById('toggle-form').classList.add('flex-wrap');
+            startExam(true); // เริ่มสอบแบบโหลดข้อมูลเดิม
+        }
+
+        // ✅ บันทึกคำตอบทันทีเมื่อเลือก
+        document.addEventListener('change', function (e) {
+            if (e.target.classList.contains('form-check-input')) {
+                const name = e.target.name;
+                const value = e.target.value;
+                localStorage.setItem(`exam_${examId}_${name}`, value);
+            }
+        });
+
+    });
+
+    function startExam(restore = false) {
+        const examId = new URLSearchParams(window.location.search).get('exam');
+
+        if (!restore) {
+            startTime = Math.floor(Date.now() / 1000); // timestamp วินาที
+            localStorage.setItem(`exam_${examId}_start`, startTime);
+        }
+
+        const timerDisplay = document.createElement('div');
+        timerDisplay.className = "alert alert-info";
+        timerDisplay.id = "timer-display";
+        document.getElementById('exam-container').append(timerDisplay);
+
+        loadExam();
+
+        updateTimer(timerDisplay);
+    }
+
+    function loadExam() {
+        const questionsList = document.getElementById('questions-list');
+        const examId = new URLSearchParams(window.location.search).get('exam');
+        questionsList.innerHTML = ''; // ล้างก่อน
+
+        exam.questions.forEach((q, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = "mb-4";
+
+            const storedAnswer = localStorage.getItem(`exam_${examId}_question_${q.questions_id}`);
+
+            questionDiv.innerHTML = `
+                <h5>${index + 1}. ${q.questions_question_text}</h5>
+                ${q.choices.map(choice => `
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio"
+                            name="question_${q.questions_id}"
+                            value="${choice.choices_id}"
+                            ${storedAnswer == choice.choices_id ? 'checked' : ''} required>
+                        <label class="form-check-label">${choice.choices_choice_text}</label>
+                    </div>
+                `).join('')}
+            `;
+
+            questionsList.appendChild(questionDiv);
+        });
+    }
+
+    function updateTimer(timerDisplay) {
+        if (timerInterval) clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+            const now = Math.floor(Date.now() / 1000);
+            const elapsed = now - startTime;
+            const remaining = timeLimit - elapsed;
+
+            if (remaining <= 0) {
+                clearInterval(timerInterval); // หยุดการนับเวลา
+                localStorage.removeItem(`exam_${exam.id}_start`); // 🔁 ลบ startTime ที่บันทึกไว้
+                document.getElementById('exam-form').submit();
+            } else {
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                timerDisplay.innerText = `เวลาที่เหลือ: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            }
+        }, 1000);
+    }
+
+    function collectAnswers() {
+        const examId = new URLSearchParams(window.location.search).get('exam');
+        const answers = [];
+
+        exam.questions.forEach(q => {
+            const inputName = `question_${q.questions_id}`;
+            const selected = document.querySelector(`input[name="${inputName}"]:checked`);
+
+            answers.push({
+                question_id: q.questions_id,
+                choice_id: selected ? selected.value : null // ถ้ายังไม่เลือกจะเป็น null
+            });
+        });
+
+        console.log("คำตอบที่เลือก:", answers);
+        return answers;
+    }
+    function handleSubmit(event) {
+        event.preventDefault(); // ป้องกันการ reload หน้า
+
+        const userAnswers = collectAnswers();
+
+        // ✅ ส่งผ่าน fetch() ไปยัง PHP
+        fetch('../config/save_answer.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                exam_id: exam.id,
+                answers: userAnswers
+            })
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert("ส่งคำตอบเรียบร้อยแล้ว!");
+                localStorage.removeItem(`exam_${exam.id}_start`); // เคลียร์เวลา
+                exam.questions.forEach(q => {
+                    localStorage.removeItem(`exam_${exam.id}_question_${q.questions_id}`);
+                });
+                window.location.href = 'result.php?exam=' + exam.id;
+            });
+
+        return false;
+    }
+</script>

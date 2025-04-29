@@ -22,16 +22,15 @@ $user = $_SESSION['user'] ?? 'N/A';
                 <div class="d-flex align-items-center gap-5">
                     <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>
                     <div id="title_edit" style="font-size: 2rem; font-weight: 600;"> Edit Course</div>
-                    <div class="d-flex g-5">
+                    <div class="d-flex gap-5">
                         <button type="button" class="btn btn-primary" onclick="update_course()" style="width: 40%;">
-                            Update
+                            <i class="bi bi-floppy-fill"></i>
                         </button>
                         <button type="button" class="btn btn-light" onclick="window.history.back();" style="width: 40%; border: 1px solid #ccc;">
-                            Cancel
+                            <i class="bi bi-x"></i>
                         </button>
                         <button type="button" class="btn btn-danger" onclick="is_deleted_course()" style="width: 40%;">
                             <i class="bi bi-trash"></i>
-                            Bin
                         </button>
                     </div>
                 </div>
