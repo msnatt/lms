@@ -26,7 +26,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                 <button id="startExamBtn" class="btn btn-primary" onclick="startExam()">เริ่ม!</button>
             </div>
             <div id="toggle-form" class=" container d-none px-5">
-                <form id="exam-form" class="w-100 d-flex flex-column">
+                <form method="POST" onsubmit="handleSubmit(event)" class="w-100 d-flex flex-column">
                     <div id="questions-list"></div>
 
                     <div class="d-flex justify-content-center">

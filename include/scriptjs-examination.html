@@ -22,10 +22,7 @@
         const storedStart = localStorage.getItem(`exam_${examId}_start`);
         if (storedStart) {
             startTime = parseInt(storedStart);
-            document.getElementById('startExamBtn').classList.add('d-none');
-            document.getElementById('toggle-form').classList.replace('d-none', 'd-flex');
-            document.getElementById('toggle-form').classList.add('flex-wrap');
-            startExam(true); // เริ่มสอบแบบโหลดข้อมูลเดิม
+            await startExam(true); // เริ่มสอบแบบโหลดข้อมูลเดิม
         }
 
         // ✅ บันทึกคำตอบทันทีเมื่อเลือก
@@ -39,7 +36,7 @@
 
     });
 
-    function startExam(restore = false) {
+    async function startExam(restore = false) {
         const examId = new URLSearchParams(window.location.search).get('exam');
 
         if (!restore) {
@@ -52,12 +49,32 @@
         timerDisplay.id = "timer-display";
         document.getElementById('exam-container').append(timerDisplay);
 
-        loadExam();
+        await loadExam();
 
         updateTimer(timerDisplay);
     }
 
+    function removelocalstorage() {
+        const examId = new URLSearchParams(window.location.search).get('exam');
+        if (!examId || !exam) return;
+
+        // ลบเวลาที่เริ่มสอบ
+        localStorage.removeItem(`exam_${examId}_start`);
+
+        // ลบคำตอบของทุกคำถาม
+        exam.questions.forEach(q => {
+            localStorage.removeItem(`exam_${examId}_question_${q.questions_id}`);
+        });
+
+        console.log(`LocalStorage สำหรับ exam_${examId} ถูกล้างแล้ว`);
+
+        location.reload();
+    }
+
     function loadExam() {
+        document.getElementById('startExamBtn').classList.add('d-none');
+        document.getElementById('toggle-form').classList.replace('d-none', 'd-flex');
+        document.getElementById('toggle-form').classList.add('flex-wrap');
         const questionsList = document.getElementById('questions-list');
         const examId = new URLSearchParams(window.location.search).get('exam');
         questionsList.innerHTML = ''; // ล้างก่อน
@@ -122,13 +139,16 @@
         console.log("คำตอบที่เลือก:", answers);
         return answers;
     }
+
     function handleSubmit(event) {
         event.preventDefault(); // ป้องกันการ reload หน้า
 
         const userAnswers = collectAnswers();
 
+        console.log(userAnswers);
+
         // ✅ ส่งผ่าน fetch() ไปยัง PHP
-        fetch('../config/save_answer.php', {
+        fetch('../config/user_answers.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -138,14 +158,19 @@
         })
             .then(res => res.json())
             .then(data => {
-                alert("ส่งคำตอบเรียบร้อยแล้ว!");
-                localStorage.removeItem(`exam_${exam.id}_start`); // เคลียร์เวลา
-                exam.questions.forEach(q => {
-                    localStorage.removeItem(`exam_${exam.id}_question_${q.questions_id}`);
-                });
-                window.location.href = 'result.php?exam=' + exam.id;
+                removelocalstorage();
+                if (data.status === 'success') {
+                    checkUserAnswer();
+                }
             });
 
-        return false;
+        // return false;
+    }
+
+    function checkUserAnswer() {
+        fetch('../config/exam_checkanswer.php', {
+          method: 'POST',
+            
+        })
     }
 </script>
