@@ -332,7 +332,8 @@
                         content_.innerHTML = `<div id="content_${row['id']}">${filename}</div>`;
                         break;
                     case 7:
-                        content_.innerHTML = `<div>this is ${row['content']}.</div>`;
+                        const [id, name] = row['content'].split('_');
+                        content_.innerHTML = `แบบทดสอบ  ${name}`;
                         break;
                     default:
                         content_.innerHTML = "ไม่พบข้อมูลที่ตรงกับชนิดข้อมูล โปรดติดต่อแอดมิน.";

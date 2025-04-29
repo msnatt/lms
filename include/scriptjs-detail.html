@@ -29,7 +29,6 @@
         const res_user_course = await fetch(`../config/Fetch_usercourse.php?courseid=${courseID}`); // เรียกใช้ PHP
         const json_res_user_course = await res_user_course.json(); // รับผลลัพธ์เป็น JSON
         let user_course = json_res_user_course;
-        console.log(user_course);
 
         const detail_div = document.getElementById("detail_div");
 
@@ -198,8 +197,6 @@
             // ถ้าข้อมูล 'data' เป็น object หรือ array ที่ต้องการส่ง
             // คุณสามารถแปลงเป็น JSON string ก่อน
             detail_data.append('data', JSON.stringify(data));
-
-            console.log(detail_data);
 
             fetch('../config/mycourse_create.php', {
                 method: 'POST',  // ใช้ POST request
@@ -392,7 +389,9 @@
                             case "7":
                                 const [id, name] = content.content.split('_');
                                 innercontentDiv.innerHTML = `
-                                    <a href="pages/examination?exam=${id}"  target="_blank">${name}</a>
+                                        <button class="btn btn-success rounded-pill px-4 shadow" onclick="window.open('examination.php?exam=${id}', '_blank')">
+                                            คลิ๊กที่นี่ เพื่อเริ่มทำ ${name}.
+                                        </button>
                                     `;
 
                                 break;
@@ -451,7 +450,6 @@
 
         });
 
-        console.log(data);
     });
 
     // ฟังก์ชันแสดง users_course
