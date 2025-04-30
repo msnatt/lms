@@ -52,12 +52,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $stmt_check->store_result();
 
                         if ($stmt_check->num_rows == 0) {
-                            $sql_course = "INSERT INTO course_student (course_id, unit_id, content_id, owner_id, point) VALUES (?, ?, ?, ?, 0)";
+                            $sql_course = "INSERT INTO course_student (course_id, owner_id) VALUES (?, ?)";
                             $stmt_insert = $conn->prepare($sql_course);
                             if (!$stmt_insert) {
                                 die("Error preparing course statement: " . $conn->error);
                             }
-                            $stmt_insert->bind_param("iiii", $course_id, $unit['unit_id'], $content['content_id'], $id);
+                            $stmt_insert->bind_param("ii", $course_id, $id);
                             // Execute คำสั่ง SQL
                             if (!$stmt_insert->execute()) {
                                 echo json_encode([

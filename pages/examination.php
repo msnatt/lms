@@ -18,7 +18,6 @@ $user = $_SESSION['user'] ?? 'N/A';
             <h3 class="p-4">FT - LMS</h3>
         </div> -->
         <div class="" style="min-height: 70vh;">
-            <?php include "../components/sidemenu.php"; ?>
 
             <div id="exam-container" class="container p-4 justify-content-center">
                 <h1 id="exam-title"></h1>

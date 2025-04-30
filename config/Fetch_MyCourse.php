@@ -10,10 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
     $sql = "SELECT course_student.id, 
                    course_student.course_id, 
-                   course_student.unit_id, 
-                   course_student.content_id, 
                    course_student.owner_id, 
-                   course_student.point, 
                    course_student.create_date, 
                    course_student.update_date, 
                    course_student.is_active, 
@@ -33,24 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                    course.update_by AS course_update_by, 
                    course.is_publish AS course_is_publish, 
                    course.is_deleted AS course_is_deleted,
-
-                   unit.id AS unit_id, 
-                   unit.name AS unit_name, 
-                   unit.course_id AS unit_course_id,
-                   unit.introduction AS unit_introduction,
-                   unit.conclusion AS unit_conclusion,
-                   unit.create_date AS unit_create_date, 
-                   unit.update_date AS unit_update_date, 
-                   unit.is_deleted AS unit_is_deleted, 
-
-                   content.id AS content_id, 
-                   content.unit_id AS content_unit_id, 
-                   content.type_id AS content_type_id, 
-                   content.content AS content_content, 
-                   content.create_date AS content_create_date, 
-                   content.update_date AS content_update_date, 
-                   content.is_deleted AS content_is_deleted, 
-
+                   
                    user.id AS user_id, 
                    user.code AS user_code, 
                    user.name AS user_name, 
@@ -65,10 +45,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                    user.is_deleted AS user_is_deleted
             FROM course_student
             LEFT JOIN course ON course_student.course_id = course.id
-            LEFT JOIN unit ON course_student.unit_id = unit.id
-            LEFT JOIN content ON course_student.content_id = content.id
             LEFT JOIN user ON course_student.owner_id = user.id
-            WHERE course_student.is_deleted = 0 AND course.is_deleted = 0 AND unit.is_deleted = 0 AND content.is_deleted = 0 AND course_student.owner_id = ?";
+            WHERE course_student.is_deleted = 0 AND course.is_deleted = 0  AND course_student.owner_id = ?";
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $user_id);
@@ -85,8 +63,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 "create_date" => $row["create_date"],
                 "update_date" => $row["update_date"],
                 "courses" => [],
-                "units" => [],
-                "contents" => [],
                 "owner" => null
             ];
         }
@@ -112,42 +88,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 "update_by" => $row["course_update_by"],
                 "is_publish" => $row["course_is_publish"],
                 "is_deleted" => $row["course_is_deleted"]
-            ];
-        }
-
-        // ✅ ตรวจสอบว่า `units` มีข้อมูลนี้อยู่แล้วหรือยัง
-        $unitExists = array_filter($data["units"], function ($u) use ($row) {
-            return $u["unit_id"] == $row["unit_id"];
-        });
-
-        if (!$unitExists) {
-            $data["units"][] = [
-                "unit_id" => $row["unit_id"],
-                "unit_course_id" => $row["unit_course_id"],
-                "unit_name" => $row["unit_name"],
-                "unit_introduction" => $row["unit_introduction"],
-                "unit_conclusion" => $row["unit_conclusion"],
-                "create_date" => $row["unit_create_date"],
-                "update_date" => $row["unit_update_date"],
-                "is_deleted" => $row["unit_is_deleted"]
-            ];
-        }
-
-        // ✅ ตรวจสอบว่า `contents` มีข้อมูลนี้อยู่แล้วหรือยัง
-        $contentExists = array_filter($data["contents"], function ($c) use ($row) {
-            return $c["content_id"] == $row["content_id"];
-        });
-
-        if (!$contentExists) {
-            $data["contents"][] = [
-                "content_id" => $row["content_id"],
-                "unit_id" => $row["content_unit_id"],
-                "type_id" => $row["content_type_id"],
-                "point" => $row["point"],
-                "content" => $row["content_content"],
-                "create_date" => $row["content_create_date"],
-                "update_date" => $row["content_update_date"],
-                "is_deleted" => $row["content_is_deleted"]
             ];
         }
 

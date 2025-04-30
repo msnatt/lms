@@ -10,10 +10,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
 
     $sql = "SELECT course_student.id, 
                    course_student.course_id, 
-                   course_student.unit_id, 
-                   course_student.content_id, 
                    course_student.owner_id, 
-                   course_student.point, 
                    course_student.create_date, 
                    course_student.update_date, 
                    course_student.is_active, 

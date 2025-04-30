@@ -25,29 +25,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // เริ่มต้น transaction
         $conn->begin_transaction();
         // รับค่าจากฟอร์ม
+        $user_id = $_POST['user_id'];
         $course_id = $_POST['course_id'];
-        $unit_id = $_POST['unit_id'];
-        $content_id = $_POST['content_id'];
-        $data = json_decode($_POST['data'], true);
 
         // บันทึกข้อมูลลงในตาราง course
-        $sql_course = "INSERT INTO course_student (course_id, unit_id, content_id, owner_id, point) VALUES (?, ?, ?, ?, 0)";
+        $sql_course = "INSERT INTO course_student (course_id, owner_id) VALUES (?, ?)";
         $stmt = $conn->prepare($sql_course);
         if (!$stmt) {
             die("Error preparing course statement: " . $conn->error);
         }
-
-        // แปลงสตริงเป็น array ด้วย comma ( , )
-        $names = explode(',', $data);
-
-        // วนลูปแสดงชื่อทีละคน
-        foreach ($names as $name) {
-            // Bind ข้อมูลที่ต้องการใส่ใน SQL statement
-            $stmt->bind_param("iiii", $course_id, $unit_id, $content_id, $user_id);
-            // Execute คำสั่ง SQL
-            if (!$stmt->execute()) {
-                echo "Error executing query: " . $stmt->error;
-            }
+        // Bind ข้อมูลที่ต้องการใส่ใน SQL statement
+        $stmt->bind_param("ii", $course_id, $user_id);
+        // Execute คำสั่ง SQL
+        if (!$stmt->execute()) {
+            echo "Error executing query: " . $stmt->error;
+        } else {
+            // Do this here
         }
         // Commit การทำธุรกรรม
         $conn->commit();

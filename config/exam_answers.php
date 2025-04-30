@@ -23,19 +23,30 @@ if (!$user_id) {
     exit;
 }
 
-// เตรียม SQL
-$sql = "INSERT INTO user_answers (user_id, question_id, choice_id, answered_at)
-        VALUES (?, ?, ?, NOW())";
-
-$stmt = $conn->prepare($sql);
 
 // วนลูปคำตอบและบันทึกลงฐานข้อมูล
 foreach ($answers as $ans) {
     $question_id = $ans['question_id'];
     $choice_id = $ans['choice_id'] ?? null; // อาจเป็น null ถ้าไม่ได้ตอบ
 
-    $stmt->bind_param('iii', $user_id, $question_id, $choice_id);
-    $stmt->execute();
+    $sql_check = "SELECT id FROM user_answers WHERE user_id = ? AND exam_id = ? AND question_id = ?";
+    $stmt_check = $conn->prepare($sql_check);
+    $stmt_check->bind_param("iii", $user_id, $exam_id, $question_id);
+    $stmt_check->execute();
+    $stmt_check->store_result();
+
+    if ($stmt_check->num_rows == 0) {
+        // เตรียม SQL
+        $sql = "INSERT INTO user_answers (user_id, exam_id, question_id, choice_id, answered_at)
+        VALUES (?, ?, ?, ?, NOW())";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('iiii', $user_id, $exam_id, $question_id, $choice_id);
+        $stmt->execute();
+    } else {
+        echo json_encode(['status' => 'duplicate', 'message' => 'ไม่สามารถส่งแบบทดสอบซ้ำได้']);
+        exit;
+    }
 }
 
 echo json_encode(['status' => 'success', 'message' => 'บันทึกคำตอบเรียบร้อยแล้ว']);

@@ -28,7 +28,9 @@
 
         const res_user_course = await fetch(`../config/Fetch_usercourse.php?courseid=${courseID}`); // เรียกใช้ PHP
         const json_res_user_course = await res_user_course.json(); // รับผลลัพธ์เป็น JSON
-        let user_course = json_res_user_course;
+        if (json_res_user_course) {
+            json_res_user_course['users'] = [];
+        }
 
         const detail_div = document.getElementById("detail_div");
 
@@ -110,7 +112,7 @@
         info_.className = "w-25 form-control me-1";
         info_.innerHTML = `
             <h5 class="">Objective</h5>
-            <textarea class="w-100 px-2" style="border:0px; min-height:150px;" >${course_[0].objective}</textarea>  
+            <textarea readonly class="w-100 px-2" style="border:0px; min-height:150px;" >${course_[0].objective}</textarea>  
         `;
         const content_ = document.createElement("div");
         content_.id = "content_course";
