@@ -6,24 +6,28 @@
         </li>
         <li class="d-flex align-items-center gap-2">
             <i class="bi bi-file-person"></i>
-            <span><a class="nav-link active text" href="../pages/results.php">ผลการเรียน</a></span>
+            <span><a class="nav-link active text" href="../pages/results.php">Results of course</a></span>
         </li>
         <?php if (isset($_SESSION['user']) && $_SESSION['user']['is_admin']): ?>
             <li class="d-flex align-items-center gap-2">
-                <i class="bi bi-book-half"></i>
-                <a class="nav-link text" href="../pages/student_management.php">Student management</a>
+<i class="bi bi-patch-check"></i>
+                <a class="nav-link text" href="../pages/certificate.php">Certificate Export</a>
             </li>
             <li class="d-flex align-items-center gap-2">
-                <i class="bi bi-chat-left-dots"></i>
+                <i class="bi bi-people"></i>
                 <a class="nav-link text" href="../pages/user_management.php">User Management</a>
             </li>
             <li class="d-flex align-items-center gap-2">
-                <i class="bi bi-chat-left-dots"></i>
+                <i class="bi bi-pen"></i>
                 <a class="nav-link text" href="../pages/quiz_management.php">Quiz Management</a>
             </li>
             <li class="d-flex align-items-center gap-2">
-                <i class="bi bi-chat-left-dots"></i>
-                <a class="nav-link text" href="../pages/certificate.php">Certificate</a>
+                <i class="bi bi-send"></i>
+                <a class="nav-link text" href="../pages/email.php">Email management</a>
+            </li>
+            <li class="d-flex align-items-center gap-2">
+                <i class="bi bi-book-half"></i>
+                <a class="nav-link text" href="../pages/student_management.php">Student management</a>
             </li>
             <li class="gap-2">
                 <button class="btn btn-link nav-link text px-0" data-bs-toggle="collapse" data-bs-target="#systemSubNav" aria-expanded="false">

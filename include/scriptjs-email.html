@@ -1,0 +1,30 @@
+<!-- page product -->
+<script>
+    // LINE Form
+    document.getElementById("lineForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch("../config/send_line.php", {
+            method: "POST",
+            body: formData
+        })
+            .then(res => res.text())
+            .then(result => {
+                document.getElementById("line_result").innerText = result;
+            });
+    });
+
+    // Email Form
+    document.getElementById("emailForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        fetch("../config/send_email.php", {
+            method: "POST",
+            body: formData
+        })
+            .then(res => res.text())
+            .then(result => {
+                document.getElementById("email_result").innerText = result;
+            });
+    });
+</script>

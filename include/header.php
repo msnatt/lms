@@ -1,5 +1,5 @@
 <?php include "../include/ref.html"; ?>
-<header>
+<header class="fw-medium">
     <div style="padding: 0rem ;">
         <nav class="navbar d-flex justify-content-center justify-content-lg-between navbar-expand-lg navbar-light bg-light">
             <div>

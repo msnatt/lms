@@ -18,11 +18,11 @@ $user = $_SESSION['user'] ?? 'N/A';
 </style>
 
 
-<body class="bg-custom">
+<body >
     <?php include "../include/header.php"; ?>
 
-    <div class="main-inner d-flex">
-        <div class="bg-light d-flex" style="width: 100%;">
+    <div class=" d-flex">
+        <div class=" d-flex" style="width: 100%;">
             <?php include "../components/sidemenu.php"; ?>
             <div class="d-flex flex-column justify-content-center w-100">
                 <h2 class="p-4" style="max-width: 100%">หลักสูตรทั้งหมด</h2>
