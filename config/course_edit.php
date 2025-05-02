@@ -134,6 +134,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         }
                     }
                 }
+
+                if ($unit['selecttype'] == 7) {
+                    // ดึงนักเรียนทั้งหมดในคอร์สนี้
+                    $sql_mycourse = "SELECT owner_id FROM course_student WHERE course_id = ?";
+                    $stmt_myc = $conn->prepare($sql_mycourse);
+                    $stmt_myc->bind_param("i", $course_id);
+                    $stmt_myc->execute();
+                    $result = $stmt_myc->get_result();  // ✅ ใช้กับ $stmt_myc
+
+                    list($id_exam, $name) = explode("_", $unit['content']);
+
+                    if ($result->num_rows > 0) {
+                        // เตรียม SQL สำหรับตรวจสอบซ้ำ
+                        $sql_check = "SELECT id FROM course_points 
+                                      WHERE user_id = ? AND course_id = ? AND unit_id = ? AND exam_id = ?";
+                        $stmt_check = $conn->prepare($sql_check);
+                
+                        // เตรียม SQL สำหรับ insert
+                        $sql_point = "INSERT INTO course_points (user_id, course_id, unit_id, exam_id, point, total)
+                                      VALUES (?, ?, ?, ?, 0, 0)";
+                        $stmt_insert = $conn->prepare($sql_point);
+                
+                        while ($row = $result->fetch_assoc()) {
+                            $owner_id = $row['owner_id'];
+                
+                            // ตรวจสอบว่าข้อมูลซ้ำหรือไม่
+                            $stmt_check->bind_param("iiii", $owner_id, $course_id, $newUnit_id, $id_exam);
+                            $stmt_check->execute();
+                            $check_result = $stmt_check->get_result();
+                
+                            if ($check_result->num_rows == 0) {
+                                // ถ้ายังไม่มีข้อมูลซ้ำ → insert ได้
+                                $stmt_insert->bind_param("iiii", $owner_id, $course_id, $newUnit_id, $id_exam);
+                                $stmt_insert->execute();
+                            }
+                        }
+                    }
+                }
                 if ($stmt->num_rows > 0) {
                     // อัปเดต content
                     $sql_update_content = "UPDATE content SET type_id = ?, content = ?, is_deleted = ? WHERE id = ? ";

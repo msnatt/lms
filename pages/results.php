@@ -11,7 +11,7 @@ $user = $_SESSION['user'] ?? 'N/A';
 <?php include "../include/style.html"; ?>
 
 
-<body class="bg-custom">
+<body class="fw-medium">
     <?php include "../include/header.php"; ?>
     <div class="main-inner">
         <!-- <div class="main-container">
@@ -20,7 +20,10 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="d-flex" style="min-height: 70vh;">
             <?php include "../components/sidemenu.php"; ?>
 
-            <div id="table-container"></div>
+            <div class="container d-flex">
+                <div class="d-flex flex-column bg-light" style="width: 100%; max-width: 300px;">aksdas</div>
+                <div id="table-container" class="d-flex align-items-center flex-column w-100"></div>
+            </div>
         </div>
 
     </div>

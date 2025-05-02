@@ -1,25 +1,43 @@
 <!-- page product -->
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        const response = await fetch("../config/Fetch_MyCourse.php?user_id=<?php echo $_SESSION['user']['id']; ?>"); // เรียกใช้ PHP
+        const response = await fetch("../config/Fetch_results.php"); // เรียกใช้ PHP
         const json_res = await response.json();
-        let mycourse = json_res;
+        let results = json_res;
 
-        mycourse['courses'].forEach(course => {
-            console.log(course);
+        console.log(results);
+        results['courses'].forEach(result => {
+            console.log(result);
+            create_Table(result);
         });
     });
 
     async function create_Table(Course) {
+        let tablelist = document.getElementById('table-container');
         const table = document.createElement('table');
-        table.classList.add('table', 'table-bordered', 'table-striped');
+        table.classList.add('table', 'table-bordered');
+        table.style.width = "100%";
+        table.style.maxWidth = "600px";
         const thead = document.createElement('thead');
         thead.innerHTML = `
-            <tr>
-                <th>Course Code</th>
-                <th>Course Name</th>
-                <th>Description</th>
+            <tr >
+                <th class="text-center" colspan="3">${Course.name}</th>
             </tr>
         `;
+        const tbody = document.createElement('tbody');
+        let index = 0;
+        Course['questions'].forEach(q => {
+            index ++;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+            <td class="text-center">${index}</td>
+            <td>${q.title}</td>
+            <td class="text-center">${q.point}/${q.total}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+        table.appendChild(thead);
+        table.appendChild(tbody);
+        tablelist.appendChild(table);
     }
 </script>

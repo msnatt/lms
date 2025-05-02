@@ -13,11 +13,11 @@
         course_id = params.get('c');
         unit_id = params.get('u');
 
+
         const response = await fetch(`../config/fetch_questionall.php?exam_id=${examId}`);
         exam = await response.json();
         timeLimit = exam.exam_period * 60;
 
-        console.log(exam);
 
         document.getElementById('exam-title').innerText = exam.title;
         document.getElementById('exam-description').innerText = exam.description;
@@ -70,7 +70,6 @@
             localStorage.removeItem(`exam_${examId}_question_${q.questions_id}`);
         });
 
-        console.log(`LocalStorage สำหรับ exam_${examId} ถูกล้างแล้ว`);
 
         // location.reload();
     }
@@ -140,7 +139,6 @@
             });
         });
 
-        console.log("คำตอบที่เลือก:", answers);
         return answers;
     }
 
@@ -149,7 +147,6 @@
 
         const userAnswers = collectAnswers();
 
-        console.log(userAnswers);
 
         // ✅ ส่งผ่าน fetch() ไปยัง PHP
         fetch('../config/exam_answers.php', {
@@ -163,7 +160,6 @@
             .then(res => res.json())
             .then(data => {
                 removelocalstorage();
-                console.log(data.message);
                 if (data.status === 'success') {
                     checkUserAnswer();
                 } else if (data.status === 'duplicate') {
@@ -193,11 +189,13 @@
                 formdata.append("total", data.total);
                 formdata.append("course_id", course_id);
                 formdata.append("unit_id", unit_id);
+                formdata.append("exam_id", exam.id);
                 fetch('../config/exam_point.php', {
                     method: 'POST',
                     body: formdata
                 })
-                    .then(() => {
+                    .then(res => res.json())
+                    .then(data => {
                         const message = encodeURIComponent("ส่งแบบทดสอบเรียบร้อยแล้ว.");
                         window.location.href = `examinationed.php?t=${message}`;
                     });

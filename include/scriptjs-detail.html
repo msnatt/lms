@@ -328,7 +328,13 @@
                 for (let j = 0; j < Contents.length; j++) {
                     const content = Contents[j];
                     if (unit.id == content.unit_id) {
-                        data[String(unit.id)].push(String(content.id));
+                        data[String(unit.id)].push({
+                            "courseid": unit.course_id,
+                            "unitid": unit.id,
+                            "contentid": content.id,
+                            "type": content.type_id,
+                            "content": content.content
+                        });
 
                         const innercontentDiv = document.createElement("div");
                         innercontentDiv.className = "bg-secondary bg-opacity-10";
@@ -391,7 +397,7 @@
                             case "7":
                                 const [id, name] = content.content.split('_');
                                 innercontentDiv.innerHTML = `
-                                        <button class="btn btn-success rounded-pill px-4 shadow" onclick="window.open('examination.php?exam=${id}', '_blank')">
+                                        <button class="btn btn-success rounded-pill px-4 shadow" onclick="window.open('examination.php?exam=${id}&c=${courseID}&u=${unit.id}', '_blank')">
                                             คลิ๊กที่นี่ เพื่อเริ่มทำ ${name}.
                                         </button>
                                     `;
@@ -453,7 +459,6 @@
         });
 
     });
-
     // ฟังก์ชันแสดง users_course
     function toggle_users_content() {
         const content = document.getElementById("content_course");
@@ -503,7 +508,6 @@
         let deleteUserModal = new bootstrap.Modal(document.getElementById("deleteUserModal"));
         deleteUserModal.show(); // เปิด Modal
     }
-
     // submit deleted
     async function deleteUser(userId) {
         console.log("ลบผู้ใช้ ID:", userId); // Debug ดูว่าได้ค่า userId ไหม

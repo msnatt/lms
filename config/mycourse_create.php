@@ -27,6 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // รับค่าจากฟอร์ม
         $user_id = $_POST['user_id'];
         $course_id = $_POST['course_id'];
+        $data = json_decode($_POST['data'], true);
 
         // บันทึกข้อมูลลงในตาราง course
         $sql_course = "INSERT INTO course_student (course_id, owner_id) VALUES (?, ?)";
@@ -40,9 +41,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if (!$stmt->execute()) {
             echo "Error executing query: " . $stmt->error;
         } else {
-            // Do this here
+            foreach ($data as $rowh) {
+                foreach ($rowh as $row) {
+                    if ($row['type'] == "7") {
+                        list($id, $name) = explode('_', $row['content']);
+
+                        $sql_point = "INSERT INTO course_points (user_id, course_id, unit_id, exam_id, point, total) VALUE (?, ?, ?, ?, 0, 0)";
+                        $stmt_point = $conn->prepare($sql_point);
+                        $stmt_point->bind_param("iiii", $user_id, $course_id, $row['unitid'], $id);
+                        if (!$stmt_point->execute()) {
+                            echo json_encode([
+                                'status' => 'error',
+                                'message' => "can't insert course_points",
+                                'course_id' => $course_id
+                            ]);
+                        };
+                    }
+                }
+            }
         }
-        // Commit การทำธุรกรรม
         $conn->commit();
 
         // ส่งข้อมูล JSON กลับไปยังฝั่ง JavaScript
