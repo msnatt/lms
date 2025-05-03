@@ -21,7 +21,7 @@ $user = $_SESSION['user'] ?? 'N/A';
 <body >
     <?php include "../include/header.php"; ?>
 
-    <div class=" d-flex">
+    <div class=" d-flex bg-light bg-opacity-75">
         <div class=" d-flex" style="width: 100%;">
             <?php include "../components/sidemenu.php"; ?>
             <div class="d-flex flex-column justify-content-center w-100">

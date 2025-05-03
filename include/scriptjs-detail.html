@@ -1,6 +1,7 @@
 <!-- page product -->
 <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 <script>
+    let courseID;
     let course_detail_id = 0;
     let data = {};
     let create_by_detail_id = 0;
@@ -9,7 +10,7 @@
     document.addEventListener('DOMContentLoaded', async () => {
 
         const urlParams = new URLSearchParams(window.location.search);
-        const courseID = urlParams.get('courseid');
+        courseID = urlParams.get('courseid');
         const res_course = await fetch(`../config/Find_CourseAll.php?courseid=${courseID}`); // เรียกใช้ PHP
         const json_res_course = await res_course.json(); // รับผลลัพธ์เป็น JSON
         let course_ = json_res_course;
@@ -28,7 +29,7 @@
 
         const res_user_course = await fetch(`../config/Fetch_usercourse.php?courseid=${courseID}`); // เรียกใช้ PHP
         const json_res_user_course = await res_user_course.json(); // รับผลลัพธ์เป็น JSON
-        if (json_res_user_course) {
+        if (!json_res_user_course['users']) {
             json_res_user_course['users'] = [];
         }
 
@@ -61,10 +62,10 @@
                 if (stop_findCourse < 1) {
                     if (course_[0].id == element['course_id']) {
                         info_div.innerHTML = `
-                    <div class="col-7">
-                        <button id="register_btn" class="btn btn-secondary w-100" disabled >ลงทะเบียนแล้ว</button>
+                    <div class="col-12 col-lg-7">
+                        <button id="register_btn" class="btn btn-secondary" disabled >ลงทะเบียนแล้ว</button>
                     </div>
-                    <div class="col-5 d-flex flex-column align-items-center">
+                    <div class="col-5 d-none d-lg-flex flex-column align-items-center">
                         <div style="color:#aaa">create by</div>
                         <h6><?php echo $owner['name']; ?></h6>
                         <p><?php echo $owner['telephone']; ?></p>
@@ -73,10 +74,10 @@
                         stop_findCourse++;
                     } else {
                         info_div.innerHTML = `
-                    <div class="col-7">
-                        <button id="register_btn" class="btn btn-secondary w-100" >ลงทะเบียน</button>
+                    <div class="col-12 col-lg-7">
+                        <button id="register_btn" class="btn btn-secondary " >ลงทะเบียน</button>
                     </div>
-                    <div class="col-5 d-flex flex-column align-items-center">
+                    <div class="col-5 d-none d-lg-flex flex-column align-items-center">
                         <div style="color:#aaa">create by</div>
                         <h6><?php echo $owner['name']; ?></h6>
                         <p><?php echo $owner['telephone']; ?></p>
@@ -106,17 +107,19 @@
         const center_ = document.createElement("div");
         center_.className = "d-flex justify-content-center flex-wrap";
         const box_ = document.createElement("div");
-        box_.className = "d-flex w-100 form-control justify-content-center";
+        box_.className = "d-flex w-100 justify-content-center";
         box_.style.maxWidth = "85%";
         const info_ = document.createElement("div");
         info_.className = "w-25 form-control me-1";
         info_.innerHTML = `
-            <h5 class="">Objective</h5>
+            <h4 class="text-center">Objective</h4>
+            
             <textarea readonly class="w-100 px-2" style="border:0px; min-height:150px;" >${course_[0].objective}</textarea>  
-        `;
+            <hr>
+            `;
         const content_ = document.createElement("div");
         content_.id = "content_course";
-        content_.className = "w-75";
+        content_.className = "w-75 border rounded py-3";
         content_.style.position = "relative";
         content_.style.display = "block";
         content_.style.transition = "all 0.5s ease-in-out";
@@ -126,7 +129,6 @@
         content_.style.opacity = "1";
         content_.style.zIndex = "1";
         content_.innerHTML = `
-            <h3 class="ps-2 py-3 d-flex justify-content-center">Contents</h3>
         `;
 
         const users_ = document.createElement("div");
@@ -164,123 +166,41 @@
 
         // user viewer
         const viewer_ = document.createElement("div");
-        viewer_.className = "d-flex justify-content-between px-2";
+        viewer_.className = "d-flex px-2";
         viewer_.innerHTML = `
-        <h5>Members</h5>
+        <h5 class="text-center col-11">Members</h5>
         <?php if (isset($_SESSION['user']['is_admin']) && $_SESSION['user']['is_admin'] == 1): ?>
-            <div id="last_options" onclick="toggle_users_content()">
+            <div id="last_options" class="col-1" onclick="toggle_users_content()">
                 <i class="bi bi-three-dots"></i>
             </div>
         <?php endif; ?>
+
         `;
 
         info_.appendChild(viewer_);
         let ex_user_count = 0;
         json_res_user_course['users'].forEach(user => {
             const user_ = document.createElement("div");
-            user_.className = "form-control ms-3 ";
+            user_.className = "my-3 ms-3 ";
             user_.style.width = "auto";
             if (ex_user_count < 3) {
                 user_.style.fontSize = "0.9rem";
-                user_.innerHTML = user.name;
+                user_.innerHTML = "- " + user.name;
                 info_.appendChild(user_);
                 ex_user_count++;
             }
         });
+        info_.appendChild(document.createElement('hr'));
 
-        // register btn
-        const registerBtn = document.getElementById('register_btn');
-        registerBtn.addEventListener('click', () => {
-            let detail_data = new FormData();
-            detail_data.append('user_id', user_now_detail_id);
-            detail_data.append('create_by', create_by_detail_id);
-            detail_data.append('course_id', course_detail_id);
-
-            // ถ้าข้อมูล 'data' เป็น object หรือ array ที่ต้องการส่ง
-            // คุณสามารถแปลงเป็น JSON string ก่อน
-            detail_data.append('data', JSON.stringify(data));
-
-            fetch('../config/mycourse_create.php', {
-                method: 'POST',  // ใช้ POST request
-                body: detail_data // ส่งข้อมูลเป็น FormData
-            })
-                .then(response => response.json()) // แปลง response เป็น JSON
-                .then(result => {
-                    console.log('Success:', result);
-                    window.location.href = `../pages/detail.php?courseid=${courseID}`;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('เกิดข้อผิดพลาด!');
-                });
-        });
+        registeraddEvent();
 
         //calendar course
         const calendarDiv = document.createElement("div");
         calendarDiv.id = "calendar";
-        calendarDiv.className = "calender";
+        calendarDiv.className = "calender mb-5";
 
-        async function loadCalendar() {
-            const response_schedule = await fetch("../config/Fetch_schedule.php?course_id=<?php echo $courseid; ?>"); // เรียกใช้ PHP
-            const schedules = await response_schedule.json();
 
-            const response_days = await fetch("../config/Fetch_days.php"); // เรียกใช้ PHP
-            const json_res_days = await response_days.json(); // รับผลลัพธ์เป็น JSON
-            let days = json_res_days;
-
-            let header_table_title = document.createElement('div');
-            header_table_title.className = "my-3";
-            header_table_title.innerHTML = "<h5>Timetable</h5>";
-            schedules.forEach(schedule => {
-                for (let i = 0; i < days.length; i++) {
-                    if (days[i]['id'] == schedule['day_id']) {
-                        header_table_title.innerHTML += `<div class="px-2">${days[i]['name']} : ${schedule['start_time']} - ${schedule['end_time']}</div>`;
-                    }
-                }
-            });
-
-            calendarDiv.appendChild(header_table_title);
-
-            // ** 1. กำหนดเวลาและวัน **
-            const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
-
-            // ** 2. สร้างส่วนหัวของตาราง (แสดงวัน) **
-
-            const calendar_ = document.createElement("div");
-            const temp_ = document.createElement("div");
-            temp_.className = "d-flex";
-            temp_.innerHTML += `<div class="day-header col-2 py-2">Time</div>`;
-            hours.forEach(hour => {
-                temp_.innerHTML += `
-                <div style=" border:1px solid #ddd; width:6.1%;">
-                    <div class="d-flex justify-content-center align-items-center" style="transform: rotate(-90deg); font-size:smaller; padding-right:20px;">${hour}</div>
-                </div>`;
-            });
-            calendar_.appendChild(temp_);
-            days.forEach(day => {
-                var intimer = false;
-                const temp_ = document.createElement("div");
-                temp_.className = "d-flex";
-                temp_.innerHTML += `<div class="day-header col-2">${day['short_name']}</div>`;
-                hours.forEach(hour => {
-                    var default_ = `<div class="time-slot"></div>`;
-                    for (const sc of schedules) {
-                        if (intimer) {
-                            if (hour == sc['end_time']) intimer = false;
-                            default_ = `<div class="time-slot bg-primary"></div>`;
-                        }
-                        if (day['id'] == sc['day_id'] && hour == sc['start_time']) {
-                            default_ = `<div class="time-slot bg-primary"></div>`;
-                            intimer = true;
-                        }
-                    };
-                    temp_.innerHTML += default_;
-                });
-                calendar_.appendChild(temp_);
-            });
-            calendarDiv.appendChild(calendar_);
-        }
-        loadCalendar();
+        loadCalendar(calendarDiv);
         info_.appendChild(calendarDiv);
 
         // Units and Contents create div
@@ -292,11 +212,8 @@
                 }
                 // สร้าง container หลัก
                 const unitDiv = document.createElement("div");
-                unitDiv.style.border = '1px solid #ccc';
-                unitDiv.style.marginLeft = "5px";
                 unitDiv.style.marginBottom = "5px";
-                unitDiv.style.borderRadius = "1rem";
-                unitDiv.style.backgroundColor = "#ffffff";
+                unitDiv.style.backgroundColor = "#eeeeee";
 
                 // ปุ่ม Toggle
                 const toggleDiv = document.createElement("div");
@@ -323,6 +240,7 @@
 
                 const contentDiv = document.createElement("div");
                 // กล่องเนื้อหา (ซ่อนไว้ก่อน)
+                contentDiv.className = "rounded bg-white m-2";
                 contentDiv.style.display = "none";
                 contentDiv.style.paddingLeft = "2rem";
                 for (let j = 0; j < Contents.length; j++) {
@@ -337,7 +255,6 @@
                         });
 
                         const innercontentDiv = document.createElement("div");
-                        innercontentDiv.className = "bg-secondary bg-opacity-10";
                         innercontentDiv.style.padding = "10px";
                         switch (content.type_id) {
                             case "1": // Text
@@ -385,22 +302,31 @@
                                 let publicPath = content.content.replace('../', '/lms/');
 
                                 innercontentDiv.innerHTML = `
+                                <div class="d-flex justify-content-center">
                                     <model-viewer src="${publicPath}"
                                                 alt="3D model"
                                                 auto-rotate
                                                 camera-controls
                                                 ar
-                                                style="width:100%; max-width: 600px; height:50vh; max-height: 400px;">
+                                                style="width:100%; height:50vh; max-height: 400px;">
                                     </model-viewer>
+                                </div>    
                                     `;
                                 break;
                             case "7":
                                 const [id, name] = content.content.split('_');
                                 innercontentDiv.innerHTML = `
-                                        <button class="btn btn-success rounded-pill px-4 shadow" onclick="window.open('examination.php?exam=${id}&c=${courseID}&u=${unit.id}', '_blank')">
-                                            คลิ๊กที่นี่ เพื่อเริ่มทำ ${name}.
+                                <div class="class d-flex flex-column justify-content-center">
+                                    <div class="text-center mb-2 fw-medium">
+                                        แบบทดสอบ ${name}.
+                                    </div>
+                                    <div class="text-center">
+                                        <button class="btn btn-outline-success rounded-pill px-4" onclick="window.open('examination.php?exam=${id}&c=${courseID}&u=${unit.id}', '_blank')">
+                                            คลิ๊กที่นี่.
                                         </button>
-                                    `;
+                                    </div>
+                                </div>
+                                        `;
 
                                 break;
                             default:
@@ -413,13 +339,14 @@
                 // ใส่ปุ่มและเนื้อหาเข้าไปใน container หลัก
                 unitDiv.appendChild(toggleDiv);
                 unitDiv.appendChild(contentDiv);
+                unitDiv.appendChild(document.createElement('hr'));
 
                 // เพิ่ม Event Listener สำหรับการซ่อน/แสดง
                 toggleDiv.addEventListener("click", () => {
                     const isVisible = contentDiv.style.display === "block";
                     // unitcontentDiv.style.display = isVisible ? "none" : "block";
                     contentDiv.style.display = isVisible ? "none" : "block";
-                    unitDiv.style.backgroundColor = isVisible ? "#eeeeee" : "#ffffff"; // เขียว-แดง
+                    // unitDiv.style.backgroundColor = isVisible ? "#ffffff" : "#eeeeee"; // เขียว-แดง
                 });
 
                 // เพิ่มเข้าไปใน detail_div
@@ -455,10 +382,9 @@
                     </button>
                 </div>
             `;
-
         });
-
     });
+
     // ฟังก์ชันแสดง users_course
     function toggle_users_content() {
         const content = document.getElementById("content_course");
@@ -500,6 +426,7 @@
             last_options.innerHTML = `<i class="bi bi-three-dots"></i>`;
         }
     }
+
     // open Delete
     function openDeleteUserModal(userId, userName) {
         document.getElementById("deleteUserName").innerText = userName; // แสดงชื่อผู้ใช้ใน Modal
@@ -508,6 +435,7 @@
         let deleteUserModal = new bootstrap.Modal(document.getElementById("deleteUserModal"));
         deleteUserModal.show(); // เปิด Modal
     }
+
     // submit deleted
     async function deleteUser(userId) {
         console.log("ลบผู้ใช้ ID:", userId); // Debug ดูว่าได้ค่า userId ไหม
@@ -530,5 +458,96 @@
         deleteUserModal.hide(); // ปิด Modal
 
         await generate_user();
+    }
+
+    // register btn
+    function registeraddEvent() {
+        const registerBtn = document.getElementById('register_btn');
+        registerBtn.addEventListener('click', () => {
+            let detail_data = new FormData();
+            detail_data.append('user_id', user_now_detail_id);
+            detail_data.append('create_by', create_by_detail_id);
+            detail_data.append('course_id', course_detail_id);
+
+            // ถ้าข้อมูล 'data' เป็น object หรือ array ที่ต้องการส่ง
+            // คุณสามารถแปลงเป็น JSON string ก่อน
+            detail_data.append('data', JSON.stringify(data));
+
+            fetch('../config/mycourse_create.php', {
+                method: 'POST',  // ใช้ POST request
+                body: detail_data // ส่งข้อมูลเป็น FormData
+            })
+                .then(response => response.json()) // แปลง response เป็น JSON
+                .then(result => {
+                    console.log('Success:', result);
+                    window.location.href = `../pages/detail.php?courseid=${courseID}`;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาด!');
+                });
+        });
+    }
+
+    //calendar
+    async function loadCalendar(calendarDiv) {
+        const response_schedule = await fetch("../config/Fetch_schedule.php?course_id=<?php echo $courseid; ?>"); // เรียกใช้ PHP
+        const schedules = await response_schedule.json();
+
+        const response_days = await fetch("../config/Fetch_days.php"); // เรียกใช้ PHP
+        const json_res_days = await response_days.json(); // รับผลลัพธ์เป็น JSON
+        let days = json_res_days;
+
+        let header_table_title = document.createElement('div');
+        header_table_title.className = "my-3";
+        header_table_title.innerHTML = "<h4 class='text-center'>Timetable</h4>";
+        schedules.forEach(schedule => {
+            for (let i = 0; i < days.length; i++) {
+                if (days[i]['id'] == schedule['day_id']) {
+                    header_table_title.innerHTML += `<div class="px-2">${days[i]['name']} : ${schedule['start_time']} - ${schedule['end_time']}</div>`;
+                }
+            }
+        });
+
+        calendarDiv.appendChild(header_table_title);
+
+        // ** 1. กำหนดเวลาและวัน **
+        const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
+
+        // ** 2. สร้างส่วนหัวของตาราง (แสดงวัน) **
+
+        const calendar_ = document.createElement("div");
+        const temp_ = document.createElement("div");
+        temp_.className = "d-flex";
+        temp_.innerHTML += `<div class="day-header col-2 py-2">Time</div>`;
+        hours.forEach(hour => {
+            temp_.innerHTML += `
+                <div style=" border:1px solid #ddd; width:6.1%;">
+                    <div class="d-flex justify-content-center align-items-center" style="transform: rotate(-90deg); font-size:smaller; padding-right:20px;">${hour}</div>
+                </div>`;
+        });
+        calendar_.appendChild(temp_);
+        days.forEach(day => {
+            var intimer = false;
+            const temp_ = document.createElement("div");
+            temp_.className = "d-flex";
+            temp_.innerHTML += `<div class="day-header col-2">${day['short_name']}</div>`;
+            hours.forEach(hour => {
+                var default_ = `<div class="time-slot"></div>`;
+                for (const sc of schedules) {
+                    if (intimer) {
+                        if (hour == sc['end_time']) intimer = false;
+                        default_ = `<div class="time-slot bg-primary"></div>`;
+                    }
+                    if (day['id'] == sc['day_id'] && hour == sc['start_time']) {
+                        default_ = `<div class="time-slot bg-primary"></div>`;
+                        intimer = true;
+                    }
+                };
+                temp_.innerHTML += default_;
+            });
+            calendar_.appendChild(temp_);
+        });
+        calendarDiv.appendChild(calendar_);
     }
 </script>

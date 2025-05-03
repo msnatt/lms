@@ -14,7 +14,7 @@
 
 <body>
   <?php include "../include/header.php"; ?>
-  <div class="main-inner">
+  <div class="main-inner d-flex">
     <h2>ระบบออก Certificate</h2>
     <form action="../config/course-certificate.php" method="post">
       <label>เลือกเท็มเพลต:</label>

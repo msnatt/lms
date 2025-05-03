@@ -1,4 +1,4 @@
-<div class="sidebar" id="sidebar" style="border-right: 1px solid #aaa;">
+<div class="sidebar collapsed" id="sidebar" style="border-right: 1px solid #aaa; transition: width 0.3s ease, padding 0.3s ease;">
     <ul class="navbar-nav">
         <li class="d-flex align-items-center gap-2">
             <i class="bi bi-house"></i>
@@ -10,7 +10,7 @@
         </li>
         <?php if (isset($_SESSION['user']) && $_SESSION['user']['is_admin']): ?>
             <li class="d-flex align-items-center gap-2">
-<i class="bi bi-patch-check"></i>
+                <i class="bi bi-patch-check"></i>
                 <a class="nav-link text" href="../pages/certificate.php">Certificate Export</a>
             </li>
             <li class="d-flex align-items-center gap-2">
