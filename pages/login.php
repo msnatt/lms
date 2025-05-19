@@ -8,7 +8,7 @@ include '../components/session.php';
 
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Login - E-learning</title>
 </head>
 
 <body>

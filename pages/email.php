@@ -66,7 +66,10 @@ $user = $_SESSION['user'] ?? 'N/A';
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
-
+<head>
+    <meta charset="UTF-8">
+    <title>Email Notifier - E-learning</title>
+</head>
 
 <body class="">
     <?php include "../include/header.php"; ?>

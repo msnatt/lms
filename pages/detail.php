@@ -13,7 +13,9 @@ $owner = $_SESSION['owner'] ?? 'N/A';
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
-
+<head>
+    <title><?php echo $course['name'];?> - E-learning</title>
+</head>
 
 <body class="bg-custom ">
     <?php include "../include/header.php"; ?>

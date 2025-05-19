@@ -7,6 +7,9 @@ include '../components/session.php';
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
+<head>
+    <title>HOME - E-learning</title>
+</head>
 
 
 <body class="bg-custom">

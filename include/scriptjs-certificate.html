@@ -2,10 +2,10 @@
 <script>
     var data = [];
     document.addEventListener('DOMContentLoaded', async () => {
-        let course = await fetch("../config/Fetch_Course.php");
-        let json_res = await course.json();
-        console.log(json_res);
-        generate_select(json_res, 'select-course');
+        let response = await fetch('../config/files-list.php');
+        let json = await response.json();
+
+        generate_select(json, 'select-template')
         generate_student();
 
     });
@@ -14,8 +14,8 @@
         let select = document.getElementById(id);
         values.forEach(value => {
             const option = document.createElement('option');
-            option.value = value.id;
-            option.textContent = value.name;
+            option.value = value;
+            option.textContent = value;
             select.appendChild(option);
         });
     }
@@ -23,7 +23,6 @@
     async function generate_student() {
         let users = await fetch("../config/Fetch_user.php");
         let json_res = await users.json();
-        console.log(json_res);
 
         let table = document.getElementById('table_list_student').getElementsByTagName('tbody')[0];
         table.innerHTML = "";
@@ -60,58 +59,52 @@
         });
     }
 
-    async function registerall() {
-        let select = document.getElementById('select-course');
-        console.log("select : " + select.value);
-
-        const response = await fetch(`../config/Find_Course.php?courseid=${select.value}`); // เรียกใช้ PHP 
-        const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
-        let course = json_res;
-
-        console.log(course);
-        console.log("data : " + data);
-
-        let formdata = new FormData();
-        formdata.append("course_id", select.value);
-        formdata.append("users", data);
-
-        for (let pair of formdata.entries()) {
-            console.log(pair[0] + ': ' + pair[1]);
+    async function Export() {
+        if (data.length === 0) {
+            alert("กรุณาเลือกนักเรียนอย่างน้อย 1 คน");
+            return;
         }
 
-        fetch("../config/mycourse_create_reg.php", {
+        let template = document.getElementById('select-template').value;
+        if (!template) {
+            alert("กรุณาเลือก Template");
+            return;
+        }
+
+        const response = await fetch('../config/course-certificate.php', {
             method: 'POST',
-            body: formdata
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status == "success") {
-                    console.log(data.message);
-                }
-            });
-        // for (let pair of formdata.entries()) {
-        //     console.log(pair[0] + ': ' + pair[1]);
-        // }
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                names: data,
+                template: template
+            })
+        });
 
-        // units.forEach(unit => {
-        //     for (let i = 0; i < unit['contents'].length; i++) {
-        //         const content = unit['contents'][i];
+        const result = await response.json();
 
-        //         formdata.append("course_id", course['course_id']);
-        //         formdata.append("unit_id", unit['unit_id']);
-        //         formdata.append("content_id", content['content_id']);
+        // 👉 สร้าง <a> แล้วสั่งโหลด zip
+        const a = document.createElement('a');
+        a.href = result.zip;
+        a.download = result.zip.split('/').pop(); // ตั้งชื่อไฟล์จาก zip path
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
 
-        //         fetch("../config/mycourse_create.php", {
-        //             method: 'POST',
-        //             body: formdata
-        //         })
-        //             .then(response => response.json())
-        //             .then(data => {
-        //                 if (data.status == "success") {
-
-        //                 }
-        //             })
-        //     }
-        // });
+        window.location.href = '../pages/certificate.php';
     }
+
+
+    let selectTemplate = document.getElementById('select-template');
+    let imagShow = document.getElementById('image-Show');
+    selectTemplate.addEventListener('change', () => {
+        if (selectTemplate.value == "") {
+            imagShow.setAttribute('src', `../assets/images/default-template.png`);
+        }
+        else {
+            imagShow.setAttribute('src', `../Templates/${selectTemplate.value}`);
+        }
+    });
+
 </script>

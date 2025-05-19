@@ -9,7 +9,10 @@ $user = $_SESSION['user'] ?? 'N/A';
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
-
+<head>
+    <meta charset="UTF-8">
+    <title>SMS - E-learning</title>
+</head>
 
 <body class="bg-custom">
     <?php include "../include/header.php"; ?>
@@ -18,7 +21,7 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="bg-light d-flex" style="width: 100%;">
             <?php include "../components/sidemenu.php"; ?>
             <div class="d-flex flex-column justify-content-center w-100">
-                <h2 class="p-4" style="max-width: 100%">Student management system.</h2>
+                <h2 class="p-4 text-center" style="max-width: 100%">SMS - Student management system.</h2>
                 <div class="px-4 d-flex justify-content-center  gap-2 ">
                     <h5 class="col-3 col-lg-1">Course : </h5>
                     <select id="select-course" class="col-9 form-select w-50" required>

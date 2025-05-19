@@ -25,10 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
 
-        $mail->setFrom('FTA@gmail.com', 'Notifier');
+        $mail->setFrom('FTA@gmail.com', 'FIELDTECH AUTOMATION CO.,LTD.');
         $mail->addAddress($to);
         $mail->isHTML(true);
-        $mail->Subject = 'ข้อความจากระบบ';
+        $mail->Subject = 'แจ้งเตือนข้อความผ่าน E-mail';
         $mail->Body = nl2br($message);
 
         $mail->send();

@@ -9,7 +9,10 @@ $user = $_SESSION['user'] ?? 'N/A';
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
-
+<head>
+    <meta charset="UTF-8">
+    <title>UMS - E-learning</title>
+</head>
 
 
 <body class="bg-custom">
@@ -19,7 +22,7 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="bg-light d-flex" style="width: 100%;">
             <?php include "../components/sidemenu.php"; ?>
             <div class="d-flex flex-column justify-content-center w-100">
-                <h2 class="p-4" style="max-width: 100%">All Users</h2>
+                <h2 class="p-4 text-center" style="max-width: 100%">UMS - User Management System</h2>
                 <div class="px-4 d-flex justify-content-start gap-2 mb-2">
                     <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Import_csv()">Import</button>
                     <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Export_csv()">Export</button>

@@ -9,7 +9,10 @@ $user = $_SESSION['user'] ?? 'N/A';
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
-
+<head>
+    <meta charset="UTF-8">
+    <title>Backup - E-learning</title>
+</head>
 
 <body class="bg-custom">
     <?php include "../include/header.php"; ?>

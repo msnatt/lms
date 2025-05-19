@@ -5,6 +5,10 @@
             <span><a class="nav-link active text" href="../pages/chat.php">General Chat</a></span>
         </li>
         <li class="d-flex align-items-center gap-2">
+            <i class="bi bi-journal-check"></i>
+            <span><a class="nav-link active text" href="../pages/mycourse.php">My Course</a></span>
+        </li>
+        <li class="d-flex align-items-center gap-2">
             <i class="bi bi-file-person"></i>
             <span><a class="nav-link active text" href="../pages/results.php">Results of course</a></span>
         </li>

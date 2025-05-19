@@ -50,8 +50,7 @@
                                     Hi! <?php echo $_SESSION['username'] ?>
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" href="../pages/mycourse.php">My Course</a></li>
-                                    <li><a class="dropdown-item" href="../pages/setting.php">#Setting</a></li>
+                                    <!-- <li><a class="dropdown-item" href="../pages/setting.php">#Setting</a></li> -->
                                     <li><a class="dropdown-item" href="../pages/logout.php">Logout</a></li>
                                 </ul>
                             </li>
