@@ -5,12 +5,13 @@ $user = $_SESSION['user'] ?? 'N/A';
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $langCode ?>">
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
+
 <head>
-    <title>Course - E-learning</title>
+    <title><?= $lang['course'] ?> - E-learning</title>
 </head>
 <style>
     #search_box {
@@ -21,72 +22,72 @@ $user = $_SESSION['user'] ?? 'N/A';
 </style>
 
 
-<body >
+<body>
     <?php include "../include/header.php"; ?>
 
     <div class=" d-flex bg-light bg-opacity-75">
         <div class=" d-flex" style="width: 100%;">
             <?php include "../components/sidemenu.php"; ?>
             <div class="d-flex flex-column justify-content-center w-100">
-                <h2 class="p-4" style="max-width: 100%">หลักสูตรทั้งหมด</h2>
+                <h2 class="p-4 text-center" style="max-width: 100%"><?= $lang['allcourse'] ?></h2>
                 <div class="d-flex">
                     <div class="d-flex flex-wrap rounded" style="padding: 0.2rem 0.25rem;">
                         <div id="filter-box" class="d-flex flex-column col-12 col-lg-2 px-4 rounded">
                             <div class="d-flex g-5 justify-content-around">
-                                <h3><i class="bi bi-funnel-fill"></i> ตัวกรอง</h3>
+                                <h3><i class="bi bi-funnel-fill"></i><?= $lang['filter'] ?></h3>
                             </div>
                             <div>
-                                <label class="form-label">Code</label>
-                                <input type="text" id="code_filter" name="code_filter" class="form-control" oninput="validateNumberInput(event)" placeholder="Enter course code">
+                                <label class="form-label"><?= $lang['codecourse'] ?></label>
+                                <input type="text" id="code_filter" name="code_filter" class="form-control" oninput="validateNumberInput(event)" placeholder=<?= $lang['entercode'] ?>>
                             </div>
                             <div>
-                                <label class="form-label">Name</label>
-                                <input type="text" id="name_filter" name="name_filter" class="form-control" oninput="filterCourses()" placeholder="Enter course name">
+                                <label class="form-label"><?= $lang['namecourse'] ?></label>
+                                <input type="text" id="name_filter" name="name_filter" class="form-control" oninput="filterCourses()" placeholder=<?= $lang['entername'] ?>>
                             </div>
-                            <label class="form-label">Faculty</label>
+                            <label class="form-label"><?= $lang['faculty'] ?></label>
                             <select class="form-select" name="select_faculty" id="select_faculty" onchange="filterCourses()">
-                                <option value="">-- All Faculty --</option>
-                                <option value="1">Faculty of Science</option>
-                                <option value="2">Faculty of Engineering</option>
-                                <option value="3">Faculty of Business Administration</option>
-                                <option value="4">Faculty of Arts</option>
-                                <option value="5">Faculty of Medicine</option>
+                                <option value=""><?= $lang['all_faculty'] ?? '-- All Faculty --' ?></option>
+                                <option value="1"><?= $lang['science'] ?? 'Faculty of Science' ?></option>
+                                <option value="2"><?= $lang['engineering'] ?? 'Faculty of Engineering' ?></option>
+                                <option value="3"><?= $lang['business'] ?? 'Faculty of Business Administration' ?></option>
+                                <option value="4"><?= $lang['arts'] ?? 'Faculty of Arts' ?></option>
+                                <option value="5"><?= $lang['medicine'] ?? 'Faculty of Medicine' ?></option>
                             </select>
 
-                            <label class="form-label">Department</label>
+                            <label class="form-label"><?= $lang['department'] ?></label>
                             <select class="form-select" name="select_department" id="select_department" onchange="filterCourses()">
-                                <option value="">-- All Department --</option>
+                                <option value=""><?= $lang['all_department'] ?? '-- All Department --' ?></option>
 
                                 <!-- Science Departments -->
-                                <optgroup label="Faculty of Science">
-                                    <option value="1">Computer Science</option>
-                                    <option value="2">Mathematics</option>
-                                    <option value="3">Physics</option>
-                                    <option value="4">Chemistry</option>
-                                    <option value="5">Biology</option>
+                                <optgroup label="<?= $lang['science'] ?? 'Faculty of Science' ?>">
+                                    <option value="1"><?= $lang['cs'] ?? 'Computer Science' ?></option>
+                                    <option value="2"><?= $lang['math'] ?? 'Mathematics' ?></option>
+                                    <option value="3"><?= $lang['physics'] ?? 'Physics' ?></option>
+                                    <option value="4"><?= $lang['chemistry'] ?? 'Chemistry' ?></option>
+                                    <option value="5"><?= $lang['biology'] ?? 'Biology' ?></option>
                                 </optgroup>
 
                                 <!-- Engineering Departments -->
-                                <optgroup label="Faculty of Engineering">
-                                    <option value="10">Civil Engineering</option>
-                                    <option value="11">Mechanical Engineering</option>
-                                    <option value="12">Electrical Engineering</option>
-                                    <option value="13">Computer Engineering</option>
+                                <optgroup label="<?= $lang['engineering'] ?? 'Faculty of Engineering' ?>">
+                                    <option value="10"><?= $lang['civil'] ?? 'Civil Engineering' ?></option>
+                                    <option value="11"><?= $lang['mechanical'] ?? 'Mechanical Engineering' ?></option>
+                                    <option value="12"><?= $lang['electrical'] ?? 'Electrical Engineering' ?></option>
+                                    <option value="13"><?= $lang['computer_eng'] ?? 'Computer Engineering' ?></option>
                                 </optgroup>
                             </select>
 
                         </div>
                         <div id="result-box" class="d-flex flex-column col-12 col-lg-10">
                             <div class="d-flex justify-content-center px-4">
-                                <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder="search course you interest!">
+                                <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder=<?= $lang['entersearch'] ?>>
                             </div>
                             <div class="d-flex justify-content-between px-4 pt-3">
                                 <div>
-                                    Number of search results :
+                                    <?= $lang['numofresult'] ?> :
                                     <span id="numofresult"></span>
                                 </div>
                                 <div>
-                                    <button type="button" class="form-control"><i class="bi bi-arrow-clockwise"></i>refresh</button>
+                                    <button type="button" class="form-control"><i class="bi bi-arrow-clockwise"></i><?= $lang['refresh'] ?></button>
                                 </div>
                             </div>
                             <div id="course_div" name="course_div" class="d-flex flex-wrap justify-content-center"></div>

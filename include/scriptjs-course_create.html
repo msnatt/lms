@@ -2,7 +2,24 @@
 <script>
     var data = [];
     var countNo = 0;
+    const langData = document.getElementById('lang-data').textContent;
+    const lang = JSON.parse(langData);
     const div_degree_course = document.getElementById('degree_course');
+    document.addEventListener("DOMContentLoaded", async () => {
+        let res_faculty = await fetch("../config/Fetch_faculty.php");
+        let json_faculty = await res_faculty.json();
+
+        let res_department = await fetch("../config/Fetch_department.php");
+        let json_department = await res_department.json();
+
+        // generate_select(json_faculty, "select_faculty");
+
+        // let select_faculty = document.getElementById('select_faculty');
+        // select_faculty.addEventListener("change", () => {
+        //     select_department = document.getElementById('select_department');
+        //     select_faculty.value;
+        // });
+    })
 
     function validateNumberInput(event) {
         // กรองเฉพาะตัวเลข
@@ -24,16 +41,16 @@
                 <div class="modal-dialog" style="max-width: 50vw;">
                     <div class="modal-content" style="min-height: 30vh;">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">New Header</h5>
+                            <h5 class="modal-title" id="exampleModalLabel"><?=$lang['nn-header']?></h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <label>New header name</label>
+                            <label><?=$lang['nn-header']?></label>
                             <input type="text" class="form-control" id="new_header">
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" onclick="create_header_div()" data-bs-dismiss="modal">Create</button>
-                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="create_header_div()" data-bs-dismiss="modal"><?=$lang['create']?></button>
+                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal"><?=$lang['cancel']?></button>
                         </div>
                     </div>
                 </div>
@@ -57,20 +74,21 @@
                 <div class="modal-dialog" style="max-width: 50vw;">
                     <div class="modal-content" style="min-height: 70vh;">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">New Header</h5>
+                            <h5 class="modal-title" id="exampleModalLabel"><?=$lang['nn-content']?></h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
+                            <label><?=$lang['typecontent']?></label>
                             <select id="select_content" class="form-select">
-                                <option value="0">please select type</option>
+                                <option value="0"><?=$lang['typecontent']?></option>
                             </select>
                             <div id="contentofcontent">
                                 <!-- content in js -->
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" onclick="create_content_div()" data-bs-dismiss="modal">Create</button>
-                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="create_content_div()" data-bs-dismiss="modal"><?=$lang['create']?></button>
+                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal"><?=$lang['cancel']?></button>
                         </div>
                     </div>
                 </div>
@@ -408,21 +426,21 @@
         _schedule.className = "bg-light rounded m-1";
         _schedule.innerHTML = `
         <div class="d-flex p-2 justify-content-center">
-            <label class="col-2 ">Day :</label>
+            <label class="col-2"><?= $lang['day'] ?> :</label>
             <select class="form-select col-10 mx-2 w-auto" required name="select_day[]">
-                <option value="">-- Select Day --</option>
-                <option value="1">Monday</option>
-                <option value="2">Tuesday</option>
-                <option value="3">Wednesday</option>
-                <option value="4">Thursday</option>
-                <option value="5">Friday</option>
-                <option value="6">Saturday</option>
-                <option value="7">Sunday</option>
+                <option value=""><?= $lang['select_day'] ?></option>
+                <option value="1"><?= $lang['monday'] ?></option>
+                <option value="2"><?= $lang['tuesday'] ?></option>
+                <option value="3"><?= $lang['wednesday'] ?></option>
+                <option value="4"><?= $lang['thursday'] ?></option>
+                <option value="5"><?= $lang['friday'] ?></option>
+                <option value="6"><?= $lang['saturday'] ?></option>
+                <option value="7"><?= $lang['sunday'] ?></option>
             </select>
         </div>
         <div class="d-flex justify-content-around p-2">
-            <label>Start</label>
-            <label>End</label>
+            <label><?= $lang['start'] ?></label>
+            <label><?= $lang['end'] ?></label>
         </div>
         <div class="d-flex justify-content-around p-2">
             <select class="form-select mx-2" required name="select_start[]"></select>
@@ -450,5 +468,14 @@
         }
     });
 
+    function generate_select(values, id) {
+        let select = document.getElementById(id);
+        values.forEach(value => {
+            const option = document.createElement('option');
+            option.value = value.id;
+            option.textContent = "Faculty of " + value.name;
+            select.appendChild(option);
+        });
+    }
 
 </script>

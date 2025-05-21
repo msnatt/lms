@@ -3,12 +3,12 @@ include '../components/session.php';
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $langCode ?>">
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
 <head>
-    <title>HOME - E-learning</title>
+    <title><?= $lang['home'] ?> - E-learning</title>
 </head>
 
 

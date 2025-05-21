@@ -1,10 +1,9 @@
 <!-- page product -->
 <script>
+    const langData = document.getElementById('lang-data').textContent;
+    const lang = JSON.parse(langData);
     document.addEventListener('DOMContentLoaded', async () => {
         await generate_table();
-
-
-
     });
 
     async function loadBackup() {
@@ -33,7 +32,7 @@
             downloadBtn.href = `../backup/${file.name}`;
             downloadBtn.download = file.name;
             downloadBtn.className = "btn btn-sm btn-outline-success";
-            downloadBtn.innerHTML = `<i class="bi bi-download"></i> Download`;
+            downloadBtn.innerHTML = `<i class="bi bi-download"></i> `+lang['download'];
 
             let actionCell = newRow.insertCell(3);
             actionCell.appendChild(downloadBtn);

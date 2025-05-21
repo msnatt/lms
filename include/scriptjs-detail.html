@@ -222,7 +222,7 @@
                 toggleDiv.style.border = "1px";
                 toggleDiv.style.borderColor = "#fff";
                 toggleDiv.style.fontSize = "1.5rem";
-                toggleDiv.style.transition = "background-color 0.3s ease";
+                toggleDiv.style.transition = "all 0.6s ease";
                 // toggleDiv.innerHTML = `${unit.name}`;
                 toggleDiv.style.paddingLeft = "30px";
                 const toggleTitleDiv = document.createElement("div");
@@ -241,8 +241,10 @@
                 const contentDiv = document.createElement("div");
                 // กล่องเนื้อหา (ซ่อนไว้ก่อน)
                 contentDiv.className = "rounded bg-white m-2";
-                contentDiv.style.display = "none";
+                contentDiv.style.opacity = "0";
                 contentDiv.style.paddingLeft = "2rem";
+                contentDiv.style.height = "0";
+                contentDiv.style.transition = "all 0.3s ease";
                 for (let j = 0; j < Contents.length; j++) {
                     const content = Contents[j];
                     if (unit.id == content.unit_id) {
@@ -343,10 +345,9 @@
 
                 // เพิ่ม Event Listener สำหรับการซ่อน/แสดง
                 toggleDiv.addEventListener("click", () => {
-                    const isVisible = contentDiv.style.display === "block";
-                    // unitcontentDiv.style.display = isVisible ? "none" : "block";
-                    contentDiv.style.display = isVisible ? "none" : "block";
-                    // unitDiv.style.backgroundColor = isVisible ? "#ffffff" : "#eeeeee"; // เขียว-แดง
+                    const isVisible = contentDiv.style.opacity === "0";
+                    contentDiv.style.opacity = isVisible ? "1" : "0";
+                    contentDiv.style.height = isVisible ? "auto" : "0";
                 });
 
                 // เพิ่มเข้าไปใน detail_div

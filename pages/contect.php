@@ -5,13 +5,13 @@ checkLogin();
 
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $langCode ?>">
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
 <head>
     <meta charset="UTF-8">
-    <title>Contect - E-learning</title>
+    <title><?=$lang['contact']?> - E-learning</title>
 </head>
 
 <body class="bg-custom ">
@@ -32,7 +32,7 @@ checkLogin();
                         <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10m0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6" />
                     </svg>
                 </span>
-                <h3> Contact US</h3>
+                <h3><?=$lang['contact']?></h3>
             </div>
             <div class="container py-5">
                 <div class="row">
@@ -72,24 +72,24 @@ checkLogin();
                     <div class="col-12 col-lg-6">
                         <form>
                             <div class="mb-3">
-                                <label for="subject" class="form-label">หัวเรื่อง</label>
-                                <input type="text" class="form-control" name="subject" id="subject" placeholder="หัวเรื่อง">
+                                <label for="subject" class="form-label"><?=$lang['subject']?></label>
+                                <input type="text" class="form-control" name="subject" id="subject" placeholder=<?=$lang['subject']?>>
                             </div>
                             <div class="mb-3">
-                                <label for="name" class="form-label">ชื่อ-นามสกุล</label>
-                                <input type="text" class="form-control" name="name" id="name" placeholder="ชื่อ-นามสกุล">
+                                <label for="name" class="form-label"><?=$lang['name']?></label>
+                                <input type="text" class="form-control" name="name" id="name" placeholder=<?=$lang['name']?>>
                             </div>
                             <div class="mb-3">
-                                <label for="phone" class="form-label">เบอร์โทร</label>
-                                <input type="text" class="form-control" name="phone" id="phone" placeholder="เบอร์โทร">
+                                <label for="phone" class="form-label"><?=$lang['tel']?></label>
+                                <input type="text" class="form-control" name="phone" id="phone" placeholder=<?=$lang['tel']?>>
                             </div>
                             <div class="mb-3">
-                                <label for="email" class="form-label">อีเมล์</label>
-                                <input type="email" class="form-control" name="email" id="email" placeholder="อีเมล์">
+                                <label for="email" class="form-label"><?=$lang['email']?></label>
+                                <input type="email" class="form-control" name="email" id="email" placeholder=<?=$lang['email']?>>
                             </div>
                             <div class="mb-3">
-                                <label for="details" class="form-label">รายละเอียด</label>
-                                <textarea class="form-control" name="details" id="details" rows="5" placeholder="รายละเอียด"></textarea>
+                                <label for="details" class="form-label"><?=$lang['detailcontact']?></label>
+                                <textarea class="form-control" name="details" id="details" rows="5" placeholder=<?=$lang['detailcontact']?>></textarea>
                             </div>
                             <!-- reCAPTCHA -->
                             <div class="mb-3">
@@ -97,8 +97,8 @@ checkLogin();
                             </div>
                             <!-- Buttons -->
                             <div class="d-flex justify-content-between">
-                                <button type="submit" class="btn btn-primary">ยืนยัน</button>
-                                <button type="reset" class="btn btn-warning">ล้างข้อมูล</button>
+                                <button type="submit" class="btn btn-primary"><?=$lang['confirm']?></button>
+                                <button type="reset" class="btn btn-warning"><?=$lang['reset']?></button>
                             </div>
                         </form>
                     </div>

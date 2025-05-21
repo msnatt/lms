@@ -4,8 +4,10 @@ include '../components/session.php';
 
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $langCode ?>">
 
+<?php include "../include/ref.html"; ?>
+<?php include "../include/style.html"; ?>
 <head>
     <meta charset="UTF-8">
     <title>Login - E-learning</title>

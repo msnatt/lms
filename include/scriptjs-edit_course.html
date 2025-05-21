@@ -2,6 +2,8 @@
 <script>
     var data = [];
     var days = [];
+    const langData = document.getElementById('lang-data').textContent;
+    const lang = JSON.parse(langData);
     const div_degree_course = document.getElementById('degree_course');
     //schedule course
 
@@ -27,7 +29,7 @@
         const is_publish = document.getElementById('is_publish');
 
         course_name.value = detail_course['course']['course_name'];
-        title_course.innerHTML = "Edit " + detail_course['course']['course_name'];
+        title_course.textContent += detail_course['course']['course_name'];
         course_code.value = detail_course['course']['course_code'];
         course_Objective.value = detail_course['course']['objective'];
         course_Description.value = detail_course['course']['description'];
@@ -123,7 +125,7 @@
                         content_.innerHTML = `<div id="content_${row['id']}">${filename}</div>`;
                         break;
                     case 7:
-                    const [id, name] = row['content'].split('_');
+                        const [id, name] = row['content'].split('_');
                         content_.innerHTML = `แบบทดสอบ  ${name}`;
                         break;
                     default:

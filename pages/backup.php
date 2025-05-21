@@ -5,13 +5,14 @@ $user = $_SESSION['user'] ?? 'N/A';
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $langCode ?>">
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
+
 <head>
     <meta charset="UTF-8">
-    <title>Backup - E-learning</title>
+    <title><?= $lang['backup'] ?> - E-learning</title>
 </head>
 
 <body class="bg-custom">
@@ -24,11 +25,11 @@ $user = $_SESSION['user'] ?? 'N/A';
                 <div class="container w-100">
                     <div class="d-flex align-items-center">
                         <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>
-                        <h3>backup file</h3>
+                        <h3><?= $lang['backup'] ?></h3>
                     </div>
                     <div class="px-4 py-2 d-flex justify-content-end gap-2">
-                        <button class="btn btn-outline-secondary" style="width: 50%; max-width: 100px;" onclick="click_import()">Import</button>
-                        <button class="btn btn-outline-secondary" style="width: 50%; max-width: 100px;" onclick="export_sql()">Export</button>
+                        <button class="btn btn-outline-secondary" style="width: 50%; max-width: 100px;" onclick="click_import()"><?= $lang['import'] ?></button>
+                        <button class="btn btn-outline-secondary" style="width: 50%; max-width: 100px;" onclick="export_sql()"><?= $lang['export'] ?></button>
                     </div>
                     <!-- ซ่อน input file -->
                     <input type="file" id="sqlInput" class="d-none" accept=".sql" onchange="import_sql(event)">
@@ -39,10 +40,10 @@ $user = $_SESSION['user'] ?? 'N/A';
                                 <table id="table_backup">
                                     <thead>
                                         <tr class="text-center">
-                                            <th> time </th>
-                                            <th> name </th>
-                                            <th> size </th>
-                                            <th>Action</th>
+                                            <th> <?=$lang['time']?> </th>
+                                            <th> <?=$lang['name']?>  </th>
+                                            <th> <?=$lang['size']?>  </th>
+                                            <th> <?=$lang['action']?> </th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -56,7 +57,9 @@ $user = $_SESSION['user'] ?? 'N/A';
         </div>
     </div>
 
-
+    <script id="lang-data" type="application/json">
+        <?= json_encode($lang, JSON_UNESCAPED_UNICODE); ?>
+    </script>
     <?php include "../include/footer.php"; ?>
     <?php include "../include/scriptjs.html"; ?>
     <?php include "../include/scriptjs-backup.html"; ?>

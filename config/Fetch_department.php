@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 
 
 include "../config/no-crash.php";
-include "../config/connect.php"; 
+include "../config/connect.php";
 
 // ตรวจสอบการเชื่อมต่อ
 if ($conn->connect_error) {
@@ -14,7 +14,7 @@ if ($conn->connect_error) {
 }
 
 // ดึงข้อมูลจากตาราง categories
-$sql = "SELECT * FROM log_login ORDER BY id DESC LIMIT 13";
+$sql = "SELECT * FROM department";
 $result = $conn->query($sql);
 
 $options = [];
@@ -23,11 +23,8 @@ if ($result->num_rows > 0) {
         $options[] = $row; // เก็บข้อมูลในรูปแบบ Array
     }
 }
-
 // ส่งข้อมูลกลับในรูปแบบ JSON
 header('Content-Type: application/json');
 echo json_encode($options);
 
-// ปิดการเชื่อมต่อ
 $conn->close();
-?>

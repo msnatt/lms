@@ -31,3 +31,15 @@ function logout()
     header("Location: ../pages/login.php");
     exit();
 }
+
+
+    // ตรวจสอบการเปลี่ยนภาษา
+    if (!isset($_SESSION['lang'])) {
+        $_SESSION['lang'] = 'th';
+    }
+
+    // ตั้งค่าภาษาเริ่มต้น
+    $langCode = $_SESSION['lang'] ?? 'th';
+
+    // โหลดไฟล์ภาษาตามที่เลือก
+    require_once "../lang/$langCode.php";

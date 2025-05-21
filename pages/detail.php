@@ -9,7 +9,7 @@ $owner = $_SESSION['owner'] ?? 'N/A';
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $langCode ?>">
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>

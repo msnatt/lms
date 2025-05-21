@@ -6,13 +6,14 @@ $user = $_SESSION['user'] ?? 'N/A';
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?= $langCode ?>">
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
+
 <head>
     <meta charset="UTF-8">
-    <title>Course - E-learning</title>
+    <title><?= $lang['editcourse'] ?> - E-learning</title>
 </head>
 
 <body class="bg-custom">
@@ -22,18 +23,20 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="d-flex" style="min-height: 70vh;">
             <?php include "../components/sidemenu.php"; ?>
             <div class="bg-light main-container p-4 w-100" style="min-height: 60vh;">
-                <div class="d-flex align-items-center gap-5">
-                    <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>
-                    <div id="title_edit" style="font-size: 2rem; font-weight: 600;"> Edit Course</div>
-                    <div class="d-flex gap-5">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex col-12 col-lg-3 ">
+                        <button onclick="window.history.back();" class="btn "><i class="bi bi-arrow-left fs-3"></i></button>
+                        <div id="title_edit" style="font-size: 2rem; font-weight: 600;"><?= $lang['editcourse'] ?> </div>
+                    </div>
+                    <div class="d-flex gap-1">
                         <button type="button" class="btn btn-primary" onclick="update_course()" style="width: 40%;">
-                            <i class="bi bi-floppy-fill"></i>
+                            <i class="bi bi-floppy-fill"></i><?= $lang['save'] ?>
                         </button>
                         <button type="button" class="btn btn-light" onclick="window.history.back();" style="width: 40%; border: 1px solid #ccc;">
-                            <i class="bi bi-x"></i>
+                            <i class="bi bi-x"></i><?= $lang['cancel'] ?>
                         </button>
                         <button type="button" class="btn btn-danger" onclick="is_deleted_course()" style="width: 40%;">
-                            <i class="bi bi-trash"></i>
+                            <i class="bi bi-trash"></i><?= $lang['delete'] ?><?= $lang['course'] ?>
                         </button>
                     </div>
                 </div>
@@ -44,17 +47,17 @@ $user = $_SESSION['user'] ?? 'N/A';
                         <div class="bg-secondary p-4 rounded bg-opacity-10">
                             <div class="d-flex">
                                 <div>
-                                    <label class="form-label">Name</label>
+                                    <label class="form-label"><?= $lang['namecourse'] ?></label>
                                     <input type="text" id="name_course" name="name_course" class="form-control">
                                 </div>
                                 <div>
-                                    <label class="form-label">Code</label>
+                                    <label class="form-label"><?= $lang['codecourse'] ?></label>
                                     <input type="text" id="code_course" name="code_course" class="form-control" oninput="validateNumberInput(event)">
                                 </div>
                             </div>
-                            <label class="form-label">Description</label>
+                            <label class="form-label"><?= $lang['description'] ?></label>
                             <textarea id="textBoxDescription" name="textBoxDescription" rows="4" cols="50" class="form-control"></textarea>
-                            <label class="form-label">Objective</label>
+                            <label class="form-label"><?= $lang['obj'] ?></label>
                             <textarea id="textBoxObjective" name="textBoxObjective" rows="4" cols="50" class="form-control"></textarea>
 
                         </div>
@@ -63,10 +66,10 @@ $user = $_SESSION['user'] ?? 'N/A';
                         <div class="bg-secondary p-2 rounded bg-opacity-10">
                             <div class="p-1 rounded d-flex">
                                 <button type="button" class="btn btn-secondary col-6 col-lg-2 me-1" onclick="create_popup_header()">
-                                    New Header
+                                    <?= $lang['n-header'] ?>
                                 </button>
                                 <button type="button" class="btn btn-secondary col-6 col-lg-2 me-1" onclick="create_popup_content()">
-                                    New Content
+                                    <?= $lang['n-content'] ?>
                                 </button>
                             </div>
                             <hr>
@@ -77,49 +80,49 @@ $user = $_SESSION['user'] ?? 'N/A';
                     <div class="d-flex flex-column col-lg-2 col-12 rounded" style="padding: 0.2rem 0.25rem;">
                         <div class="bg-secondary p-2 rounded bg-opacity-10">
                             <h5 class="d-flex justify-content-center my-2">
-                                Status
+                                <?= $lang['status'] ?>
                             </h5>
                             <div class="d-flex mb-3">
                                 <div class="form-check form-switch px-3">
                                     <input class="form-check-input ms-0 switch-lg" type="checkbox" id="is_publish" name="is_publish">
                                 </div>
-                                <label class="fw-bold pe-4" for="largeSwitch">Publish now</label>
+                                <label class="fw-bold pe-4" for="largeSwitch"><?= $lang['publish'] ?></label>
                             </div>
-                            <label class="form-label">Faculty</label>
-                            <select class="form-select" required name="select_faculty" id="select_faculty">
-                                <option value="1">-- All Faculty --</option>
-                                <option value="2">Faculty of Science</option>
-                                <option value="3">Faculty of Engineering</option>
-                                <option value="4">Faculty of Business Administration</option>
-                                <option value="5">Faculty of Arts</option>
-                                <option value="6">Faculty of Medicine</option>
+                            <label class="form-label"><?= $lang['faculty'] ?></label>
+                            <select class="form-select" name="select_faculty" id="select_faculty" onchange="filterCourses()">
+                                <option value=""><?= $lang['all_faculty'] ?? '-- All Faculty --' ?></option>
+                                <option value="1"><?= $lang['science'] ?? 'Faculty of Science' ?></option>
+                                <option value="2"><?= $lang['engineering'] ?? 'Faculty of Engineering' ?></option>
+                                <option value="3"><?= $lang['business'] ?? 'Faculty of Business Administration' ?></option>
+                                <option value="4"><?= $lang['arts'] ?? 'Faculty of Arts' ?></option>
+                                <option value="5"><?= $lang['medicine'] ?? 'Faculty of Medicine' ?></option>
                             </select>
 
-                            <label class="form-label">Department</label>
-                            <select class="form-select" required name="select_department" id="select_department">
-                                <option value="1">-- All Department --</option>
+                            <label class="form-label"><?= $lang['department'] ?></label>
+                            <select class="form-select" name="select_department" id="select_department" onchange="filterCourses()">
+                                <option value=""><?= $lang['all_department'] ?? '-- All Department --' ?></option>
 
                                 <!-- Science Departments -->
-                                <optgroup label="Faculty of Science">
-                                    <option value="2">Computer Science</option>
-                                    <option value="3">Mathematics</option>
-                                    <option value="4">Physics</option>
-                                    <option value="5">Chemistry</option>
-                                    <option value="6">Biology</option>
+                                <optgroup label="<?= $lang['science'] ?? 'Faculty of Science' ?>">
+                                    <option value="1"><?= $lang['cs'] ?? 'Computer Science' ?></option>
+                                    <option value="2"><?= $lang['math'] ?? 'Mathematics' ?></option>
+                                    <option value="3"><?= $lang['physics'] ?? 'Physics' ?></option>
+                                    <option value="4"><?= $lang['chemistry'] ?? 'Chemistry' ?></option>
+                                    <option value="5"><?= $lang['biology'] ?? 'Biology' ?></option>
                                 </optgroup>
 
                                 <!-- Engineering Departments -->
-                                <optgroup label="Faculty of Engineering">
-                                    <option value="10">Civil Engineering</option>
-                                    <option value="11">Mechanical Engineering</option>
-                                    <option value="12">Electrical Engineering</option>
-                                    <option value="13">Computer Engineering</option>
+                                <optgroup label="<?= $lang['engineering'] ?? 'Faculty of Engineering' ?>">
+                                    <option value="10"><?= $lang['civil'] ?? 'Civil Engineering' ?></option>
+                                    <option value="11"><?= $lang['mechanical'] ?? 'Mechanical Engineering' ?></option>
+                                    <option value="12"><?= $lang['electrical'] ?? 'Electrical Engineering' ?></option>
+                                    <option value="13"><?= $lang['computer_eng'] ?? 'Computer Engineering' ?></option>
                                 </optgroup>
                             </select>
                         </div>
                         <div class="bg-secondary w-100 bg-opacity-10 rounded mt-1">
                             <h5 class="d-flex justify-content-center my-2" style="position: relative;">
-                                Schedule
+                                <?= $lang['schedule'] ?>
                                 <input type="button" id="btn_schedule" value="+" class="btn btn-sm py-0 h-100" style="position: absolute; top: 0; right: 0; "></input>
                             </h5>
                             <div id="div_schedule">
