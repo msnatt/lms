@@ -1,5 +1,17 @@
 <div class="sidebar collapsed" id="sidebar" style="border-right: 1px solid #aaa; transition: width 0.3s ease, padding 0.3s ease;">
     <ul class="navbar-nav">
+        <li class="gap-2 d-block d-lg-none">
+            <button class="btn btn-link nav-link text px-0" data-bs-toggle="collapse" data-bs-target="#systemSubNav" aria-expanded="false">
+                <?= $lang['hi'] ?>! <?php echo $_SESSION['username'] ?>
+            </button>
+            <ul class="collapse nav flex-column " id="systemSubNav">
+                <li class="d-flex align-items-start gap-2">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <a class="nav-secondary text" href="../pages/logout.php"><?= $lang['logout'] ?></a>
+                </li>
+            </ul>
+            <hr>
+        </li>
         <li class="d-flex align-items-center gap-2">
             <i class="bi bi-house"></i>
             <span><a class="nav-link active text" href="../pages/chat.php"><?= $lang['chat'] ?></a></span>
@@ -40,7 +52,7 @@
                 <ul class="collapse nav flex-column " id="systemSubNav">
                     <li class="d-flex align-items-start gap-2">
                         <i class="bi bi-info-square"></i>
-                        <a class="nav-secondary text" href="../pages/infomation.php">#<?= $lang['information'] ?></a>
+                        <a class="nav-secondary text" href="../pages/infomation.php"><?= $lang['information'] ?><?= $lang['system'] ?></a>
                     </li>
                     <li class="d-flex align-items-start gap-2">
                         <i class="bi bi-bug"></i>
@@ -53,5 +65,13 @@
                 </ul>
             </li>
         <?php endif; ?>
+
+
+        <div class="text-center mt-5"><?= $lang['chooselang'] ?></div>
+        <!-- วางใน Navbar หรือเมนู -->
+        <div class="d-flex justify-content-center p-2">
+            <a href="<?= buildLangSwitchLink('th') ?>" class="btn btn-outline-secondary btn-sm <?= $langCode == 'th' ? 'active' : '' ?>">ไทย</a>
+            <a href="<?= buildLangSwitchLink('en') ?>" class="btn btn-outline-secondary btn-sm <?= $langCode == 'en' ? 'active' : '' ?>">English</a>
+        </div>
     </ul>
 </div>

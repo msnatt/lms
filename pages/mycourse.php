@@ -10,13 +10,13 @@ $user = $_SESSION['user'] ?? 'N/A';
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
 <head>
-    <title>Mycourse - E-learning</title>
+    <title><?=$lang['mycourse']?> - E-learning</title>
 </head>
 
 <body class="bg-custom">
     <?php include "../include/header.php"; ?>
     <div class="main-inner">
-        <!-- <div class="main-container">
+        <!-- <div class="">
             <h3 class="p-4">FT - LMS</h3>
         </div> -->
         <div class="d-flex" style="min-height: 70vh;">
@@ -25,7 +25,7 @@ $user = $_SESSION['user'] ?? 'N/A';
             <div class="bg-light w-100">
                 <div class="d-flex justify-content-center mt-4">
                     <i class="bi bi-book-half fs-2"></i>
-                    <h3>&nbsp;&nbsp; My Course</h3>
+                    <h3>&nbsp;&nbsp; <?=$lang['mycourse']?></h3>
                 </div>
                 <hr>
                 <div id="course_div" name="course_div" class="row justify-content-center mt-4" style="min-height: 40vh;"></div>

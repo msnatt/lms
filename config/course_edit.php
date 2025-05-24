@@ -79,8 +79,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $stmt_schedule->bind_param("iissii", $course_id, $day_id, $start_time, $end_time, $is_deleted_schedule, $id);
                 $stmt_schedule->execute();
             }
-        } else {
-            die("Error: Course ID not found.");
         }
         $stmt_schedule->close();
 

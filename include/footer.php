@@ -1,5 +1,5 @@
 <footer class="color-secondary d-flex justify-content-center">
-    <div class="main-container p-4">
+    <div class=" p-4">
         <div class=" row">
             <div class="col-12 col-lg-10">
                 <p style="font-size: 1.5rem; color: #ffffff;"> Fieldtech Automation Company Limited.</p>

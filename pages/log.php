@@ -21,7 +21,7 @@ $user = $_SESSION['user'] ?? 'N/A';
 
         <div class="d-flex" style="min-height: 60vh;">
             <?php include "../components/sidemenu.php"; ?>
-            <div class="bg-light main-container p-4 w-100" style="min-height: 60vh;">
+            <div class="bg-light  p-4 w-100" style="min-height: 60vh;">
                 <div class="container w-100">
                     <div class="d-flex align-items-center">
                         <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>

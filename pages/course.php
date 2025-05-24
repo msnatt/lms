@@ -31,7 +31,7 @@ $user = $_SESSION['user'] ?? 'N/A';
             <div class="d-flex flex-column justify-content-center w-100">
                 <h2 class="p-4 text-center" style="max-width: 100%"><?= $lang['allcourse'] ?></h2>
                 <div class="d-flex">
-                    <div class="d-flex flex-wrap rounded" style="padding: 0.2rem 0.25rem;">
+                    <div class="d-flex flex-wrap w-100 rounded" style="padding: 0.2rem 0.25rem;">
                         <div id="filter-box" class="d-flex flex-column col-12 col-lg-2 px-4 rounded">
                             <div class="d-flex g-5 justify-content-around">
                                 <h3><i class="bi bi-funnel-fill"></i><?= $lang['filter'] ?></h3>

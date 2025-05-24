@@ -4,7 +4,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $message = $_POST['line_message'] ?? '';
 
     if (!$token || !$message) {
-        echo "❌ โปรดกรอก Token และข้อความ";
+        echo "notoken";
         exit;
     }
 
@@ -20,6 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $response = curl_exec($ch);
     curl_close($ch);
 
-    echo "✅ ส่งไปยัง LINE เรียบร้อยแล้ว";
+    echo "success";
 }
 ?>

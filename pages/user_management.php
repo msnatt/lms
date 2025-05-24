@@ -22,10 +22,10 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="bg-light d-flex" style="width: 100%;">
             <?php include "../components/sidemenu.php"; ?>
             <div class="d-flex flex-column justify-content-center w-100">
-                <h2 class="p-4 text-center" style="max-width: 100%">UMS - User Management System</h2>
+                <h2 class="p-4 text-center" style="max-width: 100%">UMS - <?=$lang['ums']?></h2>
                 <div class="px-4 d-flex justify-content-start gap-2 mb-2">
-                    <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Import_csv()">Import</button>
-                    <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Export_csv()">Export</button>
+                    <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Import_csv()"><?=$lang['import']?></button>
+                    <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Export_csv()"><?=$lang['export']?></button>
                 </div>
                 <!-- ซ่อน input file -->
                 <input type="file" id="csvInput" class="d-none" accept=".csv" onchange="handleFileUpload(event)">
@@ -34,11 +34,11 @@ $user = $_SESSION['user'] ?? 'N/A';
                     <table id="table_user">
                         <thead>
                             <tr>
-                                <th style="width: 20%;"> name </th>
-                                <th style="width: 20%;"> Code </th>
-                                <th style="width: 20%;"> telephone </th>
-                                <th style="width: 20%;"> roles </th>
-                                <th style="width: 20%;"> Actions </th>
+                                <th style="width: 20%;"><?=$lang['name']?>  </th>
+                                <th style="width: 20%;"><?=$lang['code']?>  </th>
+                                <th style="width: 20%;"><?=$lang['tel']?>  </th>
+                                <th style="width: 20%;"><?=$lang['roles']?>  </th>
+                                <th style="width: 20%;"><?=$lang['action']?>  </th>
                             </tr>
                         </thead>
                         <tbody>

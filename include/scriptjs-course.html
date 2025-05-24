@@ -10,6 +10,7 @@
         const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
         let Courses_access = json_res;
         Courses = Courses_access['courses'];
+        console.log(Courses);
         filter_courses = Courses;
 
         // เริ่มต้น

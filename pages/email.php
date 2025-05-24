@@ -68,7 +68,7 @@ $user = $_SESSION['user'] ?? 'N/A';
 <?php include "../include/style.html"; ?>
 <head>
     <meta charset="UTF-8">
-    <title>Email Notifier - E-learning</title>
+    <title><?=$lang['notifies']?> - E-learning</title>
 </head>
 
 <body class="">
@@ -78,7 +78,7 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="bg-light d-flex" style="width: 100%;">
             <?php include "../components/sidemenu.php"; ?>
             <div class="d-flex flex-column justify-content-center w-100" style="min-height: 70vh;">
-                <h1 style="text-align:center">ระบบส่งข้อความ <br>LINE และ Email</h1>
+                <h1 style="text-align:center"><?=$lang['welcometext1']?><br><?=$lang['welcometext2']?></h1>
 
                 <div class="container gap-5 d-flex flex-wrap justify-content-center">
                     <!-- LINE Notify Form -->
@@ -88,10 +88,10 @@ $user = $_SESSION['user'] ?? 'N/A';
                             <label for="line_token">LINE Token:</label>
                             <input class="form-custom" type="text" id="line_token" name="line_token" required>
 
-                            <label for="line_message">ข้อความทดสอบ:</label>
+                            <label for="line_message"><class><?=$lang['contenttext']?></label>
                             <textarea class="form-custom" id="line_message" name="line_message" required></textarea>
 
-                            <button class="form-custom" type="submit" style="background-color: #4CAF50;">ส่งไปยัง LINE</button>
+                            <button class="form-custom" type="submit" style="background-color: #4CAF50;"><?=$lang['send']?> LINE</button>
                             <div class="result" id="line_result"></div>
                         </form>
                     </div>
@@ -100,13 +100,13 @@ $user = $_SESSION['user'] ?? 'N/A';
                     <div class="row col-12 col-lg-4 rounded shadow" style="background-color: #b23121;">
                         <h2 class="py-3 px-4 text-white">Email</h2>
                         <form id="emailForm" class="px-4 bg-white">
-                            <label for="email_to">Email ผู้รับ:</label>
+                            <label for="email_to"><?=$lang['offeremail']?></label>
                             <input class="form-custom" type="email" id="email_to" name="email_to" required>
 
-                            <label for="email_message">ข้อความทดสอบ:</label>
+                            <label for="email_message"><?=$lang['contenttext']?></label>
                             <textarea class="form-custom" id="email_message" name="email_message" required></textarea>
 
-                            <button class="form-custom" type="submit" style="background-color: #b23121;">ส่งอีเมล</button>
+                            <button class="form-custom" type="submit" style="background-color: #b23121;"><?=$lang['send']?> Email</button>
                             <div class="result" id="email_result"></div>
                         </form>
                     </div>

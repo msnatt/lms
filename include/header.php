@@ -1,4 +1,3 @@
-
 <header class="fw-medium">
     <div style="padding: 0rem ;">
         <nav class="navbar d-flex justify-content-center justify-content-lg-between navbar-expand-lg navbar-light bg-light">
@@ -31,7 +30,8 @@
                     </ul>
                 </div>
             </div>
-            <div class="w-15 d-flex align-items-center">
+            <div class="w-25 d-flex align-items-center">
+
                 <?php if (!isset($_SESSION['user_id'])): ?>
                     <ul class="navbar-nav">
                         <li class="nav-item">

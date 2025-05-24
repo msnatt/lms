@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $message = $_POST['email_message'] ?? '';
 
     if (!$to || !$message) {
-        echo "❌ โปรดกรอก Email และข้อความ";
+        echo "noemail";
         exit;
     }
 
@@ -32,9 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mail->Body = nl2br($message);
 
         $mail->send();
-        echo "✅ ส่ง Email สำเร็จ";
+        echo "success";
     } catch (Exception $e) {
-        echo "❌ ส่ง Email ไม่สำเร็จ: " . $mail->ErrorInfo;
+        echo "failed";
     }
 }
 ?>

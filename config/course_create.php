@@ -84,10 +84,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         foreach ($units as $unit) {
             if ($unit['type'] == 'header') {
                 // บันทึกข้อมูลลงในตาราง unit
-                $sql_unit = "INSERT INTO unit (course_id, name) VALUES (?, ?)";
+                $sql_unit = "INSERT INTO unit (course_id, name, introduction, conclusion) VALUES (?, ?, ?, ?)";
                 $stmt = $conn->prepare($sql_unit);
 
-                $stmt->bind_param("is", $course_id, $unit['content']);
+                $stmt->bind_param("isss", $course_id, $unit['content'], $unit['intro'], $unit['cons']);
                 $stmt->execute();
                 $unit_id = $conn->insert_id;
                 print("Unit id : " . $unit_id);

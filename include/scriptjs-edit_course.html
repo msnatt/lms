@@ -65,7 +65,7 @@
                 const editUnitBtn = document.createElement('button');
                 editUnitBtn.id = "edit_header_" + row['id'];
                 editUnitBtn.type = 'button';
-                editUnitBtn.textContent = 'แก้ไข';
+                editUnitBtn.textContent = lang['edit'];
                 editUnitBtn.className = 'btn btn-sm';
                 editUnitBtn.style.marginLeft = '10px';
                 editUnitBtn.onclick = () => popup_update_header(row['id']);
@@ -73,13 +73,13 @@
                 const delUnitBtn = document.createElement('button');
                 delUnitBtn.id = "delete_header_" + row['id'];
                 delUnitBtn.type = 'button';
-                delUnitBtn.textContent = 'ลบ';
+                delUnitBtn.textContent = lang['delete'];
                 delUnitBtn.className = 'btn btn-sm';
                 delUnitBtn.style.marginLeft = '10px';
                 delUnitBtn.onclick = () => deleteIndata(row['id'], "header");
 
                 const end_header = document.createElement('div');
-                end_header.style.minWidth = "11%";
+                end_header.style.minWidth = "15%";
 
                 end_header.appendChild(editUnitBtn);
                 end_header.appendChild(delUnitBtn);
@@ -135,7 +135,7 @@
 
                 // ปุ่มแก้ไข Content
                 const editContentBtn = document.createElement('button');
-                editContentBtn.textContent = 'แก้ไข';
+                editContentBtn.textContent = lang['edit'];
                 editContentBtn.id = "edit_content_" + row['id'];
                 editContentBtn.type = 'button';
                 editContentBtn.className = 'btn btn-sm';
@@ -145,13 +145,13 @@
                 const delcontentBtn = document.createElement('button');
                 delcontentBtn.id = "delete_content_" + row['id'];
                 delcontentBtn.type = 'button';
-                delcontentBtn.textContent = 'ลบ';
+                delcontentBtn.textContent = lang['delete'];
                 delcontentBtn.className = 'btn btn-sm';
                 delcontentBtn.style.marginLeft = '10px';
                 delcontentBtn.onclick = () => deleteIndata(row['id'], "content");
 
                 const end_content = document.createElement('div');
-                end_content.style.minWidth = "11%";
+                end_content.style.minWidth = "15%";
 
                 end_content.appendChild(editContentBtn);
                 end_content.appendChild(delcontentBtn);
@@ -255,16 +255,16 @@
                 <div class="modal-dialog" style="max-width: 50vw;">
                     <div class="modal-content" style="min-height: 30vh;">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">New Header</h5>
+                            <h5 class="modal-title" id="exampleModalLabel"><?=$lang['nn-header']?></h5>
                             <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <label>New header name</label>
+                            <label><?=$lang['nn-header']?></label>
                             <input type="text" class="form-control" id="new_header">
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" onclick="create_header_div()" data-bs-dismiss="modal">Create</button>
-                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="create_header_div()" data-bs-dismiss="modal"><?=$lang['create']?></button>
+                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal"><?=$lang['cancel']?></button>
                         </div>
                     </div>
                 </div>
@@ -288,20 +288,21 @@
                 <div class="modal-dialog" style="max-width: 50vw;">
                     <div class="modal-content" style="min-height: 70vh;">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">New content</h5>
+                            <h5 class="modal-title" id="exampleModalLabel"><?=$lang['nn-content']?></h5>
                             <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
+                            <label><?=$lang['typecontent']?></label>
                             <select id="select_content" class="form-select">
-                                <option value="0">please select type</option>
+                                <option value="0"><?=$lang['typecontent']?></option>
                             </select>
                             <div id="contentofcontent">
                                 <!-- content in js -->
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" onclick="create_content_div()" data-bs-dismiss="modal">Create</button>
-                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" onclick="create_content_div()" data-bs-dismiss="modal"><?=$lang['create']?></button>
+                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal"><?=$lang['cancel']?></button>
                         </div>
                     </div>
                 </div>
@@ -488,7 +489,7 @@
                 <div class="modal-dialog" style="max-width: 50vw;">
                     <div class="modal-content" style="min-height: 30vh;">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Edit Unit</h5>
+                            <h5 class="modal-title" id="exampleModalLabel"><?=$lang['edit-header']?></h5>
                             <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
@@ -590,8 +591,8 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id="update-content" data-bs-dismiss="modal">Create</button>
-                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="update-content" data-bs-dismiss="modal"><?=$lang['update']?></button>
+                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal"><?=$lang['close']?></button>
                         </div>
                     </div>
                 </div>
@@ -615,8 +616,10 @@
         console.log(ele_content);
         var dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
+        
         if (['1', '5', '7'].includes(selectedValue)) { // Text
             ele_content.textContent = content.value;
+            var message = content.value;
         } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
             var [filename, message] = await upload_file_temp(content, selectedValue);
             ele_content.innerHTML = filename;

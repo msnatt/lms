@@ -94,12 +94,12 @@
     }
 
     .box-chat {
-        background-color: #f8f8f8;
+        background-color: #fdfdfd;
         transition: all 0.3s;
     }
 
     .box-chat:hover {
-        background-color: #dbdbdb;
+        background-color: #ffffff;
         font-weight: 600;
 
     }
@@ -330,16 +330,18 @@
     .sidebar {
         width: 350px;
         background: #f8f9fa;
-        transition: width 0.3s ease-in-out, padding 0.3s ease-in-out;
+        transition: all 0.3s ease-in-out, padding 0.3s ease-in-out;
         padding: 10px;
-        overflow: hidden;
         z-index: 999;
+        display: block;
+        left: 0;
     }
 
-    #sidebar.collapsed {
-        width: 0 !important;
-        padding: 0 !important;
+    .sidebar.collapsed {
+        /* width: 0; */
         overflow: hidden;
+        padding: 0px;
+        display: none;
     }
 
     @media (max-width: 992px) {

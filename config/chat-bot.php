@@ -4,7 +4,9 @@ $data = json_decode(file_get_contents("php://input"), true);
 $userMessage = strtolower(trim($data["message"]));
 
 $reply = "ขอโทษค่ะ ฉันไม่เข้าใจ รบกวนพิมพ์อีกครั้งนะคะ";
-
+if (strpos($userMessage, "9900") !== false) {
+  $reply = "สวัสดีค่ะ มีอะไรให้ฉันช่วยไหมคะ?";
+}
 if (strpos($userMessage, "สวัสดี") !== false) {
   $reply = "สวัสดีค่ะ ";
 }

@@ -5,14 +5,16 @@
         const json_res = await response.json();
         let results = json_res;
 
-        console.log(results);
-        results['courses'].forEach(result => {
-            console.log(result);
-            create_Table(result);
+        const response_mycourse = await fetch("../config/Fetch_MyCourse.php?user_id=<?php echo $_SESSION['user']['id']; ?>"); // เรียกใช้ PHP
+        const json_mycourse = await response_mycourse.json();
+
+
+        json_mycourse['courses'].forEach(course => {
+            create_Table(course, results['courses']);
         });
     });
 
-    async function create_Table(Course) {
+    async function create_Table(course, results) {
         let tablelist = document.getElementById('table-container');
         const table = document.createElement('table');
         table.classList.add('table', 'table-bordered');
@@ -21,23 +23,27 @@
         const thead = document.createElement('thead');
         thead.innerHTML = `
             <tr >
-                <th class="text-center" colspan="3">${Course.name}</th>
+                <th class="text-center" colspan="3">${course.course_name}</th>
             </tr>
         `;
         const tbody = document.createElement('tbody');
         let index = 0;
-        Course['questions'].forEach(q => {
-            index ++;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-            <td class="text-center">${index}</td>
-            <td>${q.title}</td>
-            <td class="text-center">${q.point}/${q.total}</td>
-            `;
-            tbody.appendChild(tr);
+        results.forEach(res_course => {
+            if (course.course_id == res_course.id) {
+                res_course['questions'].forEach(q => {
+                    index++;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="text-center">${index}</td>
+                        <td>${q.title}</td>
+                        <td class="text-center">${q.point}/${q.total}</td>
+                        `;
+                    tbody.appendChild(tr);
+                });
+            }
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            tablelist.appendChild(table);
         });
-        table.appendChild(thead);
-        table.appendChild(tbody);
-        tablelist.appendChild(table);
     }
 </script>

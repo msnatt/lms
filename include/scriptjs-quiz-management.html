@@ -40,30 +40,30 @@
             <div class="modal-dialog" style="width:100vw; max-Width:960px;">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="examCreateTitle">Create Examination.</h5>
+                        <h5 class="modal-title" id="examCreateTitle"><?=$lang['create']?><?=$lang['exam']?>.</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <form id="examCreateForm">
                             <div class="d-flex w-100 justify-content-between px-2 my-2 flex-wrap">
                                 <div class="col-12 col-lg-3">
-                                    <label for="Title" class="form-label">Title</label>
+                                    <label for="Title" class="form-label"><?=$lang['title-ems']?></label>
                                     <input type="text" class="form-control" id="title" name="title" required>
                                 </div>
                                 <div class="col-12 col-lg-3">
-                                    <label for="Start-time" class="form-label">Start Time</label>
+                                    <label for="Start-time" class="form-label"><?=$lang['start-ems']?></label>
                                     <input type="datetime-local" class="form-control" id="startTime" name="startTime" required>
                                 </div>
                                 <div class="col-12 col-lg-3">
-                                    <label for="examination-period" class="form-label">Examination Period (minute)</label>
+                                    <label for="examination-period" class="form-label"><?=$lang['period-ems']?>(minute)</label>
                                     <input type="number" class="form-control" id="exam-period" name="exam-period" required>
                                 </div>
                             </div>
                             <div class="d-flex flex-wrap gap-1 my-3" style="min-height: 40vh;">
                                 <div class="rounded border p-2" style="width: 100%; max-width: 360px;">
-                                    <label for="Title" class="form-label">Description.</label>
+                                    <label for="Title" class="form-label"><?=$lang['description']?>.</label>
                                     <textarea class="form-control" style="min-height:150px;" id="description" name="description" required></textarea>
-                                    <label for="examType" class="form-label">Exam Type</label>
+                                    <label for="examType" class="form-label"><?=$lang['type-ems']?></label>
                                     <div>
                                         <input type="radio" id="pre-test" name="examType" value="pre-test" required> Pre-Test
                                         <input type="radio" id="post-test" name="examType" value="post-test"> Post-Test
@@ -72,11 +72,11 @@
                                 </div>
                                 <div class="rounded border p-2" style="width: 100%; max-width: 560px;">
                                     <div class="w-100 form-control d-flex justify-content-between">
-                                        <div>Question</div>
+                                        <div><?=$lang['question']?></div>
                                         <button class="border-0 rounded-5 px-1" onclick="addQuestion()"><i class="bi bi-plus"></i></button>
                                     </div>
                                     <div id="question" class="w-100 p-2" style="max-height: 400px; overflow-y: auto;">
-
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -102,12 +102,12 @@
         questionDiv.className = "w-100 p-3 mb-3";
         questionDiv.innerHTML = `
         <div class="mb-2">
-            <label class="form-label">Question ${questionIndex + 1}</label>
+            <label class="form-label"><?=$lang['question']?><?=$lang['at']?> ${questionIndex + 1}</label>
             <input type="text" class="form-control" name="questions[${questionIndex}][text]" required>
         </div>
         <div id="choices-${questionIndex}" class="ps-3"></div>
         <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="addChoice(${questionIndex})">
-            <i class="bi bi-plus-square"></i> Add Choice
+            <i class="bi bi-plus-square"></i> <?=$lang['add']?><?=$lang['choice']?>
         </button>
     `;
         container.appendChild(questionDiv);
@@ -159,7 +159,7 @@
             const correctInput = div.querySelector(`input[name="questions[${qIndex}][correct]"]:checked`);
 
             if (!correctInput) {
-                alert(`❌ กรุณาเลือกตัวเลือกที่ถูกต้องของคำถามข้อที่ ${qIndex + 1}`);
+                alert(`❌ <?=$lang['misschoice']?> ${qIndex + 1}`);
                 hasError = true;
                 return;
             }
@@ -181,15 +181,14 @@
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {
-                    showNotify(`✅ สร้างชุดข้อสอบสำเร็จ`);
+                    showNotify(lang['succ-exam']);
                     location.reload();
                 } else {
-                    showNotify("❌ เกิดข้อผิดพลาด: " + data.message);
+                    showNotify(lang['fail-exam'] + data.message);
                     console.error(data.message);
                 }
             })
             .catch(err => {
-                alert("❗ เกิดข้อผิดพลาดในการเชื่อมต่อกับ server");
                 console.error(err);
             });
     }

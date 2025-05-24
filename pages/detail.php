@@ -13,8 +13,9 @@ $owner = $_SESSION['owner'] ?? 'N/A';
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
+
 <head>
-    <title><?php echo $course['name'];?> - E-learning</title>
+    <title><?php echo $course['name']; ?> - E-learning</title>
 </head>
 
 <body class="bg-custom ">
@@ -22,7 +23,7 @@ $owner = $_SESSION['owner'] ?? 'N/A';
     <br>
     <div class="d-flex" style="min-height: 70vh;">
         <?php include "../components/sidemenu.php"; ?>
-        <div class="main-container bg-white bg-shadow w-100" id="detail_div" name="detail_div"></div>
+        <div class=" w-100" id="detail_div" name="detail_div"></div>
 
         <?php if ($user['is_admin'] == "1" && $course['create_by'] == $user['id']): ?>
             <div style="position: fixed; bottom: 10%; right: 3%;">
@@ -50,6 +51,9 @@ $owner = $_SESSION['owner'] ?? 'N/A';
             </div>
         </div>
     </div>
+    <script id="lang-data" type="application/json">
+        <?= json_encode($lang, JSON_UNESCAPED_UNICODE); ?>
+    </script>
     <?php include "../include/footer.php"; ?>
     <?php include "../include/scriptjs.html"; ?>
     <?php include "../include/scriptjs-detail.html"; ?>

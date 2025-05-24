@@ -52,7 +52,7 @@
                         // สร้าง div สำหรับห้อง
                         const div = document.createElement("div");
                         div.id = "room_" + room.id;
-                        div.className = "gap-1 box-chat ";
+                        div.className = "box-chat px-4";
                         div.style.borderBottom = "1px solid #ddd";
                         div.onclick = () => selectRoomChat(room.id, room.name);
 
@@ -189,11 +189,16 @@
 
     async function createRoomChat() {
         let headerBox = document.getElementById('header-box');
+        let createchat = document.getElementById('create-chat');
+        if (createchat) {
+            createchat.remove();
+        }
 
         let res = await fetch("../config/Fetch_user.php");
         let users = await res.json();
         // สร้าง container ล้อม input กับ suggestionBox ให้จัดตำแหน่งแบบ relative
         let inputWrapper = document.createElement('div');
+        inputWrapper.id = "create-chat";
         inputWrapper.style.position = 'relative';
         inputWrapper.style.width = '300px'; // ปรับตามความเหมาะสม
         inputWrapper.className = 'my-2 w-100';
@@ -292,7 +297,19 @@
         statusChat.innerHTML = "";
 
         let nameChat = document.getElementById("name-chat");
-        nameChat.textContent = roomName;
+        // nameChat.textContent = roomName;
+        nameChat.innerHTML = `
+        <div class="d-flex justify-content-between">
+            <div>
+                <h4 id="name-room">${roomName}</h4>
+                <input type="text" id="editRoomNameInput" class="form-control d-none" 
+                onkeydown="if(event.key==='Enter') updateChatRoomName(${roomId})">
+            </div>
+            &nbsp
+            <i class="bi bi-pencil-square fs-6" onclick="toggleChangeNameChat(${roomId})"></i>
+        </div>
+        
+            `;
         users_access.forEach(user => {
             const div = document.createElement('div');
             div.className = "py-2";
@@ -303,6 +320,56 @@
         let res = await fetch("../config/Fetch_user.php");
         let users = await res.json();
         listMemberOfChatroom(users, statusChat);
+    }
+
+    function toggleChangeNameChat(id) {
+        const roomNameText = document.getElementById("name-room");
+        const input = document.getElementById("editRoomNameInput");
+
+        // สลับการแสดงผล
+        const isEditing = !input.classList.contains("d-none");
+
+        if (isEditing) {
+            // กำลังแก้ไข -> กลับเป็นแสดงข้อความ
+            roomNameText.textContent = input.value;
+            roomNameText.classList.remove("d-none");
+            input.classList.add("d-none");
+        } else {
+            // กดเพื่อแก้ไข
+            input.value = roomNameText.textContent;
+            roomNameText.classList.add("d-none");
+            input.classList.remove("d-none");
+            input.focus();
+        }
+    }
+
+    function updateChatRoomName(roomId) {
+        const input = document.getElementById("editRoomNameInput");
+        const newName = input.value.trim();
+
+        if (newName === "") {
+            alert("กรุณากรอกชื่อห้องใหม่");
+            return;
+        }
+
+        fetch("../config/chat_nameupdate.php", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `room_id=${roomId}&new_name=${encodeURIComponent(newName)}`
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    toggleChangeNameChat(); // ซ่อน input แล้วแสดงชื่อใหม่
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(err => {
+                console.error("Error:", err);
+            });
     }
 
     function listMemberOfChatroom(users, statusChat) {
@@ -541,7 +608,7 @@
             const meetbox = document.getElementById("meet-box");
             meetbox.style.display = 'block';
 
-            // 1. อัปเดตหัวข้อห้อง
+            // 1. อัปเดตบทเรียนห้อง
             chatHeader.innerText = `${roomName}`;
 
             // กำหนดห้องปัจจุบันใหม่ จาก div ที่เลือก
@@ -568,22 +635,22 @@
         panel.style.display = "flex";
         panel.innerHTML = `
         <div class="d-flex justify-content-between">
-            <div class="fs-4">Settings</div>
+            <div class="fs-4"><?=$lang['setting']?></div>
             <button style="border: 0; background-color: #ffffff00;" onclick="toggleSettingPanel()">
                 <i class="bi bi-x"></i>
             </button>
         </div>
-        <div class="fs-6">Camera</div>
+        <div class="fs-6"><?=$lang['camera']?></div>
         <select id="cam-select"></select>
         <div class="form-check form-switch mb-2">
             <input class="form-check-input" type="checkbox" id="enableCamera" checked>
-            <label class="form-check-label" for="enableCamera">เปิดกล้อง</label>
+            <label class="form-check-label" for="enableCamera"><?=$lang['open']?><?=$lang['camera']?></label>
         </div>
-        <div class="fs-6">Audio</div>
+        <div class="fs-6"><?=$lang['audio']?></div>
         <select id="mic-select"></select>
         <div class="form-check form-switch mb-2">
             <input class="form-check-input" type="checkbox" id="enableMic" checked>
-            <label class="form-check-label" for="enableMic">เปิดไมค์</label>
+            <label class="form-check-label" for="enableMic"><?=$lang['open']?><?=$lang['audio']?></label>
         </div>
         `;
 
@@ -629,7 +696,7 @@
                     micSelect.setAttribute("disabled", "disabled");
                 }
                 const button = document.createElement('button');
-                button.textContent = "Confirm";
+                button.innerHTML = `<?=$lang['confirm']?>`;
                 button.className = "form-control";
                 button.onclick = () => Confirm_connect(camSelect, micSelect);
                 panel.appendChild(button);
@@ -1036,10 +1103,11 @@
         }
     }
 
+    sendMessageToBotByString("9900");
     function sendMessageToBot() {
 
         const input = document.getElementById('chatInput');
-        const message = input.value.trim();
+        message = input.value.trim();
         if (message) {
             const chatMessages = document.getElementById('chatMessages');
             const newMsg = document.createElement('div');
@@ -1048,7 +1116,7 @@
             newMsg.style.margin = '5px 0';
             chatMessages.appendChild(newMsg);
             input.value = '';
-            chatMessages.scrollTop = chatMessages.scrollHeight; // เลื่อนลงล่างสุด
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 
             // 2. ส่งข้อความไปที่ chatbot.php
             fetch('../config/chat-bot.php', {
@@ -1060,26 +1128,58 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    // 3. แสดงข้อความตอบกลับของบอท
-                    const botMsg = document.createElement('div');
-                    const boxmessage = document.createElement('div');
-                    boxmessage.className = "w-100 d-flex";
-                    boxmessage.style.textAlign = 'left';
-                    boxmessage.innerHTML = `
+                    setTimeout(() => {
+                        const botMsg = document.createElement('div');
+                        const boxmessage = document.createElement('div');
+                        boxmessage.className = "w-100 d-flex";
+                        boxmessage.style.textAlign = 'left';
+                        boxmessage.innerHTML = `
                         <i class="bi bi-robot px-1">
                         `;
-                    botMsg.textContent = data.reply;
-                    botMsg.style.margin = '5px 0';
-                    boxmessage.appendChild(botMsg);
-                    chatMessages.appendChild(boxmessage);
+                        botMsg.textContent = data.reply;
+                        botMsg.style.margin = '5px 0';
+                        boxmessage.appendChild(botMsg);
+                        chatMessages.appendChild(boxmessage);
 
-                    // เลื่อนลงล่างสุด
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }, 1500);
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
         }
+    }
+
+    function sendMessageToBotByString(message) {
+        // 2. ส่งข้อความไปที่ chatbot.php
+        fetch('../config/chat-bot.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ message: message })
+        })
+            .then(response => response.json())
+            .then(data => {
+                // 3. แสดงข้อความตอบกลับของบอท
+                const botMsg = document.createElement('div');
+                const boxmessage = document.createElement('div');
+                boxmessage.className = "w-100 d-flex";
+                boxmessage.style.textAlign = 'left';
+                boxmessage.innerHTML = `
+                        <i class="bi bi-robot px-1">
+                        `;
+                botMsg.textContent = data.reply;
+                botMsg.style.margin = '5px 0';
+                boxmessage.appendChild(botMsg);
+                chatMessages.appendChild(boxmessage);
+
+                // เลื่อนลงล่างสุด
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
     }
 
     // ฟังการกดปุ่ม Escape เพื่อปิด Chat Box

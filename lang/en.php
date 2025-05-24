@@ -1,12 +1,14 @@
 <?php
 
 $lang = [
+    "chooselang" => "Choose language",
+
     "welcome" => "Welcome",
     "hi" => "Hi",
     "home" => "Home",
     "course" => "Course",
     "catalogue" => "Catalogue",
-    "contect" => "Contect us",
+    "contact" => "Contect us",
     "about" => "About us",
     "login" => "Login",
     "logout" => "Logout",
@@ -21,12 +23,16 @@ $lang = [
     "studentmanagement" => "Student management system",
     "quizmanagement" => "Examination management system",
     "information" => "Information",
+    "registertext" => "Sorry, This function is disabled. If you want to register, please contact your administrator.",
 
     "typelogs" => "Type of logs",
     "logs" => "Logs",
     "backup" => "Backup",
     "error" => "Errors",
     "logins" => "Logins",
+    "setting" => "Setting",
+    "camera" => "Camera",
+    "audio" => "Audio",
 
     "import" => "Import",
     "export" => "Export",
@@ -38,6 +44,7 @@ $lang = [
     "size" => "Size",
     "action" => "Action",
     "note" => "Note",
+    "back" => "Back",
 
     "allcourse" => "All Courses",
     "filter" => "Filter",
@@ -94,8 +101,11 @@ $lang = [
     "tel" => "Telephone",
     "email" => "Email",
     "detailcontact" => "Content",
-    "confirm" => "Comfirm",
+    "confirm" => "Confirm",
     "reset" => "Reset",
+    "save" => "Save",
+    "edit" => "Edit",
+    "delete" => "Delete",
 
     //create / edit course
     "createcourse" => "Create course",
@@ -103,16 +113,24 @@ $lang = [
     "namecourse" => "Name course",
     "codecourse" => "Code",
     "description" => "Description",
+    "exam" => "Examination",
     "obj" => "Objective",
     "create" => "Create",
-    "cancel" => "Cancel",
+    "update" => "Update",
+    "close" => "Close ",
+    "open" => "Open ",
+    "cancel" => "Cancel ",
     "n-header" => "New Unit/Header",
     "n-content" => "New Content",
+    "edit-header" => "Edit Header",
+    "edit-content" => "Edit contnet",
     "status" => "Status",
     "publish" => "Publish now",
     "detail" => "Detail",
     "schedule" => "schedule",
     "nn-header" => "New name Unit/Header",
+    "nn-intro" => "Introduction",
+    "nn-conclu" => "Conclusion",
     "nn-content" => "New content",
     "typecontent" => "Type of content",
 
@@ -128,5 +146,69 @@ $lang = [
 
     "start" => "Start",
     "end" => "End",
+
+    //detail
+    "registerc" => "Register",
+    "registered" => "Already registered",
+    "createby" => "Create by",
+    "memberc" => "Members",
+    "allmember" => "All members",
+    "timetable" => "Schedule",
+    "clickhere" => "Click here",
+    "conclusion" => "Conclusion",
+
+    //email
+    "notifies" => "Notify",
+    "email" => "Email",
+    "welcometext1" => "Notify system",
+    "welcometext2" => "LINE and Email",
+    "contenttext" => "content",
+    "offeremail" => "Email",
+    "send" => "Send to ",
+    "success" => "Success",
+    "failed" => "Failed",
+    "noemail" => "Not found Email.",
+
+    //examination
+    "time-exam" => "Time to complete the test",
+    "minute" => "minute.",
+    "remaintime" => "Remaining time",
+    "sendexam" => "Submit",
+    "returnH" => "Return to Home.",
+    "sendcom" => "Test has been sent.",
+    "duplicatesend" => "This test has been sent before. You cannot send it again.",
+
+    //login
+    "username" => "Username",
+    "password" => "Password",
+    "husername" => "Enter&nbsp;username",
+    "hpassword" => "Your&nbsp;password",
+
+    //EMS
+    "ems" => "Examination Management System",
+    "title-ems" => "Title",
+    "type-ems" => "Type",
+    "start-ems" => "Start time",
+    "period-ems" => "Exam period",
+    "createdate" => "Create date",
+    "question" => "Question",
+    "choice" => "choice",
+    "at" => "",
+    "add" => "add",
+    "misschoice" => "Please select the correct option for question number",
+    "succ-exam" => "✅ Test creation completed",
+    "fail-exam" => "❌ An error occurred.",
+
+    //result
+    "all" => " all",
+    "result" => "Academic performance",
+    
+    //SMS
+    "sms" => "Student management system",
+    "select" => "Select",
+
+    //UMS
+    "ums" => "Users management system",
+    "roles" => "Roles",
 
 ];

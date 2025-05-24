@@ -9,7 +9,7 @@ $data = json_decode(file_get_contents('php://input'), true);
 
 if (!$data || !isset($data['exam_id']) || !isset($data['answers'])) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'ข้อมูลไม่ครบ']);
+    echo json_encode(['status' => 'error', 'message' => 'nodata']);
     exit;
 }
 
@@ -19,7 +19,7 @@ $answers = $data['answers'];
 
 if (!$user_id) {
     http_response_code(401);
-    echo json_encode(['status' => 'error', 'message' => 'ยังไม่ได้เข้าสู่ระบบ']);
+    echo json_encode(['status' => 'error', 'message' => 'nologin']);
     exit;
 }
 
@@ -44,9 +44,8 @@ foreach ($answers as $ans) {
         $stmt->bind_param('iiii', $user_id, $exam_id, $question_id, $choice_id);
         $stmt->execute();
     } else {
-        echo json_encode(['status' => 'duplicate', 'message' => 'ไม่สามารถส่งแบบทดสอบซ้ำได้']);
+        echo json_encode(['status' => 'duplicate', 'message' => 'duplicatesend']);
         exit;
     }
 }
-
-echo json_encode(['status' => 'success', 'message' => 'บันทึกคำตอบเรียบร้อยแล้ว']);
+echo json_encode(['status' => 'success', 'message' => 'success']);

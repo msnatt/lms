@@ -32,14 +32,30 @@ function logout()
     exit();
 }
 
+// รายการภาษาที่รองรับ
+$supportedLangs = ['th', 'en'];
 
-    // ตรวจสอบการเปลี่ยนภาษา
-    if (!isset($_SESSION['lang'])) {
-        $_SESSION['lang'] = 'th';
-    }
+// ตรวจสอบการเปลี่ยนภาษาจาก URL
+if (isset($_GET['lang']) && in_array($_GET['lang'], $supportedLangs)) {
+    $_SESSION['lang'] = $_GET['lang'];
+}
 
-    // ตั้งค่าภาษาเริ่มต้น
-    $langCode = $_SESSION['lang'] ?? 'th';
+// กำหนดค่าภาษาเริ่มต้น หากยังไม่เคยเลือก
+if (!isset($_SESSION['lang'])) {
+    $_SESSION['lang'] = 'en';
+}
 
-    // โหลดไฟล์ภาษาตามที่เลือก
-    require_once "../lang/$langCode.php";
+// โหลดภาษา
+$langCode = $_SESSION['lang'];
+$langFile = __DIR__ . "/../lang/$langCode.php";
+if (file_exists($langFile)) {
+    require_once $langFile;
+} else {
+    // fallback ภาษาอังกฤษ
+    require_once __DIR__ . "/../lang/en.php";
+}
+function buildLangSwitchLink($targetLang) {
+    $query = $_GET;
+    $query['lang'] = $targetLang;
+    return '?' . http_build_query($query);
+}

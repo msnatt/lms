@@ -4,7 +4,7 @@ header('Content-Type: application/json');
 
 // ตรวจสอบการเชื่อมต่อ
 if ($conn->connect_error) {
-    die(json_encode(['status' => 'error', 'message' => 'Database connection failed']));
+    die(json_encode(['status' => 'error', 'message' => 'DB Connect failed']));
 }
 
 try {
@@ -40,7 +40,7 @@ try {
         throw new Exception("เกิดข้อผิดพลาดในการบันทึกคะแนน: " . $stmt->error);
     }
 
-    echo json_encode(['status' => 'success', 'message' => 'บันทึกคะแนนเรียบร้อยแล้ว']);
+    echo json_encode(['status' => 'success', 'message' => 'sendcom']);
 } catch (Exception $e) {
     echo json_encode([
         'status' => 'error',
