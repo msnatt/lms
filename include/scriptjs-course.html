@@ -69,7 +69,7 @@
                         <img src="../assets/images/bg_cards/${course.image_code}.png" class="card-img-top" alt="img-${course.course_name}">
                         <div class="card-body">
                             <h5 class="card-title fw-bold">${course.course_code} ${course.course_name}</h5>
-                            <p class="">${course.description}</p>
+                            <p class="">${course.description.substring(0, 50) + "..."}</p>
                         </div>
                     </div>
                 </div>

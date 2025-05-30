@@ -1,6 +1,8 @@
 <!-- page product -->
 <script>
     let questionIndex = 0;
+    const langData = document.getElementById('lang-data').textContent;
+    const lang = JSON.parse(langData);
     document.addEventListener('DOMContentLoaded', async () => {
         await fetch_allExam();
 

@@ -30,7 +30,7 @@
                     </ul>
                 </div>
             </div>
-            <div class="w-25 d-flex align-items-center">
+            <div class="w-15 d-flex align-items-center">
 
                 <?php if (!isset($_SESSION['user_id'])): ?>
                     <ul class="navbar-nav">
