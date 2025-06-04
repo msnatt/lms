@@ -36,6 +36,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                                 <th> <?= $lang['start-ems'] ?> </th>
                                 <th> <?= $lang['period-ems'] ?> (<?= $lang['minute'] ?>) </th>
                                 <th> <?= $lang['createdate'] ?> </th>
+                                <th> <?= $lang['action'] ?> </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -44,6 +45,24 @@ $user = $_SESSION['user'] ?? 'N/A';
                     </table>
                 </div>
 
+            </div>
+        </div>
+    </div>
+    <!-- Modal ยืนยันการลบ -->
+    <div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteUserModalLabel"><?=$lang['confirmdelete']?><?=$lang['quiz']?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><?=$lang['textconfirmdelete']?><?=$lang['quiz']?><strong id="deleteUserName"></strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?=$lang['cancel']?></button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn"><?=$lang['delete']?></button>
+                </div>
             </div>
         </div>
     </div>

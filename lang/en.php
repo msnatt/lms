@@ -211,4 +211,8 @@ $lang = [
     "ums" => "Users management system",
     "roles" => "Roles",
 
+    //Modal
+    "quiz" => " quiz",
+    "confirmdelete" => "Confirm deleted",
+    "textconfirmdelete" => "Are you want this",
 ];

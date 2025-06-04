@@ -7,6 +7,7 @@ include '../components/session.php';
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
+
 <head>
     <title><?= $lang['home'] ?> - E-learning</title>
 </head>
@@ -54,7 +55,7 @@ include '../components/session.php';
             <br>
             <br>
             <br>
-            
+
 
             <div class="row justify-content-center">
                 <div class="d-flex justify-content-center">
@@ -74,6 +75,9 @@ include '../components/session.php';
     <?php include "../include/scriptjs.html"; ?>
     <?php include "../include/scriptjs-home.html"; ?>
 
+
+
 </body>
+
 
 </html>

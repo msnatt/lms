@@ -21,6 +21,12 @@
             newRow.insertCell(2).innerHTML = each.start_time;
             newRow.insertCell(3).innerHTML = each.exam_period;
             newRow.insertCell(4).innerHTML = each.created_at;
+            newRow.insertCell(5).innerHTML = `
+            <div class="text-center" onclick="openModalDeleteQuiz(${each.id})">
+                <i class="bi bi-trash3"></i>
+            </div>
+
+            `;
         });
 
     }
@@ -195,6 +201,32 @@
             });
     }
 
+    function openModalDeleteQuiz(id) {
+        let deleteUserModal = new bootstrap.Modal(document.getElementById("deleteUserModal"));
+        document.getElementById("confirmDeleteBtn").setAttribute("onclick", `deletequiz(${id})`); // ตั้งค่าปุ่มลบ
+        deleteUserModal.show(); // เปิด Modal
+    }
+
+    function deletequiz(id) {
+        // สร้าง FormData object
+        const formData = new FormData();
+        formData.append('id', id); // แนบตัวแปร id
+
+        // ส่งไปยัง exam_delete.php ด้วย fetch
+        fetch('../config/exam_deleted.php', {
+            method: 'POST',
+            body: formData
+        })
+            .then(response => response.text()) // หรือ .json() หาก PHP ส่ง JSON กลับมา
+            .then(result => {
+                console.log('ลบสำเร็จ:', result);
+                // ทำสิ่งอื่นต่อ เช่น refresh ตาราง หรือแจ้งเตือน
+            })
+            .catch(error => {
+                console.error('เกิดข้อผิดพลาด:', error);
+            });
+        // window.location.href = "../pages/quiz_management.php";
+    }
 
 
 </script>
