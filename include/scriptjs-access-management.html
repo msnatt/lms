@@ -59,7 +59,7 @@
         });
     }
 
-    async function registerall() {
+    async function accessall() {
         let select = document.getElementById('select-course');
         console.log("select : " + select.value);
 
@@ -78,16 +78,13 @@
             console.log(pair[0] + ': ' + pair[1]);
         }
 
-        fetch("../config/mycourse_create_reg.php", {
+        fetch("../config/course_access.php", {
             method: 'POST',
             body: formdata
         })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    console.log(data.message);
-                    showNotify("access all success.");
-                }
+                showNotify(data.message);
             });
 
     }

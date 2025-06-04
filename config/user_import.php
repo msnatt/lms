@@ -19,9 +19,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_FILES["csv_file"])) {
 
             if ($stmt->num_rows == 0) {
                 // ถ้าไม่มี ให้ Insert ใหม่
+                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
                 $stmt = $conn->prepare("INSERT INTO user (code, name, email, username, password, telephone, is_admin) 
                                         VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $stmt->bind_param("ssssssi", $code, $name, $email, $username, $password, $telephone, $is_admin);
+                $stmt->bind_param("ssssssi", $code, $name, $email, $username, $hashedPassword, $telephone, $is_admin);
                 $stmt->execute();
             } else {
                 // ข้อมูลที่ซ้ำ

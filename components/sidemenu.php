@@ -45,6 +45,10 @@
                 <i class="bi bi-pen"></i>
                 <a class="nav-link text" href="../pages/quiz_management.php"><?= $lang['quizmanagement'] ?></a>
             </li>
+            <li class="d-flex align-items-center gap-2">
+                <i class="bi bi-universal-access"></i>
+                <a class="nav-link text" href="../pages/access_management.php"><?= $lang['ams'] ?></a>
+            </li>
             <li class="gap-2">
                 <button class="btn btn-link nav-link text px-0" data-bs-toggle="collapse" data-bs-target="#systemSubNav" aria-expanded="false">
                     <i class="bi bi-gear"></i> <?= $lang['system'] ?>

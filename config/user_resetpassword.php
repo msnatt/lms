@@ -28,25 +28,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
         // รับค่าจากฟอร์ม
         $user_id = $_POST['user_id'] ?? null;
+        $email = $_POST['email'] ?? null;
         $new_password = $_POST['new_password'] ?? null;
 
-        if (!$user_id || !$new_password) {
+        if (!$new_password) {
+            echo json_encode(["success" => false, "message" => "กรุณาระบุรหัสผ่านใหม่"]);
+            exit();
+        }
+
+        if ($user_id) {
+            // ตรวจสอบว่ามี user นี้หรือไม่
+            $sql_check_user = "SELECT id FROM user WHERE id = ?";
+            $stmt = $conn->prepare($sql_check_user);
+            $stmt->bind_param("i", $user_id);
+        } elseif ($email) {
+            // ตรวจสอบว่ามี user นี้หรือไม่
+            $sql_check_user = "SELECT id FROM user WHERE email = ?";
+            $stmt = $conn->prepare($sql_check_user);
+            $stmt->bind_param("s", $email);
+        } else {
             echo json_encode(["success" => false, "message" => "ข้อมูลไม่ครบถ้วน"]);
             exit();
         }
 
-        // ตรวจสอบว่ามี course_id นี้หรือไม่
-        $sql_check_user = "SELECT id FROM user WHERE id = ?";
-        $stmt = $conn->prepare($sql_check_user);
-        $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $stmt->store_result();
 
+        //ดึง id ถ้าพบ email
+        if ($email) {
+            $stmt->bind_result($user_id);
+            $stmt->fetch();
+        }
         if ($stmt->num_rows > 0) {
+            $hashedPassword = password_hash($new_password, PASSWORD_DEFAULT);
+
             // อัปเดตข้อมูล course
             $sql_update_user = "UPDATE user SET password = ?, update_date = NOW() WHERE id = ?";
             $stmt = $conn->prepare($sql_update_user);
-            $stmt->bind_param("si", $new_password, $user_id);
+            $stmt->bind_param("si", $hashedPassword, $user_id);
             $stmt->execute();
         } else {
             die("Error: user ID not found.");

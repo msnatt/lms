@@ -184,6 +184,10 @@ $lang = [
     "husername" => "Enter&nbsp;username",
     "hpassword" => "Your&nbsp;password",
 
+    //reset password
+    "resetpassword" => "Reset&nbsp;password",
+    "cpassword" => "Confirm&nbsp;password",
+
     //EMS
     "ems" => "Examination Management System",
     "title-ems" => "Title",
@@ -206,6 +210,10 @@ $lang = [
     //SMS
     "sms" => "Student management system",
     "select" => "Select",
+
+    //AMS
+    "ams" => "Access Management system",
+    "access" => "Access ",
 
     //UMS
     "ums" => "Users management system",
