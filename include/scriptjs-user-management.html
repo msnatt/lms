@@ -21,9 +21,10 @@
             // let cell1 = newRow.insertCell(1);
             // cell1.innerHTML = user.name;
             // cell1.style.textAlign = "center"; // จัดให้อยู่ตรงกลาง
-            newRow.insertCell(2).innerHTML = user.telephone;
-            newRow.insertCell(3).innerHTML = user.is_admin == 1 ? "Admin" : "Student";
-            let cell04 = newRow.insertCell(4);
+            newRow.insertCell(2).innerHTML = user.username;
+            newRow.insertCell(3).innerHTML = user.telephone;
+            newRow.insertCell(4).innerHTML = user.is_admin == 1 ? "Admin" : "Student";
+            let cell04 = newRow.insertCell(5);
             cell04.className = "";
             cell04.style.maxWidth = "100px";
             cell04.style.textAlign = "center"; // จัดให้อยู่ตรงกลาง
@@ -31,6 +32,9 @@
                 <div style="display: flex; gap: 5px; width: 100%;">
                     <button class="btn btn-secondary" onclick="openResetPasswordModal(${user.id})">
                         <i class="bi bi-pen"></i><?=$lang['edit']?>
+                    </button>
+                    <button class="btn btn-secondary" onclick="openRenameModal(${user.id})">
+                        <i class="bi bi-pen"></i><?=$lang['rename']?>
                     </button>
                     <button class="btn btn-danger" onclick="openDeleteUserModal(${user.id},'${user.name}')">
                         <i class="bi bi-trash3"></i><?=$lang['delete']?>
@@ -54,6 +58,15 @@
         confirmPassword.style.border = "1px solid #ccc";
         let resetPasswordModal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
         resetPasswordModal.show();
+    }
+    // open rename
+    function openRenameModal(userId) {
+        document.getElementById('userId').value = userId;
+        let newname = document.getElementById('newname');
+        newname.value = "";
+        newname.style.border = "1px solid #ccc";
+        let renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
+        renameModal.show();
     }
     // open Delete
     function openDeleteUserModal(userId, userName) {
@@ -92,6 +105,27 @@
                 if (data.success) {
                     document.getElementById('resetPasswordForm').reset();
                     let modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+                    modal.hide();
+                }
+            })
+            .catch(error => console.error("Error:", error));
+    }
+
+    function submitRename() {
+        let userId = document.getElementById('userId').value;
+        let newname = document.getElementById('newname');
+        let formData = new FormData();
+        formData.append("user_id", userId);
+        formData.append("newname", newname.value);
+
+        fetch("../config/user_rename.php", {
+            method: "POST",
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let modal = bootstrap.Modal.getInstance(document.getElementById('renameModal'));
                     modal.hide();
                 }
             })

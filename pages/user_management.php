@@ -9,6 +9,7 @@ $user = $_SESSION['user'] ?? 'N/A';
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
+
 <head>
     <meta charset="UTF-8">
     <title>UMS - E-learning</title>
@@ -22,10 +23,10 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="bg-light d-flex" style="width: 100%;">
             <?php include "../components/sidemenu.php"; ?>
             <div class="d-flex flex-column justify-content-center w-100">
-                <h2 class="p-4 text-center" style="max-width: 100%">UMS - <?=$lang['ums']?></h2>
+                <h2 class="p-4 text-center" style="max-width: 100%">UMS - <?= $lang['ums'] ?></h2>
                 <div class="px-4 d-flex justify-content-start gap-2 mb-2">
-                    <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Import_csv()"><?=$lang['import']?></button>
-                    <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Export_csv()"><?=$lang['export']?></button>
+                    <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Import_csv()"><?= $lang['import'] ?></button>
+                    <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Export_csv()"><?= $lang['export'] ?></button>
                 </div>
                 <!-- ซ่อน input file -->
                 <input type="file" id="csvInput" class="d-none" accept=".csv" onchange="handleFileUpload(event)">
@@ -34,11 +35,12 @@ $user = $_SESSION['user'] ?? 'N/A';
                     <table id="table_user">
                         <thead>
                             <tr>
-                                <th style="width: 20%;"><?=$lang['name']?>  </th>
-                                <th style="width: 20%;"><?=$lang['code']?>  </th>
-                                <th style="width: 20%;"><?=$lang['tel']?>  </th>
-                                <th style="width: 20%;"><?=$lang['roles']?>  </th>
-                                <th style="width: 20%;"><?=$lang['action']?>  </th>
+                                <th style="width: 20%;"><?= $lang['name'] ?> </th>
+                                <th style="width: 10%;"><?= $lang['code'] ?> </th>
+                                <th style="width: 10%;"><?= $lang['username'] ?> </th>
+                                <th style="width: 10%;"><?= $lang['tel'] ?> </th>
+                                <th style="width: 10%;"><?= $lang['roles'] ?> </th>
+                                <th style="width: 20%;"><?= $lang['action'] ?> </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -97,7 +99,29 @@ $user = $_SESSION['user'] ?? 'N/A';
             </div>
         </div>
     </div>
-
+    <!-- rename -->
+    <!-- Modal -->
+    <div class="modal fade" id="renameModal" tabindex="-1" aria-labelledby="renameModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="renameModalLabel"><?= $lang['newname'] ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="userId">
+                    <div class="mb-3">
+                        <label for="newname" class="form-label"><?= $lang['newname'] ?></label>
+                        <input type="text" class="form-control" id="newname" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $lang['cancel'] ?></button>
+                    <button type="button" class="btn btn-primary" onclick="submitRename()"><?= $lang['update'] ?></button>
+                </div>
+            </div>
+        </div>
+    </div>
     <?php include "../include/footer.php"; ?>
     <?php include "../include/scriptjs.html"; ?>
     <?php include "../include/scriptjs-user-management.html"; ?>
