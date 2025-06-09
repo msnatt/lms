@@ -103,6 +103,7 @@ $lang = [
     "detailcontact" => "Content",
     "confirm" => "Confirm",
     "reset" => "Reset",
+    "change" => "Change ",
     "save" => "Save",
     "edit" => "Edit",
     "delete" => "Delete",
@@ -206,7 +207,7 @@ $lang = [
     //result
     "all" => " all",
     "result" => "Academic performance",
-    
+
     //SMS
     "sms" => "Student management system",
     "select" => "Select",
@@ -214,6 +215,7 @@ $lang = [
     //AMS
     "ams" => "Access Management system",
     "access" => "Access ",
+    "notify" => "Notify",
 
     //UMS
     "ums" => "Users management system",

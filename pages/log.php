@@ -34,7 +34,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                                     <thead>
                                         <tr>
                                             <th style="width: 30%;"><?= $lang['time'] ?></th>
-                                            <th style="width: 20%;"><?= $lang['name'] ?></th>
+                                            <th style="width: 20%;"><?= $lang['username'] ?></th>
                                             <th style="width: 15%;"><?= $lang['action'] ?></th>
                                             <th style="width: 35%;"><?= $lang['note'] ?></th>
                                         </tr>

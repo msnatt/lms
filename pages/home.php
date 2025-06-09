@@ -21,33 +21,34 @@ include '../components/session.php';
             <div class="d-flex justify-content-center py-4">
                 <?php include "../include/slidepage.php"; ?>
             </div>
-            <div class="d-flex justify-content-center">
-                <div class="row">
-                    <div class="col-12 col-md-6 col-lg-4 d-flex justify-content-center">
-                        <img src="../assets/images/300100.png" class="d-block w-auto">
+            <div class="d-flex flex-column justify-content-center align-items-center" >
+                <div class="row justify-content-center" style="max-width: 1600px;">
+                    <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
+                        <img src="../assets/images/icon01.png" class="d-block w-auto">
                     </div>
-                    <div class="col-12 col-md-6 col-lg-4 d-flex justify-content-center">
-                        <img src="../assets/images/300100.png" class="d-block w-auto">
+                    <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
+                        <img src="../assets/images/icon02.png" class="d-block w-auto">
                     </div>
-                    <div class="col-12 col-md-6 col-lg-4 d-flex justify-content-center">
-                        <img src="../assets/images/300100.png" class="d-block w-auto">
+                    <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
+                        <img src="../assets/images/icon03.png" class="d-block w-auto">
                     </div>
-                </div>
-            </div>
-            <div class="d-none d-lg-block">
-                <br>
-                <br>
-            </div>
-            <div class="d-flex justify-content-center">
-                <div class="row ">
-                    <div class="col-12 col-md-6 col-lg-4 d-flex justify-content-center">
-                        <img src="../assets/images/300100.png" class="d-block w-auto">
+                    <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
+                        <img src="../assets/images/icon04.png" class="d-block w-auto">
                     </div>
-                    <div class="col-12 col-md-6 col-lg-4 d-flex justify-content-center">
-                        <img src="../assets/images/300100.png" class="d-block w-auto">
+                    <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
+                        <img src="../assets/images/icon05.png" class="d-block w-auto">
                     </div>
-                    <div class="col-12 col-md-6 col-lg-4 d-flex justify-content-center">
-                        <img src="../assets/images/300100.png" class="d-block w-auto">
+                    <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
+                        <img src="../assets/images/icon06.png" class="d-block w-auto">
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
+                        <img src="../assets/images/icon07.png" class="d-block w-auto">
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
+                        <img src="../assets/images/icon08.png" class="d-block w-auto">
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
+                        <img src="../assets/images/icon09.png" class="d-block w-auto">
                     </div>
                 </div>
             </div>

@@ -30,10 +30,10 @@
             cell04.innerHTML = `
                 <div style="display: flex; gap: 5px; width: 100%;">
                     <button class="btn btn-secondary" onclick="openResetPasswordModal(${user.id})">
-                        <i class="bi bi-arrow-counterclockwise"></i> Reset Password
+                        <i class="bi bi-pen"></i><?=$lang['edit']?>
                     </button>
                     <button class="btn btn-danger" onclick="openDeleteUserModal(${user.id},'${user.name}')">
-                        <i class="bi bi-trash3"></i> Delete
+                        <i class="bi bi-trash3"></i><?=$lang['delete']?>
                     </button>
                 </div>
             `;
