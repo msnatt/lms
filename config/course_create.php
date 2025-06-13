@@ -29,6 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // รับค่าจากฟอร์ม
         $name = $_POST['name_course'];
         $code = $_POST['code_course'];
+        $img = $_POST['image_code'];
         $description = $_POST['textBoxDescription'];
         $objective = $_POST['textBoxObjective'];
         $ispublish = $_POST['is_publish'] == "on" ? 1 : 0;
@@ -41,12 +42,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $units = json_decode($_POST['data'], true);
 
         // บันทึกข้อมูลลงในตาราง course
-        $sql_course = "INSERT INTO course (code, image_code, name, description, objective, faculty_id, department_id, is_publish, create_by, update_by) VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql_course = "INSERT INTO course (code, image_code, name, description, objective, faculty_id, department_id, is_publish, create_by, update_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql_course);
         if (!$stmt) {
             die("Error preparing course statement: " . $conn->error);
         }
-        $stmt->bind_param("ssssiiiss", $code, $name, $description, $objective, $faculty, $department, $ispublish, $user['id'], $user['id']);
+        $stmt->bind_param("sssssiiiss", $code, $img, $name, $description, $objective, $faculty, $department, $ispublish, $user['id'], $user['id']);
         if (!$stmt->execute()) {
             die("Error executing statement: " . $stmt->error);
         }

@@ -12,13 +12,8 @@
         let res_department = await fetch("../config/Fetch_department.php");
         let json_department = await res_department.json();
 
-        // generate_select(json_faculty, "select_faculty");
-
-        // let select_faculty = document.getElementById('select_faculty');
-        // select_faculty.addEventListener("change", () => {
-        //     select_department = document.getElementById('select_department');
-        //     select_faculty.value;
-        // });
+        generateOption('image_code', 1);
+        changeImage();
     })
 
     function validateNumberInput(event) {
@@ -623,4 +618,25 @@
         });
     }
 
+    function generateOption(targetparent, optionselected) {
+        let select = document.getElementById(targetparent);
+        for (let i = 1; i < 8; i++) {
+            let option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            option.selected = i === optionselected ? true : false;
+            select.appendChild(option);
+        }
+    }
+
+    function toggleEditImage() {
+        let selectimg = document.getElementById('edit-img');
+        let isvisible = selectimg.classList.contains('d-none');
+        selectimg.classList.replace(isvisible ? 'd-none' : 'd-block', isvisible ? 'd-block' : 'd-none');
+    }
+    function changeImage() {
+        let showimg = document.getElementById('img-course');
+        let select = document.getElementById('image_code');
+        showimg.src = "../assets/images/bg_cards/" + select.value + ".png"
+    }
 </script>

@@ -30,6 +30,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $course_id = $_POST['course_id'];
         $name = $_POST['name_course'];
         $code = $_POST['code_course'];
+        $img = $_POST['image_code'];
         $description = $_POST['textBoxDescription'];
         $objective = $_POST['textBoxObjective'];
         $id_schedule = $_POST["id_schedule"] ?? [];
@@ -50,15 +51,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($stmt->num_rows > 0) {
             // อัปเดตข้อมูล course
-            $sql_update_course = "UPDATE course SET code = ?, name = ?, description = ?, objective = ?, update_by = ?,is_publish = ?, is_deleted = ? WHERE id = ? ";
+            $sql_update_course = "UPDATE course SET code = ?, name = ?, image_code = ?, description = ?, objective = ?, update_by = ?,is_publish = ?, is_deleted = ? WHERE id = ? ";
             $stmt = $conn->prepare($sql_update_course);
-            $stmt->bind_param("ssssiiii", $code, $name, $description, $objective, $user['id'], $is_publish, $is_deleted, $course_id);
+            $stmt->bind_param("sssssiiii", $code, $name, $img,  $description, $objective, $user['id'], $is_publish, $is_deleted, $course_id);
             $stmt->execute();
         } else {
             die("Error: Course ID not found.");
         }
 
-        // ตรวจสอบว่ามี course_id นี้หรือไม่
+        // ตรวจสอบว่ามี course_schedule นี้หรือไม่
         $sql_check_schedule = "SELECT * FROM course_schedule WHERE course_id = ?";
         $stmt_schedule = $conn->prepare($sql_check_schedule);
         $stmt_schedule->bind_param("i", $course_id);
@@ -148,20 +149,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         $sql_check = "SELECT id FROM course_points 
                                       WHERE user_id = ? AND course_id = ? AND unit_id = ? AND exam_id = ?";
                         $stmt_check = $conn->prepare($sql_check);
-                
+
                         // เตรียม SQL สำหรับ insert
                         $sql_point = "INSERT INTO course_points (user_id, course_id, unit_id, exam_id, point, total)
                                       VALUES (?, ?, ?, ?, 0, 0)";
                         $stmt_insert = $conn->prepare($sql_point);
-                
+
                         while ($row = $result->fetch_assoc()) {
                             $owner_id = $row['owner_id'];
-                
+
                             // ตรวจสอบว่าข้อมูลซ้ำหรือไม่
                             $stmt_check->bind_param("iiii", $owner_id, $course_id, $newUnit_id, $id_exam);
                             $stmt_check->execute();
                             $check_result = $stmt_check->get_result();
-                
+
                             if ($check_result->num_rows == 0) {
                                 // ถ้ายังไม่มีข้อมูลซ้ำ → insert ได้
                                 $stmt_insert->bind_param("iiii", $owner_id, $course_id, $newUnit_id, $id_exam);

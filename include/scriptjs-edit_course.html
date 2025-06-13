@@ -21,6 +21,8 @@
         let schedule = json_res_schedule;
         generate_course_schedule(schedule);
 
+        generateOption('image_code', detail_course['course']['image_code']);
+        const imgcourse = document.getElementById('img-course');
         const course_name = document.getElementById('name_course');
         const title_course = document.getElementById('title_edit');
         const course_code = document.getElementById('code_course');
@@ -28,6 +30,7 @@
         const course_Objective = document.getElementById('textBoxObjective');
         const is_publish = document.getElementById('is_publish');
 
+        imgcourse.setAttribute('src', "../assets/images/bg_cards/" + detail_course['course']['image_code'] + ".png")
         course_name.value = detail_course['course']['course_name'];
         title_course.textContent += detail_course['course']['course_name'];
         course_code.value = detail_course['course']['course_code'];
@@ -616,7 +619,7 @@
         console.log(ele_content);
         var dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
-        
+
         if (['1', '5', '7'].includes(selectedValue)) { // Text
             ele_content.textContent = content.value;
             var message = content.value;
@@ -723,5 +726,27 @@
             console.error('Error Create course:', error);
         }
         RedirectToPage('course');
+    }
+
+    function generateOption(targetparent, optionselected) {
+        let select = document.getElementById(targetparent);
+        for (let i = 1; i < 8; i++) {
+            let option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            option.selected = i === optionselected ? true : false;
+            select.appendChild(option);
+        }
+    }
+
+    function toggleEditImage() {
+        let selectimg = document.getElementById('edit-img');
+        let isvisible = selectimg.classList.contains('d-none');
+        selectimg.classList.replace(isvisible ? 'd-none' : 'd-block', isvisible ? 'd-block' : 'd-none');
+    }
+    function changeImage() {
+        let showimg = document.getElementById('img-course');
+        let select = document.getElementById('image_code');
+        showimg.src = "../assets/images/bg_cards/" + select.value + ".png"
     }
 </script>

@@ -46,7 +46,16 @@ $user = $_SESSION['user'] ?? 'N/A';
                         <input type="hidden" id="course_id" name="course_id" value="<?php echo $courseid; ?>">
                         <input type="hidden" id="is_deleted" name="is_deleted" value="0">
                         <div class="d-flex flex-column col-lg-3 col-12 rounded" style="padding: 0.2rem 0.25rem;">
-                            <div class="bg-white p-4 rounded ">
+                            <div class="bg-white p-4 rounded " style="position: relative;">
+                                <img id="img-course" class="card-img-top">
+                                <div class="bg-white px-1 rounded" style="position: absolute; top: 1.7rem; right: 1.8rem;" onclick="toggleEditImage()">
+                                    <i class="bi bi-pen"></i>
+                                </div>
+                                <div id="edit-img" class="w-100 d-none">
+                                    <select id="image_code" name="image_code" class="form-select" onchange="changeImage()">
+                                    </select>
+                                </div>
+                                <hr>
                                 <div class="d-flex">
                                     <div>
                                         <label class="form-label"><?= $lang['namecourse'] ?></label>
