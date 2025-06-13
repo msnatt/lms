@@ -56,7 +56,7 @@
                 <ul class="collapse nav flex-column " id="systemSubNav">
                     <li class="d-flex align-items-start gap-2">
                         <i class="bi bi-info-square"></i>
-                        <a class="nav-secondary text" href="../pages/infomation.php"><?= $lang['information'] ?><?= $lang['system'] ?></a>
+                        <a class="nav-secondary text" href="../pages/infomation.php"><?= $lang['information'] ?></a>
                     </li>
                     <li class="d-flex align-items-start gap-2">
                         <i class="bi bi-bug"></i>

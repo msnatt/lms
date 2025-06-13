@@ -24,31 +24,31 @@ include '../components/session.php';
             <div class="d-flex flex-column justify-content-center align-items-center" >
                 <div class="row justify-content-center" style="max-width: 1600px;">
                     <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
-                        <img src="../assets/images/icon01.png" class="d-block w-auto">
+                        <img id="icon01" class="d-block w-auto">
                     </div>
                     <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
-                        <img src="../assets/images/icon02.png" class="d-block w-auto">
+                        <img id="icon02" class="d-block w-auto">
                     </div>
                     <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
-                        <img src="../assets/images/icon03.png" class="d-block w-auto">
+                        <img id="icon03" class="d-block w-auto">
                     </div>
                     <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
-                        <img src="../assets/images/icon04.png" class="d-block w-auto">
+                        <img id="icon04" class="d-block w-auto">
                     </div>
                     <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
-                        <img src="../assets/images/icon05.png" class="d-block w-auto">
+                        <img id="icon05" class="d-block w-auto">
                     </div>
                     <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
-                        <img src="../assets/images/icon06.png" class="d-block w-auto">
+                        <img id="icon06" class="d-block w-auto">
                     </div>
                     <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
-                        <img src="../assets/images/icon07.png" class="d-block w-auto">
+                        <img id="icon07" class="d-block w-auto">
                     </div>
                     <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
-                        <img src="../assets/images/icon08.png" class="d-block w-auto">
+                        <img id="icon08" class="d-block w-auto">
                     </div>
                     <div class="col-6 col-md-4 col-lg-3 d-flex justify-content-center">
-                        <img src="../assets/images/icon09.png" class="d-block w-auto">
+                        <img id="icon09" class="d-block w-auto">
                     </div>
                 </div>
             </div>

@@ -11,13 +11,13 @@
             <!-- Slides -->
             <div class="carousel-inner">
                 <div class="carousel-item active">
-                    <img src="../assets/images/slide01.png" class="d-block w-100" style="max-width: 1920px;" alt="Slide 1">
+                    <img id="slide01" class="d-block w-100" style="max-width: 1920px;" alt="Slide 1">
                 </div>
                 <div class="carousel-item">
-                    <img src="../assets/images/slide02.png" class="d-block w-100" style="max-width: 1920px;" alt="Slide 2">
+                    <img id="slide02" class="d-block w-100" style="max-width: 1920px;" alt="Slide 2">
                 </div>
                 <div class="carousel-item">
-                    <img src="../assets/images/slide03.png" class="d-block w-100" style="max-width: 1920px;" alt="Slide 3">
+                    <img id="slide03" class="d-block w-100" style="max-width: 1920px;" alt="Slide 3">
                 </div>
             </div>
 
