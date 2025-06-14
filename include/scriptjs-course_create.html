@@ -190,7 +190,7 @@
                     innerHTML = "<p>Please select a content type.</p>";
             }
             content_div.innerHTML = innerHTML;
-            console.log(selectedValue);
+
             if (selectedValue === "7") {
                 let allExam = await fetch('../config/Fetch_question_sets.php');
                 let json_res = await allExam.json();
@@ -219,24 +219,22 @@
 
         data.push({ id: countNo, type: 'header', content: new_header_.value, intro: intro_header_.value, cons: cons_header_.value, is_deleted: 0 });
 
-        console.log('Updated Data:', data);
         countNo++;
         generate_degree_course(data);
         clearModal('modal_div');
     }
 
     async function create_content_div() {
-        var dropdown_content = document.getElementById('select_content');
-        const selectedValue = dropdown_content.value;
         const inputContent = document.getElementById('inputContent');
 
+        var dropdown_content = document.getElementById('select_content');
+        const selectedValue = dropdown_content.value;
         if (['1', '5', '7'].includes(selectedValue)) { // Text
             data.push({ id: countNo, type: 'content', selecttype: parseInt(selectedValue), content: inputContent.value, is_deleted: 0 });
         } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
             var filename = await upload_file_temp(inputContent, parseInt(selectedValue));
         }
 
-        console.log('Updated Data:', data);
         countNo++;
         generate_degree_course(data);
         clearModal('modal_div');
@@ -355,7 +353,7 @@
 
                 // ปุ่มแก้ไข Content
                 const editContentBtn = document.createElement('button');
-                editContentBtn.textContent = 'แก้ไข';
+                editContentBtn.textContent = lang['edit'];
                 editContentBtn.id = "edit_content_" + row['id'];
                 editContentBtn.type = 'button';
                 editContentBtn.className = 'btn btn-sm';
@@ -365,7 +363,7 @@
                 const delcontentBtn = document.createElement('button');
                 delcontentBtn.id = "delete_content_" + row['id'];
                 delcontentBtn.type = 'button';
-                delcontentBtn.textContent = 'ลบ';
+                delcontentBtn.textContent = lang['delete'];
                 delcontentBtn.className = 'btn btn-sm';
                 delcontentBtn.style.marginLeft = '10px';
                 delcontentBtn.onclick = () => deleteIndata(row['id'], "content");
@@ -409,7 +407,6 @@
     }
 
     //schedule course
-
     var btn_schedule = document.getElementById('btn_schedule');
     var div_schedule = document.getElementById('div_schedule');
 
@@ -460,6 +457,36 @@
         }
     });
 
+    function deleteIndata(id, type) {
+        var id_header = 0;
+        data.forEach(row => {
+            if (id == row['id'] && type == row['type']) {
+                row['is_deleted'] = 1;
+                if (type == "header") { id_header = row['id']; }
+            }
+            else if (id_header != 0) {
+                if (row['type'] == "header") {
+                    id_header = 0;
+                }
+                else {
+                    row['is_deleted'] = 1;
+                }
+            }
+        });
+        generate_degree_course(data);
+    }
+
+    function updateIndata(id, type, content, intro, cons) {
+        data.forEach(row => {
+            if (id == row['id'] && type == row['type']) {
+                row['content'] = content;
+                row['intro'] = intro;
+                row['cons'] = cons;
+            }
+        });
+        console.log(data);
+    }
+
     function popup_update_header(id) {
         // ลบ modal_div เดิมถ้ามี
         const oldModal = document.getElementById('modal_div');
@@ -497,59 +524,24 @@
         dynamicModal.show();
         document.getElementById('update-header').addEventListener('click', () => {
             var new_content = document.getElementById('update_header');
+            var new_intro = document.getElementById('intro_header');
+            var new_cons = document.getElementById('cons_header');
             if (new_content) {
-                update_header(id, new_content.value);
+                update_header(id, new_content.value, new_intro.value, new_cons.value);
             }
         });
 
     }
 
-    function deleteIndata(id, type) {
-        var id_header = 0;
-        data.forEach(row => {
-            if (id == row['id'] && type == row['type']) {
-                row['is_deleted'] = 1;
-                if (type == "header") { id_header = row['id']; }
-            }
-            else if (id_header != 0) {
-                if (row['type'] == "header") {
-                    id_header = 0;
-                }
-                else {
-                    row['is_deleted'] = 1;
-                }
-
-            }
-        });
-        generate_degree_course(data);
-        console.log(data);
-    }
-
-    function updateIndata(id, type, content) {
-        data.forEach(row => {
-            if (id == row['id'] && type == row['type']) {
-                row['content'] = content;
-            }
-        });
-
-        console.log(data);
-    }
-
-    async function update_header(id, content) {
+    async function update_header(id, content, intro, cons) {
         const ele_header = document.getElementById('header_' + id);
+        const intro_header = document.getElementById('header_intro_' + id);
+        const cons_header = document.getElementById('header_cons_' + id);
         ele_header.textContent = content;
+        intro_header.innerHTML = intro;
+        cons_header.innerHTML = cons;
 
-        // var dropdown_content = document.getElementById('select_content');
-        // const selectedValue = dropdown_content.value;
-        // if (selectedValue === '1') { // Text
-        //     header_div.textContent = inputContent.value;
-        // } else if (['2', '3', '4'].includes(selectedValue)) { // Image, Video, PDF
-        //     var [filename, massage] = await upload_file_temp(inputContent, selectedValue);
-        //     header_div.textContent = filename;
-        // }
-
-        console.log('Updated Data:', data);
-        updateIndata(id, "header", content);
+        updateIndata(id, "header", content, intro, cons);
         clearModal('modal_div');
     };
 
@@ -579,8 +571,8 @@
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id="update-content" data-bs-dismiss="modal">Create</button>
-                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="update-content" data-bs-dismiss="modal"><?=$lang['create']?></button>
+                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal"><?=$lang['close']?></button>
                         </div>
                     </div>
                 </div>
@@ -611,21 +603,9 @@
             ele_content.innerHTML = filename;
         }
 
-        console.log('Updated Data:', data);
-
-        updateIndata(id, "content", message);
+        updateIndata(id, "content", ele_content.innerHTML);
         clearModal('modal_div');
     };
-
-    function generate_select(values, id) {
-        let select = document.getElementById(id);
-        values.forEach(value => {
-            const option = document.createElement('option');
-            option.value = value.id;
-            option.textContent = "Faculty of " + value.name;
-            select.appendChild(option);
-        });
-    }
 
     async function generateOption(targetparent, optionselected) {
         let select = document.getElementById(targetparent);
@@ -634,7 +614,6 @@
             const files = await response.json();
 
             files.forEach(filename => {
-                console.log(filename);
                 const option = document.createElement('option');
                 option.value = filename;
                 option.textContent = filename;
@@ -655,7 +634,6 @@
     function changeImage() {
         let showimg = document.getElementById('img-course');
         let select = document.getElementById('image_code');
-        console.log(select.value);
         showimg.src = "../assets/images/bg_cards/" + select.value;
     }
 
