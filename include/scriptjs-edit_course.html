@@ -62,7 +62,13 @@
                 unit_.style.width = '100%';
                 unit_.style.fontSize = '1.25rem';
                 unit_.style.border = '1px solid #eee';
-                unit_.innerHTML = `<div id="header_${row['id']}">- ${row['content']}</div>`;
+                unit_.innerHTML = `
+                <div>
+                    <div id="header_${row['id']}">${row['content']}</div>
+                    <div class="fs-6" id="header_intro_${row['id']}"><?=$lang['nn-intro']?>: ${row['intro']}</div>
+                    <div class="fs-6" id="header_cons_${row['id']}"><?=$lang['nn-conclu']?>: ${row['cons']}</div>
+                </div>
+                `;
 
                 // ปุ่มแก้ไข Unit
                 const editUnitBtn = document.createElement('button');
