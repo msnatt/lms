@@ -47,8 +47,13 @@ $user = $_SESSION['user'] ?? 'N/A';
                                     <i class="bi bi-pen"></i>
                                 </div>
                                 <div id="edit-img" class="w-100 d-none">
+                                    <p class="mb-0"><?= $lang['select'] . $lang['image'] ?></p>
                                     <select id="image_code" name="image_code" class="form-select" onchange="changeImage()">
                                     </select>
+                                    <p class="mb-0"><?= $lang['upload'] . $lang['new'] . $lang['image'] ?></p>
+                                    <button type="button" id="manage" class="bg-white p-2 mt-1 w-100 rounded border">
+                                        <?= $lang['upload'] ?> <i class="bi bi-cloud-plus fs-5"></i>
+                                    </button>
                                 </div>
                                 <hr>
                                 <div class="d-flex">
@@ -134,6 +139,20 @@ $user = $_SESSION['user'] ?? 'N/A';
                             </div>
                         </div>
                     </form>
+                </div>
+                <div id="managebox" class="bg-white rounded p-3">
+                    <h3 class="text-center"><?= $lang['manageimage'] ?></h3>
+                    <div id="preview" class="w-100 text-center" style="display: none;">
+                        <p class="text-center mb-0 fw-bold"><?= $lang['preview'] ?></p>
+                        <img id="img-preview" src="#" alt="Image Preview" style="max-height: 200px;">
+                    </div>
+                    <button class="btn btn-success mx-auto my-2 w-25" id="btn-save" onclick="saveto()" style="display: none;"><?= $lang['save'] ?></button>
+                    <div class="w-100 px-4 py-2">
+                        <label for="imageInput" class="upload-box w-100">
+                            <p><?= $lang['clickforimport'] ?></p>
+                            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
