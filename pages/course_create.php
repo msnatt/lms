@@ -98,36 +98,10 @@ $user = $_SESSION['user'] ?? 'N/A';
                                 </div>
                                 <h5 class="d-flex justify-content-center"><?= $lang['detail'] ?></h5>
                                 <label class="form-label"><?= $lang['faculty'] ?></label>
-                                <select class="form-select" name="select_faculty" id="select_faculty" onchange="filterCourses()">
-                                    <option value="1"><?= $lang['all_faculty'] ?? '-- All Faculty --' ?></option>
-                                    <option value="2"><?= $lang['science'] ?? 'Faculty of Science' ?></option>
-                                    <option value="3"><?= $lang['engineering'] ?? 'Faculty of Engineering' ?></option>
-                                    <option value="4"><?= $lang['business'] ?? 'Faculty of Business Administration' ?></option>
-                                    <option value="5"><?= $lang['arts'] ?? 'Faculty of Arts' ?></option>
-                                    <option value="6"><?= $lang['medicine'] ?? 'Faculty of Medicine' ?></option>
-                                </select>
+                                <select class="form-select" name="select_faculty" id="select_faculty"></select>
 
                                 <label class="form-label"><?= $lang['department'] ?></label>
-                                <select class="form-select" name="select_department" id="select_department" onchange="filterCourses()">
-                                    <option value="1"><?= $lang['all_department'] ?? '-- All Department --' ?></option>
-
-                                    <!-- Science Departments -->
-                                    <optgroup label="<?= $lang['science'] ?? 'Faculty of Science' ?>">
-                                        <option value="2"><?= $lang['cs'] ?? 'Computer Science' ?></option>
-                                        <option value="3"><?= $lang['math'] ?? 'Mathematics' ?></option>
-                                        <option value="4"><?= $lang['physics'] ?? 'Physics' ?></option>
-                                        <option value="5"><?= $lang['chemistry'] ?? 'Chemistry' ?></option>
-                                        <option value="6"><?= $lang['biology'] ?? 'Biology' ?></option>
-                                    </optgroup>
-
-                                    <!-- Engineering Departments -->
-                                    <optgroup label="<?= $lang['engineering'] ?? 'Faculty of Engineering' ?>">
-                                        <option value="10"><?= $lang['civil'] ?? 'Civil Engineering' ?></option>
-                                        <option value="11"><?= $lang['mechanical'] ?? 'Mechanical Engineering' ?></option>
-                                        <option value="12"><?= $lang['electrical'] ?? 'Electrical Engineering' ?></option>
-                                        <option value="13"><?= $lang['computer_eng'] ?? 'Computer Engineering' ?></option>
-                                    </optgroup>
-                                </select>
+                                <select class="form-select" name="select_department" id="select_department"></select>
                             </div>
                             <div class="bg-secondary w-100 bg-opacity-10 rounded mt-1">
                                 <h5 class="d-flex justify-content-center" style="position: relative;">

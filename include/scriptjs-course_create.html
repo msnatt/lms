@@ -15,6 +15,14 @@
 
         await generateOption('image_code', "1.png");
         changeImage();
+
+
+        let responce = await fetch('../config/Fetch_facultyall.php');
+        let json1 = await responce.json();
+        generateOptionfilter('select_faculty', json1);
+        let response = await fetch('../config/Fetch_departmentall.php');
+        let json2 = await response.json();
+        generateOptionfilter('select_department', json2);
     })
 
     function validateNumberInput(event) {
@@ -696,4 +704,19 @@
 
     });
 
+    function generateOptionfilter(id, json) {
+        let select = document.getElementById(id);
+
+        // ล้าง option เดิมก่อน
+        select.innerHTML = '';
+
+
+        // สร้าง option จาก json
+        json.forEach(row => {
+            let option = document.createElement('option');
+            option.value = row.id; // หรือ row.<ชื่อคอลัมน์ที่ใช้เป็น value>
+            option.innerHTML = row.name; // หรือ row.<ชื่อคอลัมน์ที่ใช้เป็น label>
+            select.appendChild(option);
+        });
+    }
 </script>
