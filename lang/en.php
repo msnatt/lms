@@ -16,7 +16,7 @@ $lang = [
     "system" => "System",
     "chat" => "General Chat",
     "mycourse" => "Mycourse",
-    "result" => "Result of courses",
+    "result" => "Academic performance",
     "certificate" => "Certificate",
     "usermanagement" => "Users management system",
     "emailmanagement" => "Email management system",
@@ -48,8 +48,6 @@ $lang = [
 
     "allcourse" => "All Courses",
     "filter" => "Filter",
-    "codecourse" => "Code",
-    "namecourse" => "Name",
     "faculty" => "Faculty",
     "department" => "Department",
 
@@ -105,7 +103,7 @@ $lang = [
     "reset" => "Reset",
     "change" => "Change ",
     "rename" => "rename",
-    "newname" => "new name",
+    "newname" => "New name",
     "save" => "Save",
     "edit" => "Edit",
     "delete" => "Delete",
@@ -162,7 +160,6 @@ $lang = [
 
     //email
     "notifies" => "Notify",
-    "email" => "Email",
     "welcometext1" => "Notify system",
     "welcometext2" => "LINE and Email",
     "contenttext" => "content",
@@ -208,7 +205,6 @@ $lang = [
 
     //result
     "all" => " all",
-    "result" => "Academic performance",
 
     //SMS
     "sms" => "Student management system",
@@ -227,4 +223,20 @@ $lang = [
     "quiz" => " quiz",
     "confirmdelete" => "Confirm deleted",
     "textconfirmdelete" => "Are you want this",
+
+    "name-p" => "Name file of",
+    "slide01" => "Slide01",
+    "slide02" => "Slide02",
+    "slide03" => "Slide03",
+    "icon01" => "Icon01",
+    "icon02" => "Icon02",
+    "icon03" => "Icon03",
+    "icon04" => "Icon04",
+    "icon05" => "Icon05",
+    "icon06" => "Icon06",
+    "icon07" => "Icon07",
+    "icon08" => "Icon08",
+    "icon09" => "Icon09",
+
+    "preview" => "Preview",
 ];

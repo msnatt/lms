@@ -8,8 +8,11 @@
 
         Object.entries(json).forEach(([key, value]) => {
             let element = document.getElementById(key);
+            if (key == 'id') {
+                return
+            }
             if (key !== 'youtube_id') {
-                element.setAttribute('src', "../assets/images/home/" + value + ".png");
+                element.setAttribute('src', "../assets/images/home/" + value);
             }
         });
 
