@@ -39,7 +39,8 @@
         is_publish.checked = detail_course['course']['is_publish'] == 1 ? true : false;
 
         detail_course['course']['units'].forEach(unit => {
-            data.push({ id: unit['unit_id'], type: 'header', content: unit['unit_name'], is_deleted: unit['is_deleted'] });
+            console.log(unit);
+            data.push({ id: unit['unit_id'], type: 'header', content: unit['unit_name'], intro: unit['unit_introduction'], cons: unit['unit_conclusion'], is_deleted: unit['is_deleted'] });
             unit['contents'].forEach(content => {
                 if (content['unit_id'] == unit['unit_id']) {
                     data.push({ id: content['content_id'], type: 'content', selecttype: content['type_id'], content: content['content'], is_deleted: content['is_deleted'] });
