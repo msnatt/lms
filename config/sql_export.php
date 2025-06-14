@@ -12,7 +12,7 @@ $date = date("Y-m-d_H-i-s");
 $backupFile = "backup_{$dbname}_{$date}.sql";
 
 // path ไปยัง mysqldump.exe (กรณีใช้ XAMPP)
-$mysqldumpPath = 'C:/xampp/mysql/bin/mysqldump.exe';
+$mysqldumpPath = 'D:/xampp/mysql/bin/mysqldump.exe';
 
 if (!file_exists($mysqldumpPath)) {
     log_error("ไม่พบ mysqldump ที่ path: $mysqldumpPath", 'export');

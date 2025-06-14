@@ -1,6 +1,6 @@
 <?php
 // เชื่อมต่อฐานข้อมูล
-// include '../config/connect.php'; // แก้ไขเป็นไฟล์ที่ใช้เชื่อมต่อฐานข้อมูลจริง
+include_once '../config/connect.php'; // แก้ไขเป็นไฟล์ที่ใช้เชื่อมต่อฐานข้อมูลจริง
 
 // ฟังก์ชันสำหรับเก็บ log ข้อความผิดพลาดในฐานข้อมูล
 function log_error($message, $category = 'general') {
