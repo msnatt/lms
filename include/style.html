@@ -549,25 +549,46 @@
     }
 
     #managebox {
-        max-width: 500px;
+        max-width: 1000px;
+        min-height: 30svh;
+        position: fixed;
         width: 0%;
-        position: absolute;
         top: 12%;
-        left: -100%;
+        left: 50%;
+        transform: translateX(-50%) scaleX(0);
+        /* เริ่มต้น: ซ่อน */
         transition: all 0.3s ease-in-out;
+        overflow: hidden;
+        box-shadow: 3px 3px 10px #aaa;
     }
 
     #managebox.show {
-        width: 25%;
+        width: 50%;
+        transform: translateX(-50%) scaleX(1);
+        /* แสดงและขยาย */
+    }
+
+
+    #manageimage {
+        position: fixed;
+        bottom: 5%;
+        right: 10%;
     }
 
     @media (max-width: 992px) {
         #managebox {
-            position: fixed;
             width: 100%;
             max-width: none;
             z-index: 999;
             box-shadow: 2px 2px 5px #000;
+        }
+
+        #managebox.show {
+            width: 100%;
+        }
+
+        #manageimage {
+            right: 25%;
         }
     }
 </style>

@@ -239,4 +239,6 @@ $lang = [
     "icon09" => "Icon09",
 
     "preview" => "Preview",
+    "manageimage" => "Manage Image Home",
+    "clickforimport" => "click here for import.",
 ];

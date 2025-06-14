@@ -17,9 +17,9 @@ include '../components/session.php';
     <?php include "../include/header.php"; ?>
     <div class="d-flex" style="min-height: 100svh;">
         <?php include "../components/sidemenu.php"; ?>
-        <div id="main-content" class="mt-4 flex-grow-1 d-flex justify-content-center" style="transition: all 0.3s ease; position: relative;">
-            <div id="managebox" class="bg-light rounded p-3">
-                <h3 class="text-center">การจัดการรูปภาพ</h3>
+        <div id="main-content" class="mt-4 flex-grow-1 d-flex justify-content-center" style="transition: all 0.3s ease;">
+            <div id="managebox" class="bg-white rounded p-3">
+                <h3 class="text-center"><?=$lang['manageimage']?></h3>
                 <div id="preview" class="w-100 text-center" style="display: none;">
                     <p class="text-center mb-0 fw-bold"><?= $lang['preview'] ?></p>
                     <img id="img-preview" src="#" alt="Image Preview" style="max-height: 200px;">
@@ -27,12 +27,12 @@ include '../components/session.php';
                 <button class="btn btn-success mx-auto my-2 w-25" id="btn-save" onclick="saveto()" style="display: none;"><?= $lang['save'] ?></button>
                 <div class="w-100 px-4 py-2">
                     <label for="imageInput" class="upload-box w-100">
-                        <p>คลิกเพื่อเลือกรูปภาพ</p>
+                        <p><?=$lang['clickforimport']?></p>
                         <input type="file" id="imageInput" accept="image/*" style="display: none;">
                     </label>
                 </div>
             </div>
-            <form class="w-100" id="form-homeprofile" action="../config/home-update.php" method="post">
+            <form id="form-homeprofile" action="../config/home-update.php" method="post">
                 <div class="d-flex gap-3 justify-content-center">
                     <div class="d-flex flex-column boxsq bg-white p-3 rounded gap-2">
                         <label class="form-label text text-center fs-3"><?= $lang['slide01'] ?></label>
