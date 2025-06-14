@@ -240,5 +240,9 @@ $lang = [
 
     "preview" => "Preview",
     "manageimage" => "Manage Image Home",
-    "clickforimport" => "click here for import.",
+    "clickforimport" => "click here for import. ( recommand 16:9 or 1920 x 1080 px )",
+    "upload" => "Upload",
+    "image" => " Image",
+    "new" => " New",
+    "or" => " Or",
 ];
