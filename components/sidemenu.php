@@ -2,7 +2,7 @@
     <ul class="navbar-nav">
         <li class="gap-2 d-block d-lg-none">
             <button class="btn btn-link nav-link text px-0" data-bs-toggle="collapse" data-bs-target="#systemSubNav" aria-expanded="false">
-                <?= $lang['hi'] ?>! <?php echo $_SESSION['username'] ?>
+                <?= $lang['hi'] ?>! <?= $_SESSION['username'] ?? '' ?>
             </button>
             <ul class="collapse nav flex-column " id="systemSubNav">
                 <li class="d-flex align-items-start gap-2">
@@ -12,6 +12,24 @@
             </ul>
             <hr>
         </li>
+        <ul class="navbar-nav d-block d-lg-none">
+            <li class="d-flex align-items-center gap-1">
+                <!-- <i class="bi bi-house"></i> -->
+                <a class="nav-link text" href="../pages/home.php"><?= $lang['home'] ?></a>
+            </li>
+            <li class="d-flex align-items-center gap-1">
+                <!-- <i class="bi bi-journal-text"></i> -->
+                <a class="nav-link text" href="../pages/course.php"><?= $lang['course'] ?></a>
+            </li>
+            <li class="d-flex align-items-center gap-1">
+                <!-- <i class="bi bi-book-half"></i> -->
+                <a class="nav-link text" href="../pages/course_catalogue.php"><?= $lang['catalogue'] ?></a>
+            </li>
+            <li class="d-flex align-items-center gap-1">
+                <a class="nav-link text" href="../pages/contect.php"><?= $lang['contact'] ?></a>
+            </li>
+        </ul>
+        <hr>
         <li class="d-flex align-items-center gap-2">
             <i class="bi bi-house"></i>
             <span><a class="nav-link active text" href="../pages/chat.php"><?= $lang['chat'] ?></a></span>
