@@ -54,8 +54,25 @@ if (file_exists($langFile)) {
     // fallback ภาษาอังกฤษ
     require_once __DIR__ . "/../lang/en.php";
 }
-function buildLangSwitchLink($targetLang) {
+function buildLangSwitchLink($targetLang)
+{
     $query = $_GET;
     $query['lang'] = $targetLang;
     return '?' . http_build_query($query);
 }
+
+// ถ้ามีการส่งฟอร์มมา
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $_SESSION['bg'] = $_POST['bg'] ?? '#ffffff';
+    $_SESSION['bgbar'] = $_POST['bgbar'] ?? '#f8f9fa';
+    $_SESSION['bgside'] = $_POST['bgside'] ?? '#e9ecef';
+    $_SESSION['text'] = $_POST['text'] ?? '#000000';
+    $_SESSION['button'] = $_POST['button'] ?? '#007bff';
+}
+
+// ตั้งค่า default ถ้ายังไม่มีใน session
+$bg = $_SESSION['bg'] ?? '#ffffff';
+$bgbar = $_SESSION['bgbar'] ?? '#f8f9fa';
+$bgside = $_SESSION['bgside'] ?? '#e9ecef';
+$text = $_SESSION['text'] ?? '#000000';
+$button = $_SESSION['button'] ?? '#007bff';

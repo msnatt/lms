@@ -13,7 +13,7 @@ include '../components/session.php';
 </head>
 
 
-<body class="bg-custom">
+<body style="background-color: <?=$bg;?>">
     <?php include "../include/header.php"; ?>
     <div class="d-flex" style="min-height: 100vh;">
         <?php include "../components/sidemenu.php"; ?>

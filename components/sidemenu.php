@@ -1,4 +1,4 @@
-<div class="sidebar collapsed" id="sidebar" style="border-right: 1px solid #aaa; transition: width 0.3s ease, padding 0.3s ease;">
+<div class="sidebar collapsed" id="sidebar" style="border-right: 1px solid #aaa; transition: width 0.3s ease, padding 0.3s ease; background-color: <?=$bgside;?>;">
     <ul class="navbar-nav">
         <li class="gap-2 d-block d-lg-none">
             <button class="btn btn-link nav-link text px-0" data-bs-toggle="collapse" data-bs-target="#systemSubNav" aria-expanded="false">
@@ -83,6 +83,10 @@
                     <li class="d-flex align-items-start gap-2">
                         <i class="bi bi-database-fill-down"></i>
                         <a class="nav-secondary text" href="../pages/backup.php"><?= $lang['backup'] ?></a>
+                    </li>
+                    <li class="d-flex align-items-start gap-2">
+                        <i class="bi bi-database-fill-down"></i>
+                        <a class="nav-secondary text" href="../pages/color.php"><?= $lang['color'] ?></a>
                     </li>
                 </ul>
             </li>

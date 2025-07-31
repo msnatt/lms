@@ -245,4 +245,6 @@ $lang = [
     "image" => " Image",
     "new" => " New",
     "or" => " Or",
+
+    "color"=> "Color",
 ];

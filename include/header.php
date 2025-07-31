@@ -1,6 +1,6 @@
-<header class="fw-medium">
+<header class="fw-medium" >
     <div style="padding: 0rem ;">
-        <nav class="navbar d-flex justify-content-center justify-content-lg-between navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar d-flex justify-content-center justify-content-lg-between navbar-expand-lg navbar-light" style="background-color: <?=$bgbar;?>;">
             <div>
                 <button id="sidebar_btn" class="btn ms-2"><i class="bi bi-list w-100 h-100"></i> </button>
                 <a class="navbar-brand ms-2" href="../pages/home.php">
