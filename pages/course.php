@@ -79,7 +79,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                         </div>
                         <div id="result-box" class="d-flex flex-column col-12 col-lg-10">
                             <div class="d-flex justify-content-center px-4">
-                                <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder=<?= $lang['entersearch'] ?>>
+                                <!-- <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder=<?= $lang['entersearch'] ?>> -->
                             </div>
                             <div class="d-flex justify-content-between px-4 pt-3">
                                 <div>
@@ -90,7 +90,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                                     <button type="button" class="form-control"><i class="bi bi-arrow-clockwise"></i><?= $lang['refresh'] ?></button>
                                 </div>
                             </div>
-                            <div id="course_div" name="course_div" class="d-flex flex-wrap justify-content-center"></div>
+                            <div id="course_div" name="course_div" class="d-flex flex-wrap justify-content-center" style="min-height: 40svh;"></div>
 
                             <br>
                             <br>
