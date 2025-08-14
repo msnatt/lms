@@ -82,7 +82,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 col-lg-7 border rounded bg-light shadow-sm" id="commu-box" style="display: block;">
+                    <div class="col-12 col-lg-7 border bg-light shadow-sm" id="commu-box" style="display: block;">
                         <div id="" class="bg-secondary-subtle bg-opacity-10 d-flex justify-content-between align-items-center px-3 py-1 " style="min-height: 50px;">
                             <div class="d-flex align-items-center">
                                 <button class="d-lg-none d-block bg-transparent border-0" onclick="toggleChatRoom()"><i class="bi bi-list"></i></button>

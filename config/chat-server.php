@@ -9,9 +9,6 @@ use React\EventLoop\Loop;
 use React\Socket\SecureServer;
 use React\Socket\SocketServer;
 
-echo dirname(__DIR__) . '/vendor/autoload.php'; // ตรวจสอบว่าถูกไหม
-
-
 require_once dirname(__DIR__) . '/vendor/autoload.php';
 require_once dirname(__DIR__) . '../config/connect.php';
 
@@ -25,7 +22,8 @@ class Chat implements MessageComponentInterface
         $this->clients = new \SplObjectStorage;
         global $conn;
         $this->conn = $conn;
-        echo "Chat server started and MySQLi connected (WSS)\n";
+        echo "Chat server started and MySQLi connected (WS)\n";
+        // echo "Chat server started and MySQLi connected (WSS)\n";
     }
 
     public function onOpen(ConnectionInterface $conn)
@@ -125,16 +123,31 @@ class Chat implements MessageComponentInterface
 $loop = Loop::get();
 
 
-// เปิด socket พอร์ต 8085
-$socket = new SocketServer('0.0.0.0:8085', [], $loop);
+// // เปิด socket พอร์ต 8085
+// $socket = new SocketServer('0.0.0.0:8085', [], $loop);
 
-// เพิ่มการเข้ารหัส SSL
-$secure_socket = new SecureServer($socket, $loop, [
-    'local_cert' => 'D:/xampp/apache/conf/ssl.crt/49.0.69.152.pem', // 👈 เปลี่ยนเป็น path ของคุณ
-    'local_pk' => 'D:/xampp/apache/conf/ssl.key/49.0.69.152-key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
-    'allow_self_signed' => true,
-    'verify_peer' => false
-]);
+// // เพิ่มการเข้ารหัส SSL
+// $secure_socket = new SecureServer($socket, $loop, [
+//     'local_cert' => 'D:/xampp/apache/conf/ssl.crt/cert.pem', // 👈 เปลี่ยนเป็น path ของคุณ
+//     'local_pk' => 'D:/xampp/apache/conf/ssl.key/key.pem',  // 👈 เปลี่ยนเป็น path ของคุณ
+//     'allow_self_signed' => true,
+//     'verify_peer' => false
+// ]);
+
+// $server = new IoServer(
+//     new HttpServer(
+//         new WsServer(
+//             new Chat()
+//         )
+//     ),
+//     $secure_socket,
+//     $loop
+// );
+
+// echo "Secure WSS server started on port 8085...\n";
+// $loop->run();
+// ใช้ WS (ไม่เข้ารหัส SSL)
+$socket = new SocketServer('0.0.0.0:8085', [], $loop);
 
 $server = new IoServer(
     new HttpServer(
@@ -142,9 +155,9 @@ $server = new IoServer(
             new Chat()
         )
     ),
-    $secure_socket,
+    $socket, // เอา $secure_socket ออก
     $loop
 );
 
-echo "Secure WSS server started on port 8085...\n";
+echo "WS server started on port 8085...\n";
 $loop->run();

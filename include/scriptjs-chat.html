@@ -1,6 +1,7 @@
 <script>
-    // const socket = new WebSocket("wss://localhost:8085/");
-    const socket = new WebSocket("wss://49.0.69.152:8085/");
+    const socket = new WebSocket("ws://localhost:8085/");
+    // const socket = new WebSocket("wss://49.0.69.152:8085/");
+    // const socket = new WebSocket("ws://192.168.1.200:8085/");
 
     let peerConnections = {};
     let localStream = null;
@@ -23,6 +24,42 @@
     document.addEventListener("DOMContentLoaded", () => {
         loadChatRooms();
     });
+
+    socket.onopen = function () {
+        console.log("Connected to WebSocket");
+    };
+
+    socket.onmessage = async function (event) {
+        const data = JSON.parse(event.data);
+        const fromId = data.sender_id;
+        switch (data.type) {
+            case "join":
+            case "chat":
+                displayMessage(data.name, data.message);
+                break;
+            case "offer":
+                console.log(`Handling offer from user ${fromId}`);
+                await handleOffer(data.offer, fromId);
+                break;
+            case "answer":
+                console.log(`Handling answer from user ${fromId}`);
+                await handleAnswer(data.answer, fromId);
+                break;
+            case "candidate":
+                console.log(`Handling candidate from user ${fromId}`);
+                await handleCandidate(data.candidate, fromId);
+                break;
+            case "new-peer":
+                console.log(`Handling new peer connection for user ${data.new_user_id}`);
+                await createOfferTo(data.new_user_id);
+                break;
+            case "leave":
+                await deletedRemoteVideo(fromId);
+                break;
+            default:
+                console.warn("Unknown message type:", data.type);
+        }
+    };
 
     async function loadChatRooms() {
         try {
@@ -776,42 +813,6 @@
             return null;
         }
     }
-
-    socket.onopen = function () {
-        console.log("Connected to WebSocket");
-    };
-
-    socket.onmessage = async function (event) {
-        const data = JSON.parse(event.data);
-        const fromId = data.sender_id;
-        switch (data.type) {
-            case "join":
-            case "chat":
-                displayMessage(data.name, data.message);
-                break;
-            case "offer":
-                console.log(`Handling offer from user ${fromId}`);
-                await handleOffer(data.offer, fromId);
-                break;
-            case "answer":
-                console.log(`Handling answer from user ${fromId}`);
-                await handleAnswer(data.answer, fromId);
-                break;
-            case "candidate":
-                console.log(`Handling candidate from user ${fromId}`);
-                await handleCandidate(data.candidate, fromId);
-                break;
-            case "new-peer":
-                console.log(`Handling new peer connection for user ${data.new_user_id}`);
-                await createOfferTo(data.new_user_id);
-                break;
-            case "leave":
-                await deletedRemoteVideo(fromId);
-                break;
-            default:
-                console.warn("Unknown message type:", data.type);
-        }
-    };
 
     async function handleOffer(offer, fromId) {
         console.log(`📨 Received offer from: ${fromId}`);
