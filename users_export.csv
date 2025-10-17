@@ -1,0 +1,7 @@
+ID,Code,Name,Email,Username,Telephone,Created,Updated,Role
+1,65000000001,"Jirawat Sisaard Reef",Jirawat@gmail.com,admin,0987654321,2025-03-03,2025-06-04,1
+2,65000000002,"Newbie olded gika",newbie@gmail.com,user,0984634583,2025-04-04,2025-06-04,0
+3,65000000003,"Bancha Siripapan Jet",Bancha@gmail.com,Bancha.S.Admin,0123456789,2025-03-03,2025-06-04,1
+5,65000000004,"Kanya Sukseree Queen",Kanya@gmail.com,Kanya.S.Admin,0123456789,2025-03-03,2025-06-04,1
+6,65000000005,"Nichaporn Treesup Cha-em",Nichaporn@gmail.com,Nichaporn.T.User,123456789,2025-04-03,2025-06-04,0
+8,65000000006,"Peeraya Tarawong Gigiasd",Peeraya@gmail.com,User,1234567890,2025-03-03,2025-06-04,0
