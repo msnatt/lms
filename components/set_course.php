@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     $_SESSION['owner'] = $owner;
 
     // เปลี่ยนเส้นทางไปยัง detail.php
-    header("Location: ../pages/course_detail.php?courseid=" . $course_id);
-    // header("Location: ../pages/detail.php?courseid=" . $course_id);
+    // header("Location: ../pages/course_detail.php?courseid=" . $course_id);
+    header("Location: ../pages/detail.php?courseid=" . $course_id);
     exit();
 }

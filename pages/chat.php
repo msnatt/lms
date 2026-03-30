@@ -23,23 +23,36 @@ $user = $_SESSION['user'] ?? 'N/A';
             <?php include "../components/sidemenu.php"; ?>
             <div class="w-100 d-flex justify-content-center">
                 <div class="my-4 d-flex w-100 h-75" style="max-width: 1650px;">
-                    <div class="col-12 col-lg-2 border shadow-sm" id="box-list-room-chat" style="background-color: #ddd; border-radius: 1rem 0 0 1rem;">
+                    <div class="col-12 col-lg-2 border shadow-sm position-relative" id="box-list-room-chat" style="background-color: #ddd; border-radius: 1rem 0 0 1rem;">
                         <div class="d-flex flex-wrap">
-                            <div id="header-box" class="d-flex flex-wrap justify-content-between align-items-center w-100 px-4 py-2" style="background-color: #dfdfdf;">
-                                <div class="fs-4 fw-medium "><?= $lang['chat'] ?></div>
+                            <div id="header-box" class="d-flex flex-wrap justify-content-between align-items-center w-100 px-2 py-2 rounded-5" style="background-color: #dfdfdf;">
+                                <div class="ps-2 fs-4 fw-medium "><?= $lang['chat'] ?></div>
                                 <button class="btn-newChat  bg-white rounded-circle fs-5" title="New Chat" onclick="createRoomChat()"><i class="bi bi-plus"></i></button>
                             </div>
-                            <div class="bg-opacity-10 bg-white h-75 w-100" id="list-room-chat">
-                                <div class="dash-skeleton px-3" style="border-bottom:5px;">
-                                    <div class="dash-skeleton-line" style="width:80%"></div>
-                                    <div class="dash-skeleton-line" style="width:40%"></div>
-                                </div>
-                                <div class="dash-skeleton px-3">
-                                    <div class="dash-skeleton-line" style="width:75%"></div>
-                                    <div class="dash-skeleton-line" style="width:30%"></div>
+                            <div class="bg-opacity-10 bg-white h-100 w-100">
+                                <div class="d-flex flex-column" id="list-room-chat">
+                                    <div class="dash-skeleton px-3">
+                                        <div class="dash-skeleton-line" style="width:80%"></div>
+                                        <div class="dash-skeleton-line" style="width:40%"></div>
+                                    </div>
+                                    <div class="dash-skeleton px-3">
+                                        <div class="dash-skeleton-line" style="width:75%"></div>
+                                        <div class="dash-skeleton-line" style="width:30%"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <!-- STATUS -->
+                                <div id="wsStatus" class="position-absolute bottom-0 start-0 w-100">
+                                    <div id="wsBody" class="d-flex align-items-center gap-2 px-3 py-2 rounded shadow-sm" style="background-color: #CFCFCF;">
+
+                                        <!-- Spinner -->
+                                        <div id="wsSpinner" class="spinner-border spinner-border-sm text-primary" role="status"></div>
+
+                                        <!-- Text -->
+                                        <span id="wsText" class="text-muted">Connecting...</span>
+                                    </div>
+                                </div>
                     </div>
                     <div class="d-flex flex-wrap " id="videocall-box" style="visibility: hidden;">
                         <!-- วิดีโอแชท -->

@@ -6,6 +6,14 @@
         margin: 0;
         height: 100vh;
     } */
+    #wsStatus {
+        transition: all 0.5s ease;
+    }
+
+    #wsStatus.hide {
+        transform: translateY(20px);
+        opacity: 0;
+    }
 
     .nav-header {
         width: 100%;
@@ -32,11 +40,11 @@
         border-radius: 6px;
         background: linear-gradient(90deg,
                 #b4b4b4 25%,
-                #f2832277 50%,
-                #c2c2c26b 75%,
+                #52f22277 50%,
+                #ffb411b4 75%,
                 #b4b4b4 100%);
         background-size: 200% 100%;
-        animation: shimmer 4.4s infinite;
+        animation: shimmer 2.4s infinite;
     }
 
     @keyframes shimmer {
@@ -48,6 +56,7 @@
             background-position: -200% 0;
         }
     }
+
     div .roombox {
         background-color: #ffffff !important;
     }

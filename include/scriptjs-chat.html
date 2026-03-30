@@ -19,6 +19,9 @@
     let currentUserId = "<?php echo $_SESSION['user']['id']; ?>";
     let remoteVideo = document.getElementById("remoteVideo");
     let localVideo = document.getElementById('localVideo');
+    const wsText = document.getElementById("wsText");
+    const wsSpinner = document.getElementById("wsSpinner");
+
 
     let micEnabled = true;
     let camEnabled = true;
@@ -35,7 +38,35 @@
 
     socket.onopen = function () {
         console.log("Connected to WebSocket");
+
+        wsText.textContent = "Connected";
+        wsText.classList.remove("text-muted");
+        wsText.classList.add("text-white");
+        wsBody.style.backgroundColor = "rgb(40 175 22)";
+
+        wsSpinner.style.display = "none";
+        // รอ 2 วิ แล้วเลื่อน
+        setTimeout(() => {
+            wsStatus.classList.add("hide");
+        }, 2000)
     };
+
+    socket.onerror = function () {
+        wsText.textContent = "Error";
+        wsText.classList.remove("text-muted");
+        wsText.classList.add("text-danger");
+
+        wsSpinner.style.display = "none";
+    };
+
+    // CLOSE
+    // socket.onclose = function () {
+    //     wsText.textContent = "Disconnected";
+    //     wsText.classList.remove("text-muted");
+    //     wsText.classList.add("text-danger");
+
+    //     wsSpinner.style.display = "none";
+    // };
 
     socket.onmessage = async function (event) {
         const data = JSON.parse(event.data);
@@ -115,8 +146,8 @@
         const videocallbox = document.getElementById('videocall-box');
         const infobox = document.getElementById('infomation-box');
         const commubox = document.getElementById('commu-box');
-        await toggleDisplay(videocallbox, infobox);
         togglewidthVideoandChats(commubox, videocallbox);
+        await toggleDisplay(videocallbox, infobox);
     }
 
     async function toggleDisplay(Element1, Element2) {
@@ -662,7 +693,8 @@
         if (navigator.mediaDevices) {
             console.log("navigator.mediaDevices is available");
         } else {
-            console.error("navigator.mediaDevices is not available");
+            console.error("ไม่พบอุปกรณ์ที่ได้รับการอนุญาตเข้าถึง/browser ปิดกั้นการเข้าถึงอุปกรณ์");
+            return;
         }
         const panel = document.getElementById("settingPanel");
         panel.style.display = "flex";
