@@ -327,6 +327,9 @@
         dynamicModal.show();
         fetch_typefile();
         changedropdown();
+
+        console.log('create modal');
+        
     }
 
     async function fetch_typefile() {
@@ -445,23 +448,25 @@
         console.log(data);
     }
 
-    async function create_content_div() {
+    async function create_content_div(id) {
+        const header_div = document.getElementById('content_' + id);
         const inputContent = document.getElementById('inputContent');
 
         var dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
         if (['1', '5', '7'].includes(selectedValue)) { // Text
             data.push({ id: 0, type: 'content', selecttype: parseInt(selectedValue), content: inputContent.value, is_deleted: 0 });
-            header_div.textContent = inputContent.value;
+            // header_div.textContent = inputContent.value;
         } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
             var [filename, message] = await upload_file_temp(inputContent, selectedValue);
-            header_div.textContent = filename;
+            // header_div.textContent = filename;
             data.push({ id: 0, type: 'content', selecttype: parseInt(selectedValue), content: message, is_deleted: 0 }); // ได้ path กลับมา
         }
 
-        div_degree_course.appendChild(header_div);
+        // div_degree_course.appendChild(header_div);
 
         clearModal('modal_div');
+        generate_degree_course(data);
         console.log(data);
     }
 
@@ -750,6 +755,7 @@
         let isvisible = selectimg.classList.contains('d-none');
         selectimg.classList.replace(isvisible ? 'd-none' : 'd-block', isvisible ? 'd-block' : 'd-none');
     }
+    
     function changeImage() {
         let showimg = document.getElementById('img-course');
         let select = document.getElementById('image_code');

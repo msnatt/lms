@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_FILES["csv_file"])) {
         fgetcsv($handle); // ข้าม Header บรรทัดแรก
 
         while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-            list($id, $code, $name, $email, $username, $password, $telephone, $is_admin) = $data;
+            list($code, $name, $email, $username, $password, $telephone, $is_admin) = $data;
 
             // ตรวจสอบว่ามี Email นี้อยู่แล้วหรือไม่
             $stmt = $conn->prepare("SELECT id FROM user WHERE email = ?");

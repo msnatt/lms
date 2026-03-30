@@ -1,8 +1,15 @@
 <script>
-    // const socket = new WebSocket("wss://localhost:8085/");
-    // const socket = new WebSocket("wss://49.0.69.152:8085/");
-    const socket = new WebSocket("wss://fiedtech-iot.com:8085/");
-    // const socket = new WebSocket("ws://192.168.1.200:8085/");
+    const protocol = location.protocol === "https:" ? "wss://" : "ws://";
+
+    let wsUrl;
+
+    if (location.hostname.includes("ngrok")) {
+        wsUrl = protocol + location.hostname;
+    } else {
+        wsUrl = protocol + location.hostname + ":8085";
+    }
+
+    const socket = new WebSocket(wsUrl);
 
     let peerConnections = {};
     let localStream = null;
@@ -64,52 +71,40 @@
 
     async function loadChatRooms() {
         try {
-            const chatAccessRes = await fetch("../config/chat_access.php");
+            const currentUserId = "<?php echo $_SESSION['user_id']; ?>"; // ใช้เฉพาะถ้า JS อยู่ใน .php
+
+            // const chatAccessRes = await fetch("../config/chat_access.php");
+            const chatAccessRes = await fetch("../config/chat_access_ById.php?id=" + currentUserId);
             const chat_access = await chatAccessRes.json();
 
-            const res = await fetch("../config/chat-loadrooms.php");
+            const roomids = chat_access.map(c => c.chat_room_id).join(',');
+            if (!roomids) {
+                console.warn("No room ids");
+                return;
+            }
+            const res = await fetch("../config/chat-loadrooms_ById.php?ids=" + encodeURIComponent(roomids));
             const data = await res.json();
 
             const select = document.getElementById("list-room-chat");
             select.innerHTML = "";
-            const currentUserId = "<?php echo $_SESSION['user_id']; ?>"; // ใช้เฉพาะถ้า JS อยู่ใน .php
+
 
             for (const room of data) {
-                for (const ca of chat_access) {
-                    if (ca.user_id == currentUserId && ca.chat_room_id == room.id) {
+                const lastMessage = room.message ?? "ไม่มีข้อความล่าสุด";
+                const maxLength = 30; // ความยาวสูงสุดของข้อความที่จะแสดง
+                const truncatedMessage = lastMessage.length > maxLength ? lastMessage.substring(0, maxLength) + "..." : lastMessage;
 
-                        // fetch ข้อความล่าสุด
-                        const response_ = await fetch(`../config/chat-last.php?room_id=${room.id}`);
-                        const chatroom = await response_.json();
-                        const lastMessage = chatroom && chatroom.message ? chatroom.message : "[ไม่มีข้อความ]";
-
-                        // จำกัดความยาวของข้อความ
-                        const maxLength = 30; // ความยาวสูงสุดของข้อความที่จะแสดง
-                        const truncatedMessage = lastMessage.length > maxLength ? lastMessage.substring(0, maxLength) + "..." : lastMessage;
-
-                        // สร้าง div สำหรับห้อง
-                        const div = document.createElement("div");
-                        div.id = "room_" + room.id;
-                        div.className = "box-chat px-4";
-                        div.style.borderBottom = "1px solid #ddd";
-                        div.onclick = () => selectRoomChat(room.id, room.name);
-
-                        // ✅ ชื่อห้อง
-                        const name = document.createElement("div");
-                        name.className = "fw-bold py-2";
-                        name.innerText = room.name;
-
-                        // ✅ ข้อความล่าสุด
-                        const preview = document.createElement("div");
-                        preview.className = "text-muted small pb-2";
-                        preview.innerText = truncatedMessage;
-
-                        // ใส่ใน div หลัก
-                        div.appendChild(name);
-                        div.appendChild(preview);
-                        select.appendChild(div);
-                    }
-                }
+                const div = document.createElement("div");
+                div.id = "room_" + room.id;
+                div.className = "box-chat px-4 cursor-pointer roombox";
+                div.role = "button";
+                div.style.borderBottom = "1px solid #ddd";
+                div.onclick = () => selectRoomChat(room.id, room.name);
+                div.innerHTML = `
+                    <div class="fw-bold py-2">${room.name}</div>
+                    <div class="text-muted small pb-2">${truncatedMessage}</div>
+                `;
+                select.appendChild(div);
             }
         } catch (error) {
             console.error("เกิดข้อผิดพลาด:", error);
@@ -668,6 +663,7 @@
             console.log("navigator.mediaDevices is available");
         } else {
             console.error("navigator.mediaDevices is not available");
+            return;
         }
         const panel = document.getElementById("settingPanel");
         panel.style.display = "flex";

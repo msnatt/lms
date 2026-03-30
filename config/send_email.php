@@ -20,8 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
-        $mail->Username = 'ft.experimenter@gmail.com';
-        $mail->Password = 'ujvsgawhrkbwlaqq';
+        $mail->Username = 'ftatm.it.1@gmail.com';
+        $mail->Password = 'sybhegktgdkhljjr';
         $mail->SMTPSecure = 'tls';
         $mail->Port = 587;
 
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mail->send();
         echo "success";
     } catch (Exception $e) {
-        echo "failed";
+        echo "failed : " . $mail->ErrorInfo;
     }
 }
 ?>

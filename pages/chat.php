@@ -23,14 +23,21 @@ $user = $_SESSION['user'] ?? 'N/A';
             <?php include "../components/sidemenu.php"; ?>
             <div class="w-100 d-flex justify-content-center">
                 <div class="my-4 d-flex w-100 h-75" style="max-width: 1650px;">
-                    <div class="col-12 col-lg-2 border shadow-sm bg-white" id="box-list-room-chat" style="border-radius: 1rem 0 0 1rem;">
+                    <div class="col-12 col-lg-2 border shadow-sm" id="box-list-room-chat" style="background-color: #ddd; border-radius: 1rem 0 0 1rem;">
                         <div class="d-flex flex-wrap">
-                            <div id="header-box" class="d-flex flex-wrap justify-content-between align-items-center w-100 px-4 py-2">
+                            <div id="header-box" class="d-flex flex-wrap justify-content-between align-items-center w-100 px-4 py-2" style="background-color: #dfdfdf;">
                                 <div class="fs-4 fw-medium "><?= $lang['chat'] ?></div>
                                 <button class="btn-newChat  bg-white rounded-circle fs-5" title="New Chat" onclick="createRoomChat()"><i class="bi bi-plus"></i></button>
                             </div>
                             <div class="bg-opacity-10 bg-white h-75 w-100" id="list-room-chat">
-
+                                <div class="dash-skeleton px-3" style="border-bottom:5px;">
+                                    <div class="dash-skeleton-line" style="width:80%"></div>
+                                    <div class="dash-skeleton-line" style="width:40%"></div>
+                                </div>
+                                <div class="dash-skeleton px-3">
+                                    <div class="dash-skeleton-line" style="width:75%"></div>
+                                    <div class="dash-skeleton-line" style="width:30%"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -38,7 +45,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                         <!-- วิดีโอแชท -->
                         <div class="position-relative w-100">
                             <!-- remote video อยู่ด้านหลัง -->
-                            <div id="remoteVideos" class="w-100 h-100" style="display: flex; gap: 10px;"></div>
+                            <div id="remoteVideos" class="w-100 h-100" style="max-width: 50%; display: flex; gap: 10px;"></div>
 
                             <!-- local video ลอยบนมุมขวาล่าง -->
                             <video id="localVideo" autoplay muted
@@ -110,7 +117,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                             <button class="btn btn-primary" onclick="sendMessage()"><i class="bi bi-send"></i></button>
                         </div>
                     </div>
-                    <div id="infomation-box" class="col-lg-3 p-3 border bg-light shadow-sm d-none d-lg-block" style="border-radius:0 1rem 1rem 0;">
+                    <div id="infomation-box" class="col-lg-3 p-3 border bg-light shadow-sm" style="border-radius:0 1rem 1rem 0;">
                         <div class="d-flex flex-column gap-2">
                             <div id="name-chat" class="mb-1 fw-bolder fs-4"><?= $lang['unknown'] ?></div>
                             <h6 class="text-muted mb-2"><?= $lang['member'] ?></h6>
