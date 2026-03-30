@@ -6,8 +6,9 @@ $servername = "localhost";
 $username = "root";
 $password = "";
 $database = "lms_e_learning";
+$port = 3306;
 
-$conn = new mysqli($servername, $username, $password, $database);
+$conn = new mysqli($servername, $username, $password, $database, $port);
 // ถ้าไม่สามารถเชื่อมต่อฐานข้อมูล
 if (!$conn) {
     log_error("ไม่สามารถเชื่อมต่อฐานข้อมูล: " . mysqli_connect_error(), 'database');
