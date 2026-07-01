@@ -43,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // ตรวจสอบว่ามีหรือไม่
         $sql = "UPDATE home_profile SET slide01 = ?, slide02 = ?, slide03 = ?, icon01 = ?, icon02 = ?, icon03 = ?, icon04 = ?, icon05 = ?, icon06 = ?, icon07 = ?, icon08 = ?, youtube_id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssssssssss", $slide01, $slide02, $slide03, $icon01, $icon02, $icon03, $icon04, $icon05, $icon06, $icon07, $icon08, $youtube_id);
+        $stmt->bind_param("ssssssssssss", $slide01, $slide02, $slide03, $icon01, $icon02, $icon03, $icon04, $icon05, $icon06, $icon07, $icon08, $youtube_id);
         $stmt->execute();
         $stmt->store_result();
 
