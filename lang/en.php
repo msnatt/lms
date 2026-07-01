@@ -88,7 +88,7 @@ $lang = [
 
     //chat
     "message" => "Messages someone and chat right now!",
-    "chatholder" => "Aaกฮ...",
+    "chatholder" => "message...",
     "unknown" => "Unknown",
     "member" => "Members",
     "empty" => "Empty",
