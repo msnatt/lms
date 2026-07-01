@@ -38,7 +38,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $icon06 = $_POST['icon06'];
         $icon07 = $_POST['icon07'];
         $icon08 = $_POST['icon08'];
-        $icon09 = $_POST['icon09'];
         $youtube_id = $_POST['youtube_id'];
 
         // ตรวจสอบว่ามีหรือไม่
