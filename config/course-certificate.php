@@ -1,5 +1,5 @@
 <?php
-require('../vendor/fpdf/fpdf.php');
+require('../vendor/setasign/fpdf/fpdf.php');
 
 // รับข้อมูล JSON
 $raw = file_get_contents("php://input");

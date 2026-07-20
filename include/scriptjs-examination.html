@@ -18,6 +18,14 @@
 
         const response = await fetch(`../config/fetch_questionall.php?exam_id=${examId}`);
         exam = await response.json();
+
+        if (exam.length == 0) {
+            showNotify("ไม่พบข้อสอบนี้ โปรดติดต่อแอดมิน.");
+            setTimeout(() => {
+                window.location.href = '../pages/detail.php?courseid=' + course_id;
+            }, 1000);
+            return;
+        }
         timeLimit = exam.exam_period * 60;
 
         document.getElementById('exam-title').innerText = exam.title;

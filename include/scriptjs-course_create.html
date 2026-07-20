@@ -176,7 +176,7 @@
                     <br>
                 `;
                     break;
-                case "7": // 3D
+                case "7": // Exam
                     innerHTML = `
                     <br>
                     <div>select Examination / Quiz</div>
@@ -199,7 +199,7 @@
                 // ตรวจว่าได้ array มาจริงหรือไม่
                 json_res.forEach(item => {
                     const option = document.createElement("option");
-                    option.value = item.id;        // หรือ field ที่คุณใช้เป็น id
+                    option.value = item.id + "_" + item.title;        // หรือ field ที่คุณใช้เป็น id
                     option.textContent = item.title; // หรือ field ที่คุณใช้เป็นชื่อข้อสอบ
                     selectQuiz.appendChild(option);
                 });
@@ -263,6 +263,8 @@
     }
 
     function generate_degree_course(datas) {
+        console.log(datas);
+
         const div_degree_course = document.getElementById('degree_course');
         div_degree_course.innerHTML = '';
 

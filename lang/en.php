@@ -246,5 +246,7 @@ $lang = [
     "new" => " New",
     "or" => " Or",
 
-    "color"=> "Color",
+    "color" => "Color",
+
+    "srynotreg" => "You cannot take the exam because you have not registered.",
 ];

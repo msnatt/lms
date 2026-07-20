@@ -19,7 +19,7 @@ include '../components/session.php';
         <?php include "../components/sidemenu.php"; ?>
         <div id="main-content" class="mt-4 flex-grow-1 d-flex justify-content-center" style="transition: all 0.3s ease;">
             <div id="managebox" class="bg-white rounded p-3">
-                <h3 class="text-center"><?=$lang['manageimage']?></h3>
+                <h3 class="text-center"><?= $lang['manageimage'] ?></h3>
                 <div id="preview" class="w-100 text-center" style="display: none;">
                     <p class="text-center mb-0 fw-bold"><?= $lang['preview'] ?></p>
                     <img id="img-preview" src="#" alt="Image Preview" style="max-height: 200px;">
@@ -27,7 +27,7 @@ include '../components/session.php';
                 <button class="btn btn-success mx-auto my-2 w-25" id="btn-save" onclick="saveto()" style="display: none;"><?= $lang['save'] ?></button>
                 <div class="w-100 px-4 py-2">
                     <label for="imageInput" class="upload-box w-100">
-                        <p><?=$lang['clickforimport']?></p>
+                        <p><?= $lang['clickforimport'] ?></p>
                         <input type="file" id="imageInput" accept="image/*" style="display: none;">
                     </label>
                 </div>
@@ -50,7 +50,7 @@ include '../components/session.php';
                         <select id="select-slide03" name="slide03" class="form-select"></select>
                     </div>
                 </div>
-                <div class="d-flex flex-wrap gap-3 my-3 container">
+                <div class="d-flex flex-wrap justify-content-center gap-3 my-3 container">
                     <div class="d-flex flex-column boxsq bg-white p-3 rounded gap-2">
                         <label class="form-label text text-center fs-3"><?= $lang['icon01'] ?></label>
                         <img class="w-100 rounded" id="img_icon01">
@@ -91,13 +91,12 @@ include '../components/session.php';
                         <img class="w-100 rounded" id="img_icon08">
                         <select id="select-icon08" name="icon08" class="form-select"></select>
                     </div>
-                    <div class="d-flex flex-column boxsq bg-white p-3 rounded gap-2">
-                        <label class="form-label text text-center fs-3"><?= $lang['icon09'] ?></label>
-                        <img class="w-100 rounded" id="img_icon09">
-                        <select id="select-icon09" name="icon09" class="form-select"></select>
+                    <div class="d-flex flex-column bg-white p-3 rounded gap-2">
+                        <label class="form-label text text-center fs-3"> Youtube ID</label>
+                        <div class="form-label fs-6">https://www.youtube.com/watch?v=</div>
+                        <input class="form-control" id="youtube_id" name="youtube_id">
                     </div>
                 </div>
-                <input type="hidden" id="youtube_id" name="youtube_id">
                 <div id="video-container mb-4" style="text-align: center;">
                     <div id="youtube-video" style="width: 100%; max-width: 50vw; height: 100%; max-height: 50vh; margin: 0 auto;"></div>
                 </div>

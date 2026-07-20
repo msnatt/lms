@@ -104,7 +104,7 @@
                         </div>
                     </div>
                 `;
-        }   
+        }
 
         Title_div.appendChild(Title);
         detail_div.appendChild(Title_div);
@@ -219,7 +219,7 @@
                 // สร้าง container หลัก
                 const unitDiv = document.createElement("div");
                 unitDiv.className = "form-control mb-1";
-                
+
 
                 // ปุ่ม Toggle
                 const toggleDiv = document.createElement("div");
@@ -322,18 +322,30 @@
                                 break;
                             case "7":
                                 const [id, name] = content.content.split('_');
+                                const is_registered = mycourse['courses'].some(
+                                    m => m.course_id == course_[0].id
+                                );
+
+                                const buttonHtml = is_registered
+                                    ? `
+                                    <div class="text-center">
+                                        <button
+                                            class="btn btn-outline-success rounded-pill px-4"
+                                            onclick="window.open('examination.php?exam=${id}&c=${courseID}&u=${unit.id}', '_blank')">
+                                            <?=$lang['clickhere']?>
+                                        </button>
+                                    </div>
+                                    `
+                                    : "<div class='text-center'><?=$lang['srynotreg']?></div>";
+
                                 innercontentDiv.innerHTML = `
                                 <div class="class d-flex flex-column justify-content-center">
                                     <div class="text-center mb-2 fw-medium">
                                         <?=$lang['exam']?> ${name}.
                                     </div>
-                                    <div class="text-center">
-                                        <button class="btn btn-outline-success rounded-pill px-4" onclick="window.open('examination.php?exam=${id}&c=${courseID}&u=${unit.id}', '_blank')">
-                                            <?=$lang['clickhere']?>
-                                        </button>
-                                    </div>
+                                    ${buttonHtml}
                                 </div>
-                                        `;
+                                `;
 
                                 break;
                             default:
@@ -342,7 +354,7 @@
                         contentDiv.appendChild(innercontentDiv);
                     }
                 };
-                
+
                 let conclusion = document.createElement('div');
                 conclusion.innerHTML = `
                 <div>

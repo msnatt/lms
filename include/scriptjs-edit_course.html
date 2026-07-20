@@ -2,6 +2,7 @@
 <script>
     var data = [];
     var days = [];
+    var countNo = 0;
     const langData = document.getElementById('lang-data').textContent;
     const lang = JSON.parse(langData);
     const div_degree_course = document.getElementById('degree_course');
@@ -329,7 +330,7 @@
         changedropdown();
 
         console.log('create modal');
-        
+
     }
 
     async function fetch_typefile() {
@@ -440,8 +441,9 @@
         const intro_header_ = document.getElementById('intro_header');
         const cons_header_ = document.getElementById('cons_header');
 
-        data.push({ id: 0, type: 'header', content: new_header_.value, intro: intro_header_.value, cons: cons_header_.value, is_deleted: 0 });
+        data.push({ id: countNo, type: 'header', content: new_header_.value, intro: intro_header_.value, cons: cons_header_.value, is_deleted: 0 });
 
+        countNo++;
         generate_degree_course(data);
         clearModal('modal_div');
 
@@ -455,16 +457,13 @@
         var dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
         if (['1', '5', '7'].includes(selectedValue)) { // Text
-            data.push({ id: 0, type: 'content', selecttype: parseInt(selectedValue), content: inputContent.value, is_deleted: 0 });
-            // header_div.textContent = inputContent.value;
+            data.push({ id: countNo, type: 'content', selecttype: parseInt(selectedValue), content: inputContent.value, is_deleted: 0 });
         } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
-            var [filename, message] = await upload_file_temp(inputContent, selectedValue);
-            // header_div.textContent = filename;
-            data.push({ id: 0, type: 'content', selecttype: parseInt(selectedValue), content: message, is_deleted: 0 }); // ได้ path กลับมา
+            var filename = await upload_file_temp(inputContent, parseInt(selectedValue));
         }
 
         // div_degree_course.appendChild(header_div);
-
+        countNo++;
         clearModal('modal_div');
         generate_degree_course(data);
         console.log(data);
@@ -755,7 +754,7 @@
         let isvisible = selectimg.classList.contains('d-none');
         selectimg.classList.replace(isvisible ? 'd-none' : 'd-block', isvisible ? 'd-block' : 'd-none');
     }
-    
+
     function changeImage() {
         let showimg = document.getElementById('img-course');
         let select = document.getElementById('image_code');
