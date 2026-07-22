@@ -2,6 +2,7 @@
 <script>
     // const id_list = ['slide01', 'slide02', 'slide03', 'icon01', 'icon02', 'icon03', 'icon04', 'icon05', 'icon06', 'icon07', 'icon08', 'icon09'];
     document.addEventListener('DOMContentLoaded', async () => {
+        showLoading();
         let response = await fetch("../config/Fetch_homeprofile.php");
         let json = await response.json();
         json = json[0];
@@ -16,6 +17,7 @@
             }
         });
 
+        hideLoading();
 
         const videoContainer = document.getElementById('youtube-video');
         const observer = new IntersectionObserver(entries => {
@@ -36,6 +38,7 @@
             });
         });
         observer.observe(videoContainer);
+
     });
 
 </script>

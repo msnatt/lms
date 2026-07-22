@@ -32,13 +32,13 @@ include '../components/session.php';
                         <!-- Slides -->
                         <div class="carousel-inner">
                             <div class="carousel-item active">
-                                <img id="slide01" class="d-block w-100" style="max-width: 1920px; max-height: 1080px;" alt="Slide 1">
+                                <img id="slide01" class="d-block w-100" style="max-width: 1920px; max-height: 75vh;" alt="Slide 1">
                             </div>
                             <div class="carousel-item">
-                                <img id="slide02" class="d-block w-100" style="max-width: 1920px; max-height: 1080px;" alt="Slide 2">
+                                <img id="slide02" class="d-block w-100" style="max-width: 1920px; max-height: 75vh;" alt="Slide 2">
                             </div>
                             <div class="carousel-item">
-                                <img id="slide03" class="d-block w-100" style="max-width: 1920px; max-height: 1080px;" alt="Slide 3">
+                                <img id="slide03" class="d-block w-100" style="max-width: 1920px; max-height: 75vh;" alt="Slide 3">
                             </div>
                         </div>
 

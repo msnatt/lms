@@ -74,11 +74,28 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $end_time = $select_end[$i];
                 $is_deleted_schedule = $is_deleted_schedule[$i];
 
-                // อัปเดตข้อมูล course
-                $sql_update_course = "UPDATE course_schedule SET course_id = ?, day_id = ?, start_time = ?, end_time = ?, is_deleted = ? WHERE id = ? ";
-                $stmt_schedule = $conn->prepare($sql_update_course);
-                $stmt_schedule->bind_param("iissii", $course_id, $day_id, $start_time, $end_time, $is_deleted_schedule, $id);
-                $stmt_schedule->execute();
+                $sql_check_schedule_each = "SELECT id FROM course_schedule WHERE id = ?";
+                $stmt_schedule_each = $conn->prepare($sql_check_schedule_each);
+                $stmt_schedule_each->bind_param("i", $id);
+                $stmt_schedule_each->execute();
+                $stmt_schedule_each->store_result();
+                if ($stmt_schedule_each->num_rows > 0) {
+                    // อัปเดตข้อมูล course
+                    $sql_update_course = "UPDATE course_schedule SET course_id = ?, day_id = ?, start_time = ?, end_time = ?, is_deleted = ? WHERE id = ? ";
+                    $stmt_schedule_update = $conn->prepare($sql_update_course);
+                    $stmt_schedule_update->bind_param("iissii", $course_id, $day_id, $start_time, $end_time, $is_deleted_schedule, $id);
+                    if (!$stmt_schedule_update->execute()) {
+                        die("Error executing schedule statement: " . $stmt_schedule_update->error);
+                    }
+                } else {
+                    // ✅ บันทึกข้อมูลลงในตาราง course_schedule
+                    $sql_schedule = "INSERT INTO course_schedule (course_id, day_id, start_time, end_time) VALUES (?, ?, ?, ?)";
+                    $stmt_schedule_insert = $conn->prepare($sql_schedule);
+                    $stmt_schedule_insert->bind_param("iiss", $course_id, $day_id, $start_time, $end_time);
+                    if (!$stmt_schedule_insert->execute()) {
+                        die("Error executing schedule statement: " . $stmt_schedule_insert->error);
+                    }
+                }
             }
         }
         $stmt_schedule->close();

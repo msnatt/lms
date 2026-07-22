@@ -40,6 +40,31 @@
         animation: shimmer 2.4s infinite;
     }
 
+    #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.7);
+        /* เบลอพื้นหลังแบบโปร่ง */
+        backdrop-filter: blur(4px);
+        /* ทำให้พื้นหลังเบลอ */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    #loading-spinner {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 1s linear infinite;
+    }
+
     @keyframes shimmer {
         0% {
             background-position: 200% 0;
@@ -47,6 +72,16 @@
 
         100% {
             background-position: -200% 0;
+        }
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
         }
     }
 
@@ -563,7 +598,7 @@
     .boxsq {
         width: 100%;
         max-width: 300px;
-        border: 1px  solid #30303020;
+        border: 1px solid #30303020;
     }
 
     .upload-box {
