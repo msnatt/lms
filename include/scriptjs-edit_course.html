@@ -388,7 +388,7 @@
                 case "5": // PDF
                     innerHTML = `
                     <br>
-                    <label for="pdfInput">write link activity : </label>
+                    <label for="pdfInput"> Write the event link here. </label>
                     <input type="text" id="inputContent" class="form-control">
                     <br>
                 `;
@@ -654,7 +654,7 @@
 
             const result = await response.json();
             if (result.success) {
-                data.push({ id: 0, type: 'content', selecttype: selectedValue, content: result.results, is_deleted: 0 }); // ได้ path กลับมา
+                data.push({ id: countNo, type: 'content', selecttype: selectedValue, content: result.results, is_deleted: 0 }); // ได้ path กลับมา
             } else {
                 console.error('Upload failed:', result.results);
             }

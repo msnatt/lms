@@ -4,9 +4,15 @@
     let wsUrl;
 
     if (location.hostname.includes("ngrok")) {
+        // ผ่าน ngrok tunnel (ใช้ตอนพัฒนา/ทดสอบ)
         wsUrl = protocol + location.hostname;
-    } else {
+    } else if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+        // รันบนเครื่องตัวเอง ต่อพอร์ต 8085 ตรง ๆ ได้เลย
         wsUrl = protocol + location.hostname + ":8085";
+    } else {
+        // Production: ต่อผ่าน Apache reverse proxy path /wschat/ บนพอร์ต 443 (wss)
+        // ต้องตั้งค่า ProxyPass /wschat/ ws://127.0.0.1:8085/ ไว้ใน httpd.conf ก่อน
+        wsUrl = protocol + location.hostname + "/wschat/";
     }
 
     const socket = new WebSocket(wsUrl);
@@ -26,14 +32,30 @@
     let micEnabled = true;
     let camEnabled = true;
 
-    const config = {
+    // ค่าเริ่มต้น (fallback) ระหว่างที่ยังโหลด TURN credentials ไม่เสร็จ
+    // ใช้ STUN อย่างเดียวได้แค่ในเน็ตวงเดียวกัน/NAT แบบง่าย ๆ
+    let rtcConfig = {
         iceServers: [
             { urls: "stun:stun.l.google.com:19302" }
         ]
     };
 
+    async function loadTurnCredentials() {
+        try {
+            const res = await fetch("../config/turn-credentials.php");
+            const data = await res.json();
+            if (data.iceServers && data.iceServers.length > 0) {
+                rtcConfig = { iceServers: data.iceServers };
+                console.log("✅ Loaded TURN credentials", rtcConfig);
+            }
+        } catch (err) {
+            console.warn("⚠️ Failed to load TURN credentials, using STUN only", err);
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         loadChatRooms();
+        loadTurnCredentials(); // โหลด ICE servers (STUN+TURN) ล่วงหน้าไว้ตั้งแต่เข้าเพจ
     });
 
     socket.onopen = function () {
@@ -796,49 +818,110 @@
         toggleSettingPanel();
         const panel = document.getElementById("settingPanel");
         const stream = await startVideo(camSelect.value, micSelect.value);
-        if (stream) {
-            console.log("Starting video with selected devices.");
-            socket.send(JSON.stringify({
-                type: "new-peer",
-            }));
-            const enableCamera = document.getElementById("enableCamera").checked;
-            const enableMic = document.getElementById("enableMic").checked;
-            EnableCam(enableCamera);
-            EnableMic(enableMic);
+
+        // ไม่ว่าจะได้ stream ครบ, ได้บางส่วน, หรือไม่ได้เลย ก็ให้เข้าห้องได้เสมอ
+        console.log(stream ? "Starting video with selected devices." : "Joining call without local media (view-only).");
+        socket.send(JSON.stringify({
+            type: "new-peer",
+        }));
+
+        const hasVideoTrack = !!(stream && stream.getVideoTracks().length > 0);
+        const hasAudioTrack = !!(stream && stream.getAudioTracks().length > 0);
+
+        const enableCamera = document.getElementById("enableCamera").checked && hasVideoTrack;
+        const enableMic = document.getElementById("enableMic").checked && hasAudioTrack;
+        EnableCam(hasVideoTrack ? enableCamera : false);
+        EnableMic(hasAudioTrack ? enableMic : false);
+    }
+
+    // แปล error ของ getUserMedia ให้คนอ่านเข้าใจว่าเกิดอะไรขึ้นจริง ๆ
+    function describeMediaError(err) {
+        switch (err && err.name) {
+            case "NotFoundError":
+            case "DevicesNotFoundError":
+                return "ไม่พบกล้อง/ไมโครโฟนในเครื่องนี้";
+            case "NotAllowedError":
+            case "PermissionDeniedError":
+                return "ไม่ได้รับอนุญาตให้เข้าถึงกล้อง/ไมโครโฟน (โปรดกดอนุญาตที่ browser หรือเช็คการตั้งค่าเว็บไซต์)";
+            case "NotReadableError":
+            case "TrackStartError":
+                return "กล้อง/ไมโครโฟนถูกโปรแกรมอื่นใช้งานอยู่";
+            case "OverconstrainedError":
+                return "อุปกรณ์ที่เลือกไม่รองรับการตั้งค่าที่ขอ";
+            case "SecurityError":
+                return "หน้าเว็บไม่ได้อยู่ใน HTTPS หรือ context ที่ปลอดภัยพอสำหรับกล้อง/ไมค์";
+            default:
+                return (err && err.message) || "ไม่ทราบสาเหตุ";
         }
     }
 
+    // ไล่ fallback: video+audio -> audio อย่างเดียว -> video อย่างเดียว -> ไม่มี media เลย (เข้าห้องแบบดูอย่างเดียว)
     async function startVideo(deviceId, audioId) {
-        try {
-            let stream;
-
-            try {
-                // พยายามขอ video + audio stream
-                stream = await navigator.mediaDevices.getUserMedia({
+        const attempts = [
+            {
+                label: "video+audio",
+                constraints: {
                     video: deviceId ? { deviceId: { exact: deviceId } } : true,
                     audio: audioId ? { deviceId: { exact: audioId } } : true,
-                });
-                console.log("✅ Got video+audio stream", stream);
-            } catch (err) {
-                console.warn("⚠️ Failed to get audio, trying video only...", err);
-
-                // ถ้า audio error, fallback ขอ video อย่างเดียว
-                stream = await navigator.mediaDevices.getUserMedia({
+                }
+            },
+            {
+                label: "audio only",
+                constraints: {
+                    video: false,
+                    audio: audioId ? { deviceId: { exact: audioId } } : true,
+                }
+            },
+            {
+                label: "video only",
+                constraints: {
                     video: deviceId ? { deviceId: { exact: deviceId } } : true,
-                });
-                console.log("✅ Got video stream only", stream);
+                    audio: false,
+                }
+            },
+        ];
+
+        let lastError = null;
+
+        for (const attempt of attempts) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(attempt.constraints);
+                console.log(`✅ Got stream (${attempt.label})`, stream);
+
+                const localVideo = document.getElementById("localVideo");
+                if (localVideo) localVideo.srcObject = stream;
+                localStream = stream;
+
+                if (attempt.label !== "video+audio") {
+                    notifyMediaFallback(attempt.label, lastError);
+                }
+
+                return stream;
+            } catch (err) {
+                console.warn(`⚠️ getUserMedia failed (${attempt.label}):`, err);
+                lastError = err;
             }
+        }
 
-            // ตั้งค่า video preview และเก็บ stream
-            const localVideo = document.getElementById("localVideo");
-            if (localVideo) localVideo.srcObject = stream;
-            localStream = stream;
+        // ทุกความพยายามล้มเหลว -> เข้าห้องแบบไม่มี media เลย (ดูคนอื่นได้ แต่ไม่ส่งภาพ/เสียงตัวเอง)
+        console.error("❌ Cannot access any media devices:", lastError);
+        localStream = null;
+        const localVideo = document.getElementById("localVideo");
+        if (localVideo) localVideo.srcObject = null;
 
-            return stream;
+        notifyMediaFallback("none", lastError);
+        return null;
+    }
 
-        } catch (error) {
-            console.error("❌ Cannot access media devices:", error);
-            return null;
+    // แจ้งผู้ใช้แบบไม่บล็อกการทำงาน (ใช้ alert ง่าย ๆ ก่อน จะเปลี่ยนเป็น toast/UI สวยงามทีหลังก็ได้)
+    function notifyMediaFallback(level, err) {
+        const reason = describeMediaError(err);
+        if (level === "none") {
+            alert(`ไม่สามารถเข้าถึงกล้องหรือไมโครโฟนได้ (${reason})\nคุณจะเข้าห้องได้แบบดูอย่างเดียว ไม่สามารถส่งภาพ/เสียงของตัวเองได้`);
+        } else if (level === "audio only") {
+            alert(`ไม่สามารถเข้าถึงกล้องได้ (${reason})\nจะเข้าห้องแบบมีแต่เสียง ไม่มีภาพจากคุณ`);
+        } else if (level === "video only") {
+            alert(`ไม่สามารถเข้าถึงไมโครโฟนได้ (${reason})\nจะเข้าห้องแบบมีแต่ภาพ ไม่มีเสียงจากคุณ`);
         }
     }
 
@@ -875,15 +958,29 @@
         if (peerConnections[targetId]) return;
 
         console.log(`Creating new peer connection for targetId: ${targetId}`);
-        const pc = new RTCPeerConnection({
-            iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-        });
+        const pc = new RTCPeerConnection(rtcConfig);
 
         peerConnections[targetId] = pc;
 
+        // --- Debug logging: ช่วยดูว่า handshake ค้างอยู่ตรงไหน (ลบออกได้ทีหลังเมื่อทุกอย่างเสถียรแล้ว) ---
+        pc.oniceconnectionstatechange = () => {
+            console.log(`🧊 [${targetId}] ICE connection state: ${pc.iceConnectionState}`);
+            if (pc.iceConnectionState === "failed") {
+                console.error(`❌ [${targetId}] ICE FAILED — โดยมากมาจาก TURN server ไม่ทำงาน หรือไม่มี candidate ที่ใช้ได้เลย`);
+            }
+        };
+        pc.onconnectionstatechange = () => {
+            console.log(`🔗 [${targetId}] Peer connection state: ${pc.connectionState}`);
+        };
+        pc.onicegatheringstatechange = () => {
+            console.log(`🧊 [${targetId}] ICE gathering state: ${pc.iceGatheringState}`);
+        };
+        // --- จบส่วน debug logging ---
+
         pc.onicecandidate = event => {
             if (event.candidate) {
-                console.log(`Sending ICE candidate to ${targetId}`);
+                const candType = event.candidate.type || (event.candidate.candidate.includes("typ relay") ? "relay" : "unknown");
+                console.log(`Sending ICE candidate to ${targetId} (type: ${candType})`, event.candidate.candidate);
                 socket.send(JSON.stringify({
                     type: "candidate",
                     candidate: event.candidate,
@@ -907,8 +1004,12 @@
             remoteVideo.srcObject = event.streams[0];
         };
 
-        // เพิ่ม local track
-        localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+        // เพิ่ม local track (ถ้ามี — กรณีเข้าห้องแบบดูอย่างเดียวจะไม่มี localStream)
+        if (localStream) {
+            localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
+        } else {
+            console.log("ℹ️ No local stream to send (view-only mode)");
+        }
 
         console.log("peer list");
         console.log(pc);
@@ -1094,9 +1195,11 @@
             micBtn.setAttribute("disabled", "disabled");
             micBtn.innerHTML = `<i class="bi bi-mic-mute-fill"></i>`;
             micBtn.className = "btn btn-danger";
-            localStream.getAudioTracks().forEach(track => {
-                track.enabled = false;
-            });
+            if (localStream) {
+                localStream.getAudioTracks().forEach(track => {
+                    track.enabled = false;
+                });
+            }
         }
         return;
     }
@@ -1112,9 +1215,11 @@
             camBtn.setAttribute("disabled", "disabled");
             camBtn.innerHTML = `<i class="bi bi-camera-video-off-fill"></i>`;
             camBtn.className = "btn btn-danger";
-            localStream.getVideoTracks().forEach(track => {
-                track.enabled = false;
-            });
+            if (localStream) {
+                localStream.getVideoTracks().forEach(track => {
+                    track.enabled = false;
+                });
+            }
         }
         return;
     }

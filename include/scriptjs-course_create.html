@@ -162,7 +162,7 @@
 
                 case "5": // Activity
                     innerHTML = `
-                    <label for="pdfInput">write link activity : </label>
+                    <label for="pdfInput">Write the event link here.</label>
                     <input type="text" id="inputContent" class="form-control">
                     <br>
                 `;
@@ -176,6 +176,7 @@
                     <br>
                 `;
                     break;
+
                 case "7": // Exam
                     innerHTML = `
                     <br>
@@ -633,6 +634,7 @@
         let isvisible = selectimg.classList.contains('d-none');
         selectimg.classList.replace(isvisible ? 'd-none' : 'd-block', isvisible ? 'd-block' : 'd-none');
     }
+
     function changeImage() {
         let showimg = document.getElementById('img-course');
         let select = document.getElementById('image_code');

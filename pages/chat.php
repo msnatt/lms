@@ -58,7 +58,8 @@ $user = $_SESSION['user'] ?? 'N/A';
                         <!-- วิดีโอแชท -->
                         <div class="position-relative w-100">
                             <!-- remote video อยู่ด้านหลัง -->
-                            <div id="remoteVideos" class="w-100 h-100" style="max-width: 50%; display: flex; gap: 10px;"></div>
+                            <!-- <div id="remoteVideos" class="w-100 h-100" style="max-width: 50%; display: flex; gap: 10px;"></div> -->
+                            <div id="remoteVideos" class="video-container"></div>
 
                             <!-- local video ลอยบนมุมขวาล่าง -->
                             <video id="localVideo" autoplay muted
