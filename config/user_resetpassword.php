@@ -68,16 +68,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $stmt->bind_param("si", $hashedPassword, $user_id);
             $stmt->execute();
         } else {
-            die("Error: user ID not found.");
+            $conn->rollback();
+            echo json_encode(["success" => false, "message" => "Error: user ID not found."]);
+            exit();
         }
 
         // ถ้าทุกอย่างสำเร็จ ให้ commit
         $conn->commit();
+        log_action("รีเซ็ตรหัสผ่านผู้ใช้ id={$user_id}", "user_management");
         echo json_encode(["success" => true, "message" => "บันทึกข้อมูลเรียบร้อย"]);
     } catch (Exception $e) {
         // หากเกิดข้อผิดพลาด ยกเลิกการบันทึกทั้งหมด
         $conn->rollback();
-        echo json_encode(["success" => true, "message" => "เกิดข้อผิดพลาด: " . $e->getMessage()]);
+        echo json_encode(["success" => false, "message" => "เกิดข้อผิดพลาด: " . $e->getMessage()]);
     }
 }
 

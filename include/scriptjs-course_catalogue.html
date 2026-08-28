@@ -1,68 +1,243 @@
 <!-- page product -->
 <script>
-    let allcourse = [];
-    let catalogue_ = Object();
     const langData = document.getElementById('lang-data').textContent;
     const lang = JSON.parse(langData);
+    const currentUser = JSON.parse(document.getElementById('user-data').textContent);
+
+    let allFaculties = [];      // ข้อมูลดิบจาก endpoint — ไม่แตะระหว่างค้นหา
+    let filteredFaculties = []; // ผลลัพธ์หลังกรอง ใช้ render จริง
+    let expandedAll = false;
+
     document.addEventListener('DOMContentLoaded', async () => {
-        const response = await fetch('../config/Fetch_faculty.php'); // เรียกใช้ PHP
-        const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
-        let faculty = json_res;
-
-        catalogue_ = document.getElementById('catalogue_div');
-        catalogue_.innerHTML = '';
-        generate_catalogue(faculty);
-
+        await loadCatalogue();
     });
 
-    function generate_catalogue(datas) {
+    // แปลชื่อกลุ่ม (คณะ/สาขา) เป็นภาษาปัจจุบัน — คืน lang[name] เฉพาะตอนมี key นั้นจริง
+    // ไม่งั้นคืนชื่อดิบจาก DB กันปัญหา "undefined" โผล่หน้าเว็บ
+    function groupLabel(name, isUnassigned, fallbackKey) {
+        if (isUnassigned) return lang[fallbackKey];
+        if (name && Object.prototype.hasOwnProperty.call(lang, name)) return lang[name];
+        return name || lang[fallbackKey];
+    }
 
+    function renderSkeleton() {
+        const container = document.getElementById('catalogue_div');
+        container.innerHTML = '';
+        for (let i = 0; i < 3; i++) {
+            const card = document.createElement('div');
+            card.className = 'skeleton-card';
+            card.style.width = '100%';
+            card.style.maxWidth = 'none';
+            const line = document.createElement('div');
+            line.className = 'dash-skeleton';
+            const l1 = document.createElement('div');
+            l1.className = 'dash-skeleton-line';
+            l1.style.width = '40%';
+            l1.style.height = '18px';
+            line.appendChild(l1);
+            card.appendChild(line);
+            container.appendChild(card);
+        }
+    }
 
+    async function loadCatalogue() {
+        renderSkeleton();
+        try {
+            const res = await fetch('../config/Fetch_catalogue.php');
+            const data = await res.json();
+            allFaculties = Array.isArray(data) ? data : [];
+        } catch (error) {
+            allFaculties = [];
+            showNotify(lang['loadcataloguefailed']);
+            console.error('Fetch error:', error);
+        }
 
-        Object.values(datas).forEach(row => {
-            console.log(row);
-            if (row.id != 1) {
-                generateCatalogue(catalogue_, row);
-            }
+        filterCatalogue();
+    }
+
+    function updateStats(faculties) {
+        let departmentCount = 0;
+        let courseCount = 0;
+        faculties.forEach(fac => {
+            departmentCount += fac.departments.length;
+            fac.departments.forEach(dep => { courseCount += dep.courses.length; });
+        });
+
+        document.getElementById('stat-faculty').textContent = faculties.length;
+        document.getElementById('stat-department').textContent = departmentCount;
+        document.getElementById('stat-course').textContent = courseCount;
+    }
+
+    // filter (client-side only — ไม่แตะ allFaculties) กรองตามรหัส/ชื่อคอร์ส
+    // แล้วตัดสาขา/คณะที่ไม่เหลือคอร์สออกจากผลลัพธ์
+    function filterCatalogue() {
+        const searchInput = document.getElementById('catalogue-search');
+        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+        if (!query) {
+            filteredFaculties = allFaculties;
+        } else {
+            filteredFaculties = allFaculties
+                .map(fac => {
+                    const departments = fac.departments
+                        .map(dep => {
+                            const courses = dep.courses.filter(c =>
+                                (c.course_code || '').toLowerCase().includes(query) ||
+                                (c.course_name || '').toLowerCase().includes(query)
+                            );
+                            return { ...dep, courses };
+                        })
+                        .filter(dep => dep.courses.length > 0);
+                    return { ...fac, departments };
+                })
+                .filter(fac => fac.departments.length > 0);
+        }
+
+        updateStats(filteredFaculties);
+        renderCatalogue(!!query);
+    }
+
+    function renderCatalogue(forceExpand) {
+        const container = document.getElementById('catalogue_div');
+        container.innerHTML = '';
+
+        if (filteredFaculties.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'cert-chips-empty';
+            empty.textContent = allFaculties.length === 0 ? lang['nocourse'] : lang['nomatchcourse'];
+            container.appendChild(empty);
+            return;
+        }
+
+        filteredFaculties.forEach(fac => {
+            const facHeader = document.createElement('div');
+            facHeader.className = 'degree-item degree-item-header';
+            facHeader.style.cursor = 'pointer';
+
+            const facChevron = document.createElement('i');
+            facChevron.className = 'bi bi-chevron-right me-2';
+
+            const facTitle = document.createElement('span');
+            facTitle.textContent = groupLabel(fac.faculty_name, fac.is_unassigned, 'unassignedfaculty');
+
+            const facLeft = document.createElement('div');
+            facLeft.appendChild(facChevron);
+            facLeft.appendChild(facTitle);
+
+            const facBadge = document.createElement('span');
+            facBadge.className = 'badge text-bg-light';
+            facBadge.textContent = fac.course_count;
+
+            facHeader.appendChild(facLeft);
+            facHeader.appendChild(facBadge);
+            container.appendChild(facHeader);
+
+            const depWrap = document.createElement('div');
+            depWrap.style.display = forceExpand ? 'block' : 'none';
+            depWrap.style.paddingLeft = '1.5rem';
+            if (forceExpand) facChevron.className = 'bi bi-chevron-down me-2';
+
+            facHeader.addEventListener('click', () => toggleGroup(depWrap, facChevron));
+
+            fac.departments.forEach(dep => {
+                const depHeader = document.createElement('div');
+                depHeader.className = 'degree-item';
+                depHeader.style.cursor = 'pointer';
+                depHeader.style.marginTop = '.5rem';
+
+                const depChevron = document.createElement('i');
+                depChevron.className = 'bi bi-chevron-right me-2';
+
+                const depTitle = document.createElement('span');
+                depTitle.textContent = groupLabel(dep.department_name, dep.is_unassigned, 'unassigneddept');
+
+                const depLeft = document.createElement('div');
+                depLeft.appendChild(depChevron);
+                depLeft.appendChild(depTitle);
+
+                const depBadge = document.createElement('span');
+                depBadge.className = 'badge text-bg-light';
+                depBadge.textContent = dep.courses.length;
+
+                depHeader.appendChild(depLeft);
+                depHeader.appendChild(depBadge);
+                depWrap.appendChild(depHeader);
+
+                const courseWrap = document.createElement('div');
+                courseWrap.style.display = forceExpand ? 'block' : 'none';
+                courseWrap.style.paddingLeft = '1.5rem';
+                if (forceExpand) depChevron.className = 'bi bi-chevron-down me-2';
+
+                depHeader.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleGroup(courseWrap, depChevron);
+                });
+
+                dep.courses.forEach(course => {
+                    const courseRow = document.createElement('div');
+                    courseRow.className = 'degree-item';
+                    courseRow.style.cursor = 'pointer';
+                    courseRow.style.marginTop = '.5rem';
+
+                    const courseInfo = document.createElement('div');
+
+                    const courseTitle = document.createElement('div');
+                    courseTitle.className = 'fw-semibold';
+                    courseTitle.textContent = course.course_code + ' ' + course.course_name;
+                    courseInfo.appendChild(courseTitle);
+
+                    if (course.description) {
+                        const courseDesc = document.createElement('div');
+                        courseDesc.className = 'fs-6 text-muted';
+                        courseDesc.textContent = course.description.length > 80
+                            ? course.description.substring(0, 80) + '...'
+                            : course.description;
+                        courseInfo.appendChild(courseDesc);
+                    }
+
+                    courseRow.appendChild(courseInfo);
+
+                    if (currentUser.is_admin && course.is_publish == 0) {
+                        const draftBadge = document.createElement('span');
+                        draftBadge.className = 'badge bg-warning text-dark';
+                        draftBadge.textContent = lang['draft'];
+                        courseRow.appendChild(draftBadge);
+                    }
+
+                    courseRow.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        goToCourse(course.course_id);
+                    });
+
+                    courseWrap.appendChild(courseRow);
+                });
+
+                depWrap.appendChild(courseWrap);
+            });
+
+            container.appendChild(depWrap);
         });
     }
 
-    function generateCatalogue(catalogue_, row) {
-        var header_ = document.createElement('div');
-        header_.className = "px-4 py-1 form-control";
-        header_.style.fontSize = "1.25rem";
-        header_.style.fontWeight = "600"    ;
-        header_.style.width = "25%";
-        header_.textContent = lang[row['name']];
-
-        // loop course list 
-        var courses = row['courses'];
-        var course_ = document.createElement('div');
-        course_.style.display = "none";
-        course_.style.backgroundColor = "#ffffff";
-        row['courses'].forEach(course => {
-            allcourse = course;
-            var temp_ = document.createElement('div');
-            temp_.className = "w-100 px-4 py-2";
-            temp_.style.fontSize = "1rem";
-            temp_.style.fontWeight = "400";
-            temp_.textContent = "• " + course['course_code'] + " " + course['course_name'];
-
-            course_.appendChild(temp_);
-        });
-
-        header_.appendChild(course_);
-        catalogue_.appendChild(header_);
-        // เพิ่ม Event Listener สำหรับการซ่อน/แสดง
-        header_.addEventListener("click", () => {
-            const isVisible = course_.style.display === "block";
-            // unitcontentDiv.style.display = isVisible ? "none" : "block";
-            course_.style.display = isVisible ? "none" : "block";
-            header_.style.backgroundColor = isVisible ? "#ffffff" : "#ffffff"; // เขียว-แดง
-        });
+    function toggleGroup(wrapEl, chevronEl) {
+        const isVisible = wrapEl.style.display === 'block';
+        wrapEl.style.display = isVisible ? 'none' : 'block';
+        chevronEl.className = isVisible ? 'bi bi-chevron-right me-2' : 'bi bi-chevron-down me-2';
     }
 
-    function RedirectToPage(page) {
-        window.location.href = '../pages/' + page + '.php';
+    function toggleAll() {
+        expandedAll = !expandedAll;
+        renderCatalogue(expandedAll);
+
+        const btn = document.getElementById('toggle-all-btn');
+        btn.innerHTML = expandedAll
+            ? `<i class="bi bi-arrows-collapse me-1"></i>${lang['collapseall']}`
+            : `<i class="bi bi-arrows-expand me-1"></i>${lang['expandall']}`;
+    }
+
+    // นำทางไปหน้ารายละเอียดคอร์สผ่านเส้นทางมาตรฐานของระบบ (เดียวกับ course.php)
+    // set_course.php จะเซ็ต $_SESSION['course']/['owner'] ก่อน redirect ไป detail.php
+    function goToCourse(courseId) {
+        window.location.href = `../components/set_course.php?courseid=${courseId}`;
     }
 </script>

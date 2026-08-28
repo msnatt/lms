@@ -1,140 +1,199 @@
 <!-- page product -->
 <script>
     let questionIndex = 0;
+    let allExams = [];
+    let filteredExams = [];
+    let currentPage = 1;
+    const examsPerPage = 10;
+
     const langData = document.getElementById('lang-data').textContent;
     const lang = JSON.parse(langData);
+
     document.addEventListener('DOMContentLoaded', async () => {
         await fetch_allExam();
-
     });
+
     async function fetch_allExam() {
-        let allExam = await fetch('../config/Fetch_question_sets.php');
-        let json_res = await allExam.json();
-        console.log(json_res);
+        showLoadingById('table_exam');
+        try {
+            let allExam = await fetch('../config/Fetch_question_sets.php');
+            allExams = await allExam.json();
+        } finally {
+            hideLoadingById('table_exam');
+        }
+
+        updateStats(allExams);
+        filterQuizzes();
+    }
+
+    function updateStats(exams) {
+        const now = new Date();
+        document.getElementById('stat-total').textContent = exams.length;
+        document.getElementById('stat-questions').textContent = exams.reduce((sum, e) => sum + Number(e.question_count || 0), 0);
+        document.getElementById('stat-upcoming').textContent = exams.filter(e => e.start_time && new Date(e.start_time) > now).length;
+    }
+
+    // filter (client-side only — ไม่แตะ allExams)
+    function filterQuizzes() {
+        const searchInput = document.getElementById('quiz-search');
+        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+        filteredExams = !query ? allExams : allExams.filter(exam => {
+            return (exam.title || '').toLowerCase().includes(query)
+                || (exam.type || '').toLowerCase().includes(query);
+        });
+
+        currentPage = 1;
+        renderExams();
+    }
+
+    function changePage(offset) {
+        currentPage += offset;
+        renderExams();
+    }
+
+    function renderExams() {
         let table = document.getElementById('table_exam').getElementsByTagName('tbody')[0];
         table.innerHTML = "";
 
-        json_res.forEach(each => {
-            let newRow = table.insertRow();
-            newRow.insertCell(0).innerHTML = each.title;
-            newRow.insertCell(1).innerHTML = each.type;
-            newRow.insertCell(2).innerHTML = each.start_time;
-            newRow.insertCell(3).innerHTML = each.exam_period;
-            newRow.insertCell(4).innerHTML = each.created_at;
-            newRow.insertCell(5).innerHTML = `
-            <div class="text-center" onclick="openModalDeleteQuiz(${each.id})">
-                <i class="bi bi-trash3"></i>
-            </div>
+        if (filteredExams.length === 0) {
+            let row = table.insertRow();
+            let cell = row.insertCell(0);
+            cell.colSpan = 7;
+            cell.className = "text-center text-muted py-4";
+            cell.textContent = allExams.length === 0 ? lang['noquiz'] : lang['nomatchquiz'];
 
-            `;
+            document.getElementById('current-page').textContent = 1;
+            document.getElementById('total-pages').textContent = 1;
+            document.getElementById('prev-page').disabled = true;
+            document.getElementById('next-page').disabled = true;
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(filteredExams.length / examsPerPage));
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIndex = (currentPage - 1) * examsPerPage;
+        const pageExams = filteredExams.slice(startIndex, startIndex + examsPerPage);
+
+        pageExams.forEach(each => {
+            let newRow = table.insertRow();
+            newRow.insertCell(0).textContent = each.title;
+            newRow.insertCell(1).textContent = each.type;
+            newRow.insertCell(2).textContent = each.start_time;
+            newRow.insertCell(3).textContent = each.exam_period;
+            newRow.insertCell(4).textContent = each.question_count;
+            newRow.insertCell(5).textContent = each.created_at;
+
+            let cellAction = newRow.insertCell(6);
+            cellAction.style.textAlign = "center";
+
+            let wrap = document.createElement('div');
+            wrap.style.display = "flex";
+            wrap.style.gap = "10px";
+            wrap.style.justifyContent = "center";
+
+            let viewBtn = document.createElement('button');
+            viewBtn.type = "button";
+            viewBtn.className = "icon-btn";
+            viewBtn.innerHTML = `<i class="bi bi-eye"></i>`;
+            viewBtn.title = lang['detail'];
+            viewBtn.addEventListener('click', () => openQuizDetail(each.id));
+
+            let deleteBtn = document.createElement('button');
+            deleteBtn.type = "button";
+            deleteBtn.className = "icon-btn";
+            deleteBtn.innerHTML = `<i class="bi bi-trash3"></i>`;
+            deleteBtn.title = lang['delete'];
+            deleteBtn.addEventListener('click', () => openModalDeleteQuiz(each.id, each.title));
+
+            wrap.appendChild(viewBtn);
+            wrap.appendChild(deleteBtn);
+            cellAction.appendChild(wrap);
         });
 
+        document.getElementById('current-page').textContent = currentPage;
+        document.getElementById('total-pages').textContent = totalPages;
+        document.getElementById('prev-page').disabled = currentPage === 1;
+        document.getElementById('next-page').disabled = currentPage === totalPages;
     }
+
+    document.getElementById('prev-page').addEventListener('click', () => changePage(-1));
+    document.getElementById('next-page').addEventListener('click', () => changePage(1));
 
     function openExamCreate() {
         questionIndex = 0;
-        // ลบ modal_div เดิมถ้ามี
-        const oldModal = document.getElementById('examCreateModal');
-        if (oldModal) {
-            oldModal.remove();
-        }
+        document.getElementById('examCreateForm').reset();
+        document.getElementById('question').innerHTML = "";
+        toggleQuestionEmpty();
 
-        let examModal = document.createElement('div');
-        examModal.className = "modal fade";
-        examModal.id = "examCreateModal";
-        examModal.tabIndex = "-1";
-        // examModal.ariaHidden = "true";
-        examModal.innerHTML = `
-            <div class="modal-dialog" style="width:100vw; max-Width:960px;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="examCreateTitle"><?=$lang['create']?><?=$lang['exam']?>.</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form id="examCreateForm">
-                            <div class="d-flex w-100 justify-content-between px-2 my-2 flex-wrap">
-                                <div class="col-12 col-lg-3">
-                                    <label for="Title" class="form-label"><?=$lang['title-ems']?></label>
-                                    <input type="text" class="form-control" id="title" name="title" required>
-                                </div>
-                                <div class="col-12 col-lg-3">
-                                    <label for="Start-time" class="form-label"><?=$lang['start-ems']?></label>
-                                    <input type="datetime-local" class="form-control" id="startTime" name="startTime" required>
-                                </div>
-                                <div class="col-12 col-lg-3">
-                                    <label for="examination-period" class="form-label"><?=$lang['period-ems']?>(minute)</label>
-                                    <input type="number" class="form-control" id="exam-period" name="exam-period" required>
-                                </div>
-                            </div>
-                            <div class="d-flex flex-wrap gap-1 my-3" style="min-height: 40vh;">
-                                <div class="rounded border p-2" style="width: 100%; max-width: 360px;">
-                                    <label for="Title" class="form-label"><?=$lang['description']?>.</label>
-                                    <textarea class="form-control" style="min-height:150px;" id="description" name="description" required></textarea>
-                                    <label for="examType" class="form-label"><?=$lang['type-ems']?></label>
-                                    <div>
-                                        <input type="radio" id="pre-test" name="examType" value="pre-test" required> Pre-Test
-                                        <input type="radio" id="post-test" name="examType" value="post-test"> Post-Test
-                                        <input type="radio" id="quiz" name="examType" value="quiz"> Quiz
-                                    </div>
-                                </div>
-                                <div class="rounded border p-2" style="width: 100%; max-width: 560px;">
-                                    <div class="w-100 form-control d-flex justify-content-between">
-                                        <div><?=$lang['question']?></div>
-                                        <button class="border-0 rounded-5 px-1" onclick="addQuestion()"><i class="bi bi-plus"></i></button>
-                                    </div>
-                                    <div id="question" class="w-100 p-2" style="max-height: 400px; overflow-y: auto;">
-                                        
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer gap-2">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" onclick="submitExamFormModal()">Create</button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(examModal);
         let examCreateModal = new bootstrap.Modal(document.getElementById('examCreateModal'));
         examCreateModal.show();
+    }
+
+    function toggleQuestionEmpty() {
+        const container = document.getElementById("question");
+        const empty = document.getElementById("question-empty");
+        empty.style.display = container.children.length === 0 ? "block" : "none";
     }
 
     function addQuestion() {
         const container = document.getElementById("question");
 
         const questionDiv = document.createElement("div");
-        questionDiv.className = "w-100 p-3 mb-3";
+        questionDiv.className = "w-100 p-3 mb-3 border rounded";
+        questionDiv.dataset.qindex = questionIndex;
         questionDiv.innerHTML = `
-        <div class="mb-2">
-            <label class="form-label"><?=$lang['question']?><?=$lang['at']?> ${questionIndex + 1}</label>
-            <input type="text" class="form-control" name="questions[${questionIndex}][text]" required>
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <label class="form-label mb-0">${lang['question']}${lang['at']} <span class="question-label-num">${questionIndex + 1}</span></label>
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeQuestion(this)" title="${lang['delete']}">
+                <i class="bi bi-trash3"></i>
+            </button>
         </div>
+        <input type="text" class="form-control mb-2" name="questions[${questionIndex}][text]" required>
         <div id="choices-${questionIndex}" class="ps-3"></div>
         <button type="button" class="btn btn-sm btn-outline-success mt-2" onclick="addChoice(${questionIndex})">
-            <i class="bi bi-plus-square"></i> <?=$lang['add']?><?=$lang['choice']?>
+            <i class="bi bi-plus-square"></i> ${lang['add']}${lang['choice']}
         </button>
     `;
         container.appendChild(questionDiv);
         questionIndex++;
+        toggleQuestionEmpty();
+    }
+
+    function removeQuestion(btn) {
+        btn.closest('[data-qindex]').remove();
+        renumberQuestionLabels();
+        toggleQuestionEmpty();
+    }
+
+    function renumberQuestionLabels() {
+        document.querySelectorAll('#question > [data-qindex] .question-label-num').forEach((el, i) => {
+            el.textContent = i + 1;
+        });
     }
 
     function addChoice(index) {
         const choiceContainer = document.getElementById(`choices-${index}`);
-        const choiceIndex = choiceContainer.children.length;
+        const choiceIndex = choiceContainer.children.length; // ใช้แค่ทำ placeholder ให้อ่านง่าย ไม่ผูกกับ logic ตอน submit
 
         const choiceDiv = document.createElement("div");
         choiceDiv.className = "input-group mb-2";
         choiceDiv.innerHTML = `
         <div class="input-group-text">
-            <input class="form-check-input mt-0" type="radio" name="questions[${index}][correct]" value="${choiceIndex}" required>
+            <input class="form-check-input mt-0" type="radio" name="questions[${index}][correct]" required>
         </div>
-        <input type="text" class="form-control" name="questions[${index}][choices][]" placeholder="Choice ${choiceIndex + 1}" required>
+        <input type="text" class="form-control" placeholder="${lang['choice']} ${choiceIndex + 1}" required>
+        <button type="button" class="btn btn-outline-danger" onclick="removeChoice(this)" title="${lang['delete']}">
+            <i class="bi bi-x-lg"></i>
+        </button>
     `;
         choiceContainer.appendChild(choiceDiv);
+    }
+
+    function removeChoice(btn) {
+        btn.closest('.input-group').remove();
     }
 
     function submitExamFormModal() {
@@ -157,26 +216,42 @@
         formData.append("description", description);
         formData.append("type", examType);
 
-        const questionDivs = document.querySelectorAll("#question > div");
+        const questionDivs = document.querySelectorAll("#question > [data-qindex]");
+
+        if (questionDivs.length === 0) {
+            showNotify(lang['noquestionyet']);
+            return;
+        }
 
         let hasError = false;
 
         questionDivs.forEach((div, qIndex) => {
-            const textInput = div.querySelector(`input[name="questions[${qIndex}][text]"]`);
-            const choiceInputs = div.querySelectorAll(`input[name="questions[${qIndex}][choices][]"]`);
-            const correctInput = div.querySelector(`input[name="questions[${qIndex}][correct]"]:checked`);
+            const qi = div.dataset.qindex;
+            const textInput = div.querySelector(`input[name="questions[${qi}][text]"]`);
+            const choiceRows = div.querySelector(`#choices-${qi}`).children;
 
-            if (!correctInput) {
-                alert(`❌ <?=$lang['misschoice']?> ${qIndex + 1}`);
+            // คำนวณ choices/คำตอบที่ถูกจากลำดับ DOM จริง ณ ตอน submit
+            // เพื่อให้ยังถูกต้องแม้ผู้ใช้จะลบคำถาม/ตัวเลือกออกไปก่อนหน้านี้
+            let correctIndex = -1;
+            const choiceValues = [];
+            Array.from(choiceRows).forEach((row, cIndex) => {
+                const radio = row.querySelector('input[type="radio"]');
+                const textField = row.querySelector('input[type="text"]');
+                choiceValues.push(textField.value);
+                if (radio.checked) correctIndex = cIndex;
+            });
+
+            if (correctIndex === -1) {
+                showNotify(`${lang['misschoice']} ${qIndex + 1}`);
                 hasError = true;
                 return;
             }
 
             formData.append(`questions[${qIndex}][text]`, textInput.value);
-            formData.append(`questions[${qIndex}][correct]`, correctInput.value);
+            formData.append(`questions[${qIndex}][correct]`, correctIndex);
 
-            choiceInputs.forEach((input) => {
-                formData.append(`questions[${qIndex}][choices][]`, input.value);
+            choiceValues.forEach((value) => {
+                formData.append(`questions[${qIndex}][choices][]`, value);
             });
         });
 
@@ -187,10 +262,11 @@
             body: formData
         })
             .then(res => res.json())
-            .then(data => {
+            .then(async data => {
                 if (data.status === "success") {
                     showNotify(lang['succ-exam']);
-                    location.reload();
+                    bootstrap.Modal.getInstance(document.getElementById('examCreateModal'))?.hide();
+                    await fetch_allExam();
                 } else {
                     showNotify(lang['fail-exam'] + data.message);
                     console.error(data.message);
@@ -201,32 +277,84 @@
             });
     }
 
-    function openModalDeleteQuiz(id) {
+    function openModalDeleteQuiz(id, title) {
+        document.getElementById("deleteUserName").textContent = title || "";
         let deleteUserModal = new bootstrap.Modal(document.getElementById("deleteUserModal"));
-        document.getElementById("confirmDeleteBtn").setAttribute("onclick", `deletequiz(${id})`); // ตั้งค่าปุ่มลบ
-        deleteUserModal.show(); // เปิด Modal
+        document.getElementById("confirmDeleteBtn").onclick = () => deletequiz(id);
+        deleteUserModal.show();
     }
 
-    function deletequiz(id) {
-        // สร้าง FormData object
+    async function deletequiz(id) {
         const formData = new FormData();
-        formData.append('id', id); // แนบตัวแปร id
+        formData.append('id', id);
 
-        // ส่งไปยัง exam_delete.php ด้วย fetch
-        fetch('../config/exam_deleted.php', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.text()) // หรือ .json() หาก PHP ส่ง JSON กลับมา
-            .then(result => {
-                console.log('ลบสำเร็จ:', result);
-                // ทำสิ่งอื่นต่อ เช่น refresh ตาราง หรือแจ้งเตือน
-            })
-            .catch(error => {
-                console.error('เกิดข้อผิดพลาด:', error);
+        try {
+            const response = await fetch('../config/exam_deleted.php', {
+                method: 'POST',
+                body: formData
             });
-        window.location.href = "../pages/quiz_management.php";
+            const result = await response.json();
+
+            if (result.success) {
+                showNotify(lang['succ-delete-exam']);
+                bootstrap.Modal.getInstance(document.getElementById('deleteUserModal'))?.hide();
+                await fetch_allExam();
+            } else {
+                showNotify(lang['fail-delete-exam']);
+                console.error(result.message);
+            }
+        } catch (error) {
+            showNotify(lang['fail-delete-exam']);
+            console.error('เกิดข้อผิดพลาด:', error);
+        }
     }
 
+    async function openQuizDetail(id) {
+        const body = document.getElementById('quiz-detail-body');
+        body.innerHTML = `<div class="text-center text-muted py-3">...</div>`;
 
+        let quizDetailModal = new bootstrap.Modal(document.getElementById('quizDetailModal'));
+        quizDetailModal.show();
+
+        try {
+            const res = await fetch(`../config/Fetch_questionAll.php?exam_id=${id}`);
+            const data = await res.json();
+
+            let html = `
+                <div class="mb-3">
+                    <div><strong>${lang['title-ems']}:</strong> ${data.title ?? ''}</div>
+                    <div><strong>${lang['type-ems']}:</strong> ${data.type ?? ''}</div>
+                    <div><strong>${lang['start-ems']}:</strong> ${data.start_time ?? ''}</div>
+                    <div><strong>${lang['period-ems']}:</strong> ${data.exam_period ?? ''} ${lang['minute']}</div>
+                    <div><strong>${lang['description']}:</strong> ${data.description ?? ''}</div>
+                </div>
+                <hr>
+            `;
+
+            const questions = data.questions || [];
+            if (questions.length === 0) {
+                html += `<div class="cert-chips-empty">${lang['noquestionyet']}</div>`;
+            } else {
+                questions.forEach((q, i) => {
+                    html += `<div class="mb-3">
+                        <div class="fw-semibold mb-1">${i + 1}. ${q.questions_question_text ?? ''}</div>
+                        <ul class="list-unstyled ps-3 mb-0">`;
+                    (q.choices || []).forEach(c => {
+                        const isCorrect = String(c.choices_is_correct) === "1";
+                        html += `<li class="${isCorrect ? 'text-success fw-semibold' : ''}">
+                            <i class="bi ${isCorrect ? 'bi-check-circle-fill' : 'bi-circle'}"></i>
+                            ${c.choices_choice_text ?? ''}
+                            ${isCorrect ? ' — ' + lang['correctanswer'] : ''}
+                        </li>`;
+                    });
+                    html += `</ul></div>`;
+                });
+            }
+
+            body.innerHTML = html;
+        } catch (error) {
+            body.innerHTML = `<div class="text-center text-danger py-3">${lang['fail-exam']}</div>`;
+            console.error(error);
+        }
+    }
 </script>

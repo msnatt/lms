@@ -2,101 +2,196 @@
 <script>
     const langData = document.getElementById('lang-data').textContent;
     const lang = JSON.parse(langData);
+
+    let allBackups = [];
+    let filteredBackups = [];
+    let currentPage = 1;
+    const backupsPerPage = 10;
+    let pendingImportFile = null; // ไฟล์ที่รอ confirm ก่อนนำเข้าจริง
+
     document.addEventListener('DOMContentLoaded', async () => {
         await generate_table();
     });
 
     async function loadBackup() {
         let response = await fetch('../config/get_backup.php');
-        let json_res = response.json();
-        return json_res;
+        return await response.json();
     }
 
     async function generate_table() {
-        let files = await loadBackup();
+        showLoadingById('table_backup');
+        try {
+            allBackups = await loadBackup();
+        } finally {
+            hideLoadingById('table_backup');
+        }
 
+        updateStats(allBackups);
+        filterBackups();
+    }
+
+    function formatSize(bytes) {
+        bytes = Number(bytes) || 0;
+        if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+        return (bytes / 1024).toFixed(2) + ' KB';
+    }
+
+    function updateStats(files) {
+        document.getElementById('stat-total').textContent = files.length;
+
+        const totalBytes = files.reduce((sum, f) => sum + Number(f.size || 0), 0);
+        document.getElementById('stat-size').textContent = formatSize(totalBytes);
+
+        const latest = files.reduce((max, f) => (!max || f.modified > max) ? f.modified : max, null);
+        document.getElementById('stat-latest').textContent = latest || '-';
+    }
+
+    // filter (client-side only — ไม่แตะ allBackups)
+    function filterBackups() {
+        const searchInput = document.getElementById('backup-search');
+        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+        filteredBackups = !query ? allBackups : allBackups.filter(file => {
+            return (file.name || '').toLowerCase().includes(query);
+        });
+
+        currentPage = 1;
+        renderBackups();
+    }
+
+    function changePage(offset) {
+        currentPage += offset;
+        renderBackups();
+    }
+
+    function renderBackups() {
         let table = document.getElementById('table_backup').getElementsByTagName('tbody')[0];
         table.innerHTML = "";
 
-        files.forEach(file => {
-            let sizeMB = (file.size / 1024).toFixed(2); // แสดงเป็น MB (2 ตำแหน่ง)
+        if (filteredBackups.length === 0) {
+            let row = table.insertRow();
+            let cell = row.insertCell(0);
+            cell.colSpan = 4;
+            cell.className = "text-center text-muted py-4";
+            cell.textContent = allBackups.length === 0 ? lang['nobackup'] : lang['nomatchbackup'];
 
+            document.getElementById('current-page').textContent = 1;
+            document.getElementById('total-pages').textContent = 1;
+            document.getElementById('prev-page').disabled = true;
+            document.getElementById('next-page').disabled = true;
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(filteredBackups.length / backupsPerPage));
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIndex = (currentPage - 1) * backupsPerPage;
+        const pageBackups = filteredBackups.slice(startIndex, startIndex + backupsPerPage);
+
+        pageBackups.forEach(file => {
             let newRow = table.insertRow();
-            newRow.className = "text-center";
-            newRow.style.textAlign = "center";
-            newRow.insertCell(0).innerHTML = file.modified;
-            newRow.insertCell(1).innerHTML = file.name;
-            newRow.insertCell(2).innerHTML = `${sizeMB} KB`;
-            // 🔽 ปุ่มดาวน์โหลด
+            newRow.insertCell(0).textContent = file.modified;
+            newRow.insertCell(1).textContent = file.name;
+            newRow.insertCell(2).textContent = formatSize(file.size);
+
             let downloadBtn = document.createElement("a");
             downloadBtn.href = `../backup/${file.name}`;
             downloadBtn.download = file.name;
             downloadBtn.className = "btn btn-sm btn-outline-success";
-            downloadBtn.innerHTML = `<i class="bi bi-download"></i> `+lang['download'];
+            downloadBtn.innerHTML = `<i class="bi bi-download"></i> ` + lang['download'];
 
             let actionCell = newRow.insertCell(3);
             actionCell.appendChild(downloadBtn);
         });
+
+        document.getElementById('current-page').textContent = currentPage;
+        document.getElementById('total-pages').textContent = totalPages;
+        document.getElementById('prev-page').disabled = currentPage === 1;
+        document.getElementById('next-page').disabled = currentPage === totalPages;
     }
+
+    document.getElementById('prev-page').addEventListener('click', () => changePage(-1));
+    document.getElementById('next-page').addEventListener('click', () => changePage(1));
 
     async function export_sql() {
-        // ส่งคำขอไปยัง export_sql.php ด้วย Fetch API
-        fetch('../config/sql_export.php', {
-            method: 'POST',  // ใช้ method POST
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            // ถ้าต้องการส่งข้อมูลใน body สามารถใส่ได้
-            // body: JSON.stringify({ key: "value" })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showNotify('✅ Export database file success.');
-                } else {
-                    showNotify('❌ Export database file failed. Please check: ' + data.message);
-                    console.error(data.message); // log error เพิ่ม
+        showLoading();
+        try {
+            const res = await fetch('../config/sql_export.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
                 }
-            })
-            .catch(error => {
-                showNotify('❗ เกิดข้อผิดพลาดในการเชื่อมต่อ server');
-                console.error('Fetch error:', error);
             });
-        await generate_table();
-    }
+            const data = await res.json();
 
-    async function import_sql(event) {
-        let fileInput = event.target;  // ได้ไฟล์จาก input
-        let formData = new FormData();
-
-        // ตรวจสอบว่าเลือกไฟล์ไหม
-        if (fileInput.files.length === 0) {
-            showNotify('❌ กรุณาเลือกไฟล์ก่อน (นามสกุล .sql เท่านั้น)');
-            return;
+            if (data.status === 'success') {
+                showNotify(lang['succ-export']);
+            } else {
+                showNotify(lang['fail-export'] + (data.message ? ': ' + data.message : ''));
+                console.error(data.message);
+            }
+        } catch (error) {
+            showNotify(lang['connecterror']);
+            console.error('Fetch error:', error);
+        } finally {
+            hideLoading();
         }
 
-        formData.append('sqlFile', fileInput.files[0]);
-
-        // ส่งคำขอไปยัง import_sql.php
-        fetch('../config/import_sql.php', {
-            method: 'POST',
-            body: formData
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showNotify('✅ Import database file success.');
-                } else {
-                    showNotify('❌ Import database file failed. Please check: ' + data.message);
-                }
-            })
-            .catch(error => {
-                showNotify('❗ เกิดข้อผิดพลาดในการเชื่อมต่อ server');
-                console.error('Fetch error:', error);
-            });
+        await generate_table();
     }
 
     function click_import() {
         document.getElementById('sqlInput').click();
+    }
+
+    function import_sql(event) {
+        let fileInput = event.target;
+
+        if (fileInput.files.length === 0) {
+            showNotify(lang['selectfilefirst']);
+            return;
+        }
+
+        pendingImportFile = fileInput.files[0];
+        document.getElementById('importFileName').textContent = pendingImportFile.name;
+
+        let importConfirmModal = new bootstrap.Modal(document.getElementById('importConfirmModal'));
+        importConfirmModal.show();
+    }
+
+    async function confirmImport() {
+        if (!pendingImportFile) {
+            showNotify(lang['selectfilefirst']);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('sqlFile', pendingImportFile);
+
+        showLoading();
+        try {
+            const res = await fetch('../config/sql_import.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.status === 'success') {
+                showNotify(lang['succ-import']);
+                bootstrap.Modal.getInstance(document.getElementById('importConfirmModal'))?.hide();
+                await generate_table();
+            } else {
+                showNotify(lang['fail-import'] + (data.message ? ': ' + data.message : ''));
+                console.error(data.message);
+            }
+        } catch (error) {
+            showNotify(lang['connecterror']);
+            console.error('Fetch error:', error);
+        } finally {
+            hideLoading();
+            document.getElementById('sqlInput').value = '';
+            pendingImportFile = null;
+        }
     }
 </script>

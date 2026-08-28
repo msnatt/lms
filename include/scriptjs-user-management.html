@@ -1,53 +1,129 @@
 <!-- page product -->
 <script>
+    let allUsers = [];
+    let filteredUsers = [];
+    let currentPage = 1;
+    const usersPerPage = 10;
+
     document.addEventListener('DOMContentLoaded', async () => {
         await generate_user();
     });
 
-    // generate user div
+    // fetch users then render
     async function generate_user() {
-        const response = await fetch("../config/Fetch_user.php"); // เรียกใช้ PHP
-        const json_res = await response.json();
-        let users = json_res;
-        console.log(users);
+        showLoadingById('table_user');
+        try {
+            const response = await fetch("../config/Fetch_user.php"); // เรียกใช้ PHP
+            allUsers = await response.json();
+        } finally {
+            hideLoadingById('table_user');
+        }
 
+        updateStats(allUsers);
+        filterUsers();
+    }
+
+    function updateStats(users) {
+        document.getElementById('stat-total').textContent = users.length;
+        document.getElementById('stat-admin').textContent = users.filter(u => u.is_admin == 1).length;
+        document.getElementById('stat-student').textContent = users.filter(u => u.is_admin != 1).length;
+    }
+
+    // filter (client-side only — ไม่แตะ allUsers)
+    function filterUsers() {
+        const searchInput = document.getElementById('user-search');
+        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+        filteredUsers = !query ? allUsers : allUsers.filter(user => {
+            return (user.code || '').toLowerCase().includes(query)
+                || (user.name || '').toLowerCase().includes(query)
+                || (user.username || '').toLowerCase().includes(query);
+        });
+
+        currentPage = 1;
+        renderUsers();
+    }
+
+    function changePage(offset) {
+        currentPage += offset;
+        renderUsers();
+    }
+
+    function renderUsers() {
         let table = document.getElementById('table_user').getElementsByTagName('tbody')[0];
         table.innerHTML = "";
 
-        users.forEach(user => {
-            let newRow = table.insertRow();
-            newRow.insertCell(0).innerHTML = user.name;
-            newRow.insertCell(1).innerHTML = user.code;
-            // let cell1 = newRow.insertCell(1);
-            // cell1.innerHTML = user.name;
-            // cell1.style.textAlign = "center"; // จัดให้อยู่ตรงกลาง
-            newRow.insertCell(2).innerHTML = user.username;
-            newRow.insertCell(3).innerHTML = user.telephone;
-            newRow.insertCell(4).innerHTML = user.is_admin == 1 ? "Admin" : "Student";
-            let cell04 = newRow.insertCell(5);
-            cell04.className = "";
-            cell04.style.maxWidth = "100px";
-            cell04.style.textAlign = "center"; // จัดให้อยู่ตรงกลาง
-            cell04.innerHTML = `
-                <div style="display: flex; gap: 5px; width: 100%;">
-                    <button class="btn btn-secondary" onclick="openResetPasswordModal(${user.id})">
-                        <i class="bi bi-pen"></i><?=$lang['edit']?>
-                    </button>
-                    <button class="btn btn-secondary" onclick="openRenameModal(${user.id})">
-                        <i class="bi bi-pen"></i><?=$lang['rename']?>
-                    </button>
-                    <button class="btn btn-danger" onclick="openDeleteUserModal(${user.id},'${user.name}')">
-                        <i class="bi bi-trash3"></i><?=$lang['delete']?>
-                    </button>
-                </div>
-            `;
+        if (filteredUsers.length === 0) {
+            let row = table.insertRow();
+            let cell = row.insertCell(0);
+            cell.colSpan = 6;
+            cell.className = "text-center text-muted py-4";
+            cell.textContent = <?= json_encode($lang['nomatchuser'], JSON_UNESCAPED_UNICODE) ?>;
 
+            document.getElementById('current-page').textContent = 1;
+            document.getElementById('total-pages').textContent = 1;
+            document.getElementById('prev-page').disabled = true;
+            document.getElementById('next-page').disabled = true;
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(filteredUsers.length / usersPerPage));
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIndex = (currentPage - 1) * usersPerPage;
+        const pageUsers = filteredUsers.slice(startIndex, startIndex + usersPerPage);
+
+        pageUsers.forEach(user => {
+            let newRow = table.insertRow();
+            newRow.insertCell(0).textContent = user.name;
+            newRow.insertCell(1).textContent = user.code;
+            newRow.insertCell(2).textContent = user.username;
+            newRow.insertCell(3).textContent = user.telephone;
+            newRow.insertCell(4).textContent = user.is_admin == 1 ? "Admin" : "Student";
+
+            let cellAction = newRow.insertCell(5);
+            cellAction.style.maxWidth = "100px";
+            cellAction.style.textAlign = "center";
+
+            let wrap = document.createElement('div');
+            wrap.style.display = "flex";
+            wrap.style.gap = "5px";
+            wrap.style.width = "100%";
+
+            let resetBtn = document.createElement('button');
+            resetBtn.className = "btn btn-secondary";
+            resetBtn.innerHTML = `<i class="bi bi-key"></i> <?= $lang['resetpassword'] ?>`;
+            resetBtn.addEventListener('click', () => openResetPasswordModal(user.id));
+
+            let editBtn = document.createElement('button');
+            editBtn.className = "btn btn-secondary";
+            editBtn.innerHTML = `<i class="bi bi-pen"></i> <?= $lang['edit'] ?>`;
+            editBtn.addEventListener('click', () => openEditUserModal(user));
+
+            let deleteBtn = document.createElement('button');
+            deleteBtn.className = "btn btn-danger";
+            deleteBtn.innerHTML = `<i class="bi bi-trash3"></i> <?= $lang['delete'] ?>`;
+            deleteBtn.addEventListener('click', () => openDeleteUserModal(user.id, user.name));
+
+            wrap.appendChild(resetBtn);
+            wrap.appendChild(editBtn);
+            wrap.appendChild(deleteBtn);
+            cellAction.appendChild(wrap);
         });
+
+        document.getElementById('current-page').textContent = currentPage;
+        document.getElementById('total-pages').textContent = totalPages;
+        document.getElementById('prev-page').disabled = currentPage === 1;
+        document.getElementById('next-page').disabled = currentPage === totalPages;
     }
+
+    document.getElementById('prev-page').addEventListener('click', () => changePage(-1));
+    document.getElementById('next-page').addEventListener('click', () => changePage(1));
 
     // open reset
     function openResetPasswordModal(userId) {
-        document.getElementById('userId').value = userId;
+        document.getElementById('resetUserId').value = userId;
         let newPassword = document.getElementById('newPassword');
         let confirmPassword = document.getElementById('confirmPassword');
         var alert_box = document.getElementById('alert_box');
@@ -59,26 +135,26 @@
         let resetPasswordModal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
         resetPasswordModal.show();
     }
-    // open rename
-    function openRenameModal(userId) {
-        document.getElementById('userId').value = userId;
-        let newname = document.getElementById('newname');
-        newname.value = "";
-        newname.style.border = "1px solid #ccc";
-        let renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
-        renameModal.show();
+    // open edit
+    function openEditUserModal(user) {
+        document.getElementById('editUserId').value = user.id;
+        document.getElementById('edit-name').value = user.name;
+        document.getElementById('edit-username').value = user.username;
+        document.getElementById('edit-telephone').value = user.telephone;
+        let editUserModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+        editUserModal.show();
     }
     // open Delete
     function openDeleteUserModal(userId, userName) {
         document.getElementById("deleteUserName").innerText = userName; // แสดงชื่อผู้ใช้ใน Modal
-        document.getElementById("confirmDeleteBtn").setAttribute("onclick", `deleteUser(${userId})`); // ตั้งค่าปุ่มลบ
+        document.getElementById("confirmDeleteBtn").onclick = () => deleteUser(userId);
 
         let deleteUserModal = new bootstrap.Modal(document.getElementById("deleteUserModal"));
         deleteUserModal.show(); // เปิด Modal
     }
     // submit reset
-    function submitResetPassword() {
-        let userId = document.getElementById('userId').value;
+    async function submitResetPassword() {
+        let userId = document.getElementById('resetUserId').value;
         var alert_box = document.getElementById('alert_box');
         let newPassword = document.getElementById('newPassword');
         let confirmPassword = document.getElementById('confirmPassword');
@@ -87,70 +163,86 @@
             confirmPassword.style.border = "1px solid #f00";
             alert_box.style.color = "red";
             alert_box.style.fontWeight = "600";
-            alert_box.innerHTML = "Password do not match!";
+            alert_box.textContent = <?= json_encode($lang['passwordnotmatch'], JSON_UNESCAPED_UNICODE) ?>;
             return;
         }
         let formData = new FormData();
         formData.append("user_id", userId);
         formData.append("new_password", newPassword.value);
 
-
-        // ทำ AJAX ส่งค่าไปยัง PHP
-        fetch("../config/user_resetpassword.php", {
-            method: "POST",
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('resetPasswordForm').reset();
-                    let modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
-                    modal.hide();
-                }
-            })
-            .catch(error => console.error("Error:", error));
+        try {
+            const response = await fetch("../config/user_resetpassword.php", {
+                method: "POST",
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success) {
+                document.getElementById('resetPasswordForm').reset();
+                let modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
+                modal.hide();
+                showNotify(<?= json_encode($lang['passwordreset'], JSON_UNESCAPED_UNICODE) ?>);
+            } else {
+                showNotify(data.message || <?= json_encode($lang['error'], JSON_UNESCAPED_UNICODE) ?>);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            showNotify(<?= json_encode($lang['error'], JSON_UNESCAPED_UNICODE) ?>);
+        }
     }
 
-    function submitRename() {
-        let userId = document.getElementById('userId').value;
-        let newname = document.getElementById('newname');
+    async function submitEditUser() {
+        let userId = document.getElementById('editUserId').value;
         let formData = new FormData();
         formData.append("user_id", userId);
-        formData.append("newname", newname.value);
+        formData.append("newname", document.getElementById('edit-name').value);
+        formData.append("username", document.getElementById('edit-username').value);
+        formData.append("telephone", document.getElementById('edit-telephone').value);
 
-        fetch("../config/user_rename.php", {
-            method: "POST",
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    let modal = bootstrap.Modal.getInstance(document.getElementById('renameModal'));
-                    modal.hide();
-                }
-            })
-            .catch(error => console.error("Error:", error));
+        try {
+            const response = await fetch("../config/user_rename.php", {
+                method: "POST",
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success) {
+                let modal = bootstrap.Modal.getInstance(document.getElementById('editUserModal'));
+                modal.hide();
+                showNotify(<?= json_encode($lang['usersaved'], JSON_UNESCAPED_UNICODE) ?>);
+                await generate_user();
+            } else if (data.message === 'usernametaken') {
+                showNotify(<?= json_encode($lang['usernametaken'], JSON_UNESCAPED_UNICODE) ?>);
+            } else {
+                showNotify(data.message || <?= json_encode($lang['error'], JSON_UNESCAPED_UNICODE) ?>);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            showNotify(<?= json_encode($lang['error'], JSON_UNESCAPED_UNICODE) ?>);
+        }
     }
+
     // submit deleted
     async function deleteUser(userId) {
-        console.log("ลบผู้ใช้ ID:", userId); // Debug ดูว่าได้ค่า userId ไหม
         let formData = new FormData();
         formData.append("user_id", userId);
-
-        fetch("../config/user_deleted.php", {
-            method: "POST",
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log(data)
-                }
-            })
-            .catch(error => console.error("Error:", error));
 
         let deleteUserModal = bootstrap.Modal.getInstance(document.getElementById("deleteUserModal"));
         deleteUserModal.hide(); // ปิด Modal
+
+        try {
+            const response = await fetch("../config/user_deleted.php", {
+                method: "POST",
+                body: formData
+            });
+            const data = await response.json();
+            if (data.success) {
+                showNotify(<?= json_encode($lang['userdeleted'], JSON_UNESCAPED_UNICODE) ?>);
+            } else {
+                showNotify(data.message || <?= json_encode($lang['error'], JSON_UNESCAPED_UNICODE) ?>);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            showNotify(<?= json_encode($lang['error'], JSON_UNESCAPED_UNICODE) ?>);
+        }
 
         await generate_user();
     }
@@ -160,20 +252,22 @@
     }
 
     async function Export_csv() {
-        await fetch("../config/user_export.php") // เรียกใช้ PHP
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // สร้างลิงก์ดาวน์โหลดไฟล์ CSV
-                    let link = document.createElement("a");
-                    link.href = "data:text/csv;base64," + data.filedata;
-                    link.download = data.filename;
-                    link.click();
-                } else {
-                    alert("เกิดข้อผิดพลาด: " + data.message);
-                }
-            })
-            .catch(error => console.error("Error:", error));
+        try {
+            const response = await fetch("../config/user_export.php"); // เรียกใช้ PHP
+            const data = await response.json();
+            if (data.success) {
+                // สร้างลิงก์ดาวน์โหลดไฟล์ CSV
+                let link = document.createElement("a");
+                link.href = "data:text/csv;base64," + data.filedata;
+                link.download = data.filename;
+                link.click();
+            } else {
+                showNotify(<?= json_encode($lang['exportfailed'], JSON_UNESCAPED_UNICODE) ?> + ': ' + data.message);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            showNotify(<?= json_encode($lang['exportfailed'], JSON_UNESCAPED_UNICODE) ?>);
+        }
     }
 
     // Upload file
@@ -189,16 +283,18 @@
                 body: formData
             })
                 .then(response => response.json())
-                .then(data => {
-                    console.log(typeof (data.duplicates));
+                .then(async data => {
                     if (data.success) {
                         if (data.duplicates.length > 0) {
-                            showNotify(`ข้อมูลซ้ำ: ${data.duplicates.join(", ")}`);
+                            showNotify(<?= json_encode($lang['importduplicate'], JSON_UNESCAPED_UNICODE) ?> + ': ' + data.duplicates.join(", "));
                         } else {
-                            showNotify('นำเข้าทั้งหมดสำเร็จ!');
+                            showNotify(<?= json_encode($lang['importsuccess'], JSON_UNESCAPED_UNICODE) ?>);
                         }
+                        await generate_user();
+                    } else {
+                        showNotify(data.message || <?= json_encode($lang['error'], JSON_UNESCAPED_UNICODE) ?>);
                     }
-
+                    event.target.value = "";
                 })
                 .catch(error => console.error("Error:", error));
         }

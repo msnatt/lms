@@ -16,8 +16,8 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user']['is_admin'])) {
     exit;
 }
 
-// ดึงข้อมูลจากตาราง log_error เรียงล่าสุดก่อน จำกัด 500 แถวกันหน้าโหลดหนักเกินไป
-$sql = "SELECT id, category, message, username, ip_address, created_at FROM log_error ORDER BY created_at DESC, id DESC LIMIT 500";
+// ดึงข้อมูลจากตาราง log_action เรียงล่าสุดก่อน จำกัด 500 แถวกันหน้าโหลดหนักเกินไป
+$sql = "SELECT id, category, message, username, ip_address, created_at FROM log_action ORDER BY created_at DESC, id DESC LIMIT 500";
 $result = $conn->query($sql);
 
 $options = [];

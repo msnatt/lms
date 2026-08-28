@@ -6,6 +6,7 @@
         let json = await response.json();
 
         generate_select(json, 'select-template')
+        document.getElementById('stat-templates').textContent = json.length;
         generate_student();
 
     });
@@ -29,14 +30,16 @@
 
         json_res.forEach(each => {
             let newRow = table.insertRow();
+            newRow.className = "student-row";
             newRow.insertCell(0).innerHTML = `
-            <input type="checkbox" class="form-check w-75 h-75" value="${each.name}" onchange="preview()">
+            <input type="checkbox" class="form-check-input" value="${each.name}" onchange="preview()">
             `;
             newRow.insertCell(1).innerHTML = each.code;
             newRow.insertCell(2).innerHTML = each.name;
-            newRow.insertCell(3).innerHTML = "";
         });
 
+        document.getElementById('stat-total').textContent = json_res.length;
+        filterStudents();
     }
 
     function preview() {
@@ -44,30 +47,67 @@
         selectlist.innerHTML = "";
         data = [];
         const checkboxes = document.querySelectorAll('#table_list_student input[type="checkbox"]:checked');
-        // const selectedNames = Array.from(checkboxes).map( cb =>" " + cb.value  );
-        // selectlist.innerHTML = selectedNames;
         checkboxes.forEach(checkbox => {
             let temp = document.createElement('div');
-            temp.className = "px-2";
-            temp.style.color = "#000";
-            temp.style.backgroundColor = "#fff";
-            temp.style.border = "1px solid #555";
-            temp.style.borderRadius = "2rem";
+            temp.className = "cert-chip";
             temp.textContent = checkbox.value;
             selectlist.appendChild(temp);
             data.push(checkbox.value);
         });
+
+        if (data.length === 0) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'cert-chips-empty';
+            emptyDiv.textContent = <?= json_encode($lang['nostudentselected'], JSON_UNESCAPED_UNICODE) ?>;
+            selectlist.appendChild(emptyDiv);
+        }
+
+        document.getElementById('stat-selected').textContent = data.length;
+    }
+
+    function filterStudents() {
+        const searchInput = document.getElementById('student-search');
+        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+        const tbody = document.getElementById('table_list_student').getElementsByTagName('tbody')[0];
+        const studentRows = Array.from(tbody.getElementsByClassName('student-row'));
+
+        let visibleCount = 0;
+        studentRows.forEach(row => {
+            const code = row.cells[1].textContent.toLowerCase();
+            const name = row.cells[2].textContent.toLowerCase();
+            const match = code.includes(query) || name.includes(query);
+            row.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+        });
+
+        let noMatchRow = document.getElementById('no-match-row');
+        if (visibleCount === 0 && studentRows.length > 0) {
+            if (!noMatchRow) {
+                noMatchRow = tbody.insertRow();
+                noMatchRow.id = 'no-match-row';
+                const cell = noMatchRow.insertCell(0);
+                cell.colSpan = 3;
+                cell.className = "text-center text-muted py-4";
+                cell.textContent = <?= json_encode($lang['nomatchstudent'], JSON_UNESCAPED_UNICODE) ?>;
+            }
+            noMatchRow.style.display = '';
+        } else if (noMatchRow) {
+            noMatchRow.remove();
+        }
+
+        document.getElementById('student-count').textContent =
+            <?= json_encode($lang['showing'], JSON_UNESCAPED_UNICODE) ?> + ` ${visibleCount} / ${studentRows.length}`;
     }
 
     async function Export() {
         if (data.length === 0) {
-            alert("กรุณาเลือกนักเรียนอย่างน้อย 1 คน");
+            showNotify(<?= json_encode($lang['selectstudentwarn'], JSON_UNESCAPED_UNICODE) ?>);
             return;
         }
 
         let template = document.getElementById('select-template').value;
         if (!template) {
-            alert("กรุณาเลือก Template");
+            showNotify(<?= json_encode($lang['selecttemplatewarn'], JSON_UNESCAPED_UNICODE) ?>);
             return;
         }
 

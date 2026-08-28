@@ -71,8 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // ตั้งค่า default ถ้ายังไม่มีใน session
-$bg = $_SESSION['bg'] ?? '#ffffff';
-$bgbar = $_SESSION['bgbar'] ?? '#f8f9fa';
-$bgside = $_SESSION['bgside'] ?? '#e9ecef';
-$text = $_SESSION['text'] ?? '#000000';
-$button = $_SESSION['button'] ?? '#007bff';
+$bg = $_SESSION['bg'] ?? '#f4f5fa';
+$bgbar = $_SESSION['bgbar'] ?? '#ffffff';
+$bgside = $_SESSION['bgside'] ?? '#ffffff';
+$text = $_SESSION['text'] ?? '#1f2937';
+$button = $_SESSION['button'] ?? '#4f46e5';

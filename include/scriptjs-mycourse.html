@@ -7,8 +7,14 @@
 
         console.log(mycourse);
 
-        if (mycourse.length === 0) {
-            alert("คุณยังไม่ได้ลงทะเบียนเรียน");
+        if (!mycourse['courses'] || mycourse['courses'].length === 0) {
+            document.getElementById("course_div").innerHTML = `
+                <div class="result-empty-state">
+                    <i class="bi bi-journal-x fs-1 d-block mb-2"></i>
+                    คุณยังไม่ได้ลงทะเบียนเรียน
+                </div>
+            `;
+            document.querySelector('.pagination-bar').style.display = 'none';
         }
         else {
 
@@ -79,7 +85,7 @@
     });
 
     function handleCardClick(course_id) {
-        window.location.href = `../components/Set_Course.php?courseid=${course_id}`;
+        window.location.href = `../components/set_course.php?courseid=${course_id}`;
         // alert('You clicked on course: ' + course_id);
     }
 

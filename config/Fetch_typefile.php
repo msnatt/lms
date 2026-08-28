@@ -1,16 +1,20 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
+session_start();
 
 include "../config/no-crash.php";
-include "../config/connect.php"; 
+include "../config/connect.php";
 
 // ตรวจสอบการเชื่อมต่อ
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
+}
+
+// ต้อง login ก่อนถึงดูรายการชนิดเนื้อหาได้
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(403);
+    echo json_encode(['error' => 'forbidden']);
+    exit;
 }
 
 // ดึงข้อมูลจากตาราง categories

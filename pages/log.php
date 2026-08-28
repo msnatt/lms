@@ -1,7 +1,10 @@
 <?php
 include '../components/session.php';
 checkLogin();
-$courseid = $_GET['courseid'] ?? 'N/A';
+if (empty($_SESSION['user']['is_admin'])) {
+    header("Location: ../pages/home.php");
+    exit();
+}
 $user = $_SESSION['user'] ?? 'N/A';
 ?>
 
@@ -12,57 +15,84 @@ $user = $_SESSION['user'] ?? 'N/A';
 <?php include "../include/style.html"; ?>
 
 <head>
-    <title><?=$lang['logs']?> - E-learning</title>
+    <meta charset="UTF-8">
+    <title><?= $lang['logs'] ?> - E-learning</title>
 </head>
 
-<body class="bg-custom">
+<body>
     <?php include "../include/header.php"; ?>
-    <div class="main-inner">
+    <div class="d-flex" style="min-height: 100vh;">
+        <?php include "../components/sidemenu.php"; ?>
+        <div id="main-content" class="flex-grow-1" style="transition: all 0.3s ease;">
+            <div class="page-wrap">
 
-        <div class="d-flex" style="min-height: 60vh;">
-            <?php include "../components/sidemenu.php"; ?>
-            <div class="bg-light  p-4 w-100" style="min-height: 60vh;">
-                <div class="container w-100">
-                    <div class="d-flex align-items-center">
-                        <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>
-                        <h3><?=$lang['logs']?></h3>
-                    </div>
-                    <div class="d-flex w-100 border rounded border-secondary-subtle" style="min-height: 60vh;">
-                        <div id="log_list" class="w-75 border-end border-secondary-subtle">
-                            <div class="p-2">
-                                <table id="table_log">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 30%;"><?= $lang['time'] ?></th>
-                                            <th style="width: 20%;"><?= $lang['username'] ?></th>
-                                            <th style="width: 15%;"><?= $lang['action'] ?></th>
-                                            <th style="width: 35%;"><?= $lang['note'] ?></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                <div class="page-title">
+                    <button onclick="window.history.back();" class="icon-btn"><i class="bi bi-arrow-left"></i></button>
+                    <span class="page-title-icon"><i class="bi bi-clock-history"></i></span>
+                    <h2><?= $lang['logs'] ?></h2>
+                </div>
 
-                                    </tbody>
-                                </table>
-                            </div>
+                <div class="result-stats" id="log-stats">
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-list-ul"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-total">0</div>
+                            <div class="result-stat-label"><?= $lang['totallog'] ?></div>
                         </div>
-                        <div id="log_menu" class="w-25 d-flex justify-content-center">
-                            <div class="w-100 px-4 d-flex flex-wrap gap-3 align-content-start justify-content-center">
-                                <!-- <div class="w-100 px-4 "> -->
-                                <h4 class="mt-3 d-flex justify-content-center"><?=$lang['typelogs']?></h4>
-                                <hr>
-                                <div class="btn-c w-100" id="action_btn" onclick=""><?=$lang['logins']?></div>
-                                <div class="btn-c w-100" id="error_btn" onclick=""><?=$lang['error']?></div>
-                                <!-- <div class="btn-c w-100" id="debug_btn" onclick="">Debug</div> -->
-                            </div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-calendar-day"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-today">0</div>
+                            <div class="result-stat-label"><?= $lang['logtoday'] ?></div>
+                        </div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-clock-history"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-latest">-</div>
+                            <div class="result-stat-label"><?= $lang['latestlog'] ?></div>
                         </div>
                     </div>
                 </div>
+
+                <div class="panel">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <div class="btn-c" id="action_btn" onclick="switchTab('login')"><?= $lang['logins'] ?></div>
+                        <div class="btn-c" id="error_btn" onclick="switchTab('error')"><?= $lang['error'] ?></div>
+                        <div class="btn-c" id="log_action_btn" onclick="switchTab('action')"><?= $lang['useraction'] ?></div>
+                    </div>
+
+                    <div class="toolbar">
+                        <input type="text" id="log-search" class="form-control" style="max-width: 320px;" placeholder="<?= $lang['searchlog'] ?>" oninput="filterLogs()">
+                        <button class="btn btn-outline-secondary" onclick="loadLogs()"><i class="bi bi-arrow-clockwise me-1"></i><?= $lang['refresh'] ?></button>
+                    </div>
+
+                    <div class="cert-table-wrap">
+                        <table id="table_log">
+                            <thead>
+                                <tr id="log-thead-row"></tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination-bar">
+                        <button class="page-link" id="prev-page" disabled><i class="bi bi-chevron-left"></i></button>
+                        <span><span class="fw-semibold" id="current-page">1</span> / <span id="total-pages">1</span></span>
+                        <button class="page-link" id="next-page"><i class="bi bi-chevron-right"></i></button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
-
-
+    <script id="lang-data" type="application/json">
+        <?= json_encode($lang, JSON_UNESCAPED_UNICODE); ?>
+    </script>
 
     <?php include "../include/footer.php"; ?>
     <?php include "../include/scriptjs.html"; ?>

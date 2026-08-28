@@ -13,37 +13,32 @@ $user = $_SESSION['user'] ?? 'N/A';
 <head>
     <title><?= $lang['course'] ?> - E-learning</title>
 </head>
-<style>
-    #search_box {
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="gray" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.415l-3.85-3.85a1.007 1.007 0 0 0-.115-.098zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>') no-repeat 10px center;
-        background-size: 16px;
-        padding-left: 35px;
-    }
-</style>
 
 
 <body>
     <?php include "../include/header.php"; ?>
 
-    <div class=" d-flex bg-light bg-opacity-75">
-        <div class=" d-flex" style="width: 100%;">
-            <?php include "../components/sidemenu.php"; ?>
-            <div class="d-flex flex-column justify-content-center w-100">
-                <h2 class="p-4 text-center" style="max-width: 100%"><?= $lang['allcourse'] ?></h2>
-                <div class="d-flex">
-                    <div class="d-flex flex-wrap w-100 rounded" style="padding: 0.2rem 0.25rem;">
-                        <div id="filter-box" class="d-flex flex-column col-12 col-lg-2 px-4 rounded">
-                            <div class="d-flex g-5 justify-content-around">
-                                <h3><i class="bi bi-funnel-fill"></i><?= $lang['filter'] ?></h3>
-                            </div>
-                            <div>
-                                <label class="form-label"><?= $lang['codecourse'] ?></label>
-                                <input type="text" id="code_filter" name="code_filter" class="form-control" oninput="validateNumberInput(event)" placeholder=<?= $lang['entercode'] ?>>
-                            </div>
-                            <div>
-                                <label class="form-label"><?= $lang['namecourse'] ?></label>
-                                <input type="text" id="name_filter" name="name_filter" class="form-control" oninput="filterCourses()" placeholder=<?= $lang['entername'] ?>>
-                            </div>
+    <div class="d-flex" style="min-height: 100vh;">
+        <?php include "../components/sidemenu.php"; ?>
+        <div id="main-content" class="flex-grow-1" style="transition: all 0.3s ease;">
+            <div class="page-wrap">
+
+                <div class="page-title">
+                    <span class="page-title-icon"><i class="bi bi-journal-text"></i></span>
+                    <h2><?= $lang['allcourse'] ?></h2>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-12 col-lg-3">
+                        <div class="filter-card" id="filter-box">
+                            <h3><i class="bi bi-funnel-fill"></i><?= $lang['filter'] ?></h3>
+
+                            <label class="form-label"><?= $lang['codecourse'] ?></label>
+                            <input type="text" id="code_filter" name="code_filter" class="form-control" oninput="validateNumberInput(event)" placeholder="<?= $lang['entercode'] ?>">
+
+                            <label class="form-label"><?= $lang['namecourse'] ?></label>
+                            <input type="text" id="name_filter" name="name_filter" class="form-control" oninput="filterCourses()" placeholder="<?= $lang['entername'] ?>">
+
                             <label class="form-label"><?= $lang['faculty'] ?></label>
                             <select class="form-select" name="select_faculty" id="select_faculty" onchange="filterCourses()">
                                 <option value=""><?= $lang['all_faculty'] ?? '-- All Faculty --' ?></option>
@@ -75,50 +70,48 @@ $user = $_SESSION['user'] ?? 'N/A';
                                     <option value="13"><?= $lang['computer_eng'] ?? 'Computer Engineering' ?></option>
                                 </optgroup>
                             </select>
-
-                        </div>
-                        <div id="result-box" class="d-flex flex-column col-12 col-lg-10">
-                            <div class="d-flex justify-content-center px-4">
-                                <!-- <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder=<?= $lang['entersearch'] ?>> -->
-                            </div>
-                            <div class="d-flex justify-content-between px-4 pt-3">
-                                <div>
-                                    <?= $lang['numofresult'] ?> :
-                                    <span id="numofresult"></span>
-                                </div>
-                                <div>
-                                    <button type="button" class="form-control"><i class="bi bi-arrow-clockwise"></i><?= $lang['refresh'] ?></button>
-                                </div>
-                            </div>
-                            <div id="course_div" name="course_div" class="d-flex flex-wrap justify-content-center" style="min-height: 40svh;"></div>
-
-                            <br>
-                            <br>
-                            <!-- Pagination -->
-                            <div class="pagination mt-4">
-                                <div class="row">
-                                    <div class="col-4 d-flex justify-content-center">
-                                        <button class="page-link" id="prev-page" disabled>&lt;</button>
-                                    </div>
-                                    <div class="col-4 d-flex justify-content-center align-items-center">
-                                        <span class="page-link" id="current-page">1</span> / <span id="total-pages">1</span>
-                                    </div>
-                                    <div class="col-4 d-flex justify-content-center">
-                                        <button class="page-link" id="next-page">&gt;</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <br>
-                            <?php if ($user['is_admin'] == "1"): ?>
-                                <div style="position: fixed; bottom: 10%; right: 3%;">
-                                    <button class="menuquickly" onclick="window.location.href = '../pages/course_create.php'">
-                                        <img src="../assets/images/add.png" width="25px" height="25px" />
-                                    </button>
-                                </div>
-                            <?php endif; ?>
                         </div>
                     </div>
+
+                    <div class="col-12 col-lg-9" id="result-box">
+                        <div class="toolbar">
+                            <div><?= $lang['numofresult'] ?>: <strong id="numofresult"></strong></div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-clockwise me-1"></i><?= $lang['refresh'] ?>
+                            </button>
+                        </div>
+
+                        <div id="course_div" name="course_div" class="d-flex flex-wrap justify-content-center" style="min-height: 40svh;">
+                            <?php for ($i = 0; $i < 4; $i++): ?>
+                                <div class="col-12 col-md-6 col-xxl-3 d-flex justify-content-center" style="padding:1.5rem 0rem;">
+                                    <div class="skeleton-card">
+                                        <div class="skeleton-img"></div>
+                                        <div class="dash-skeleton">
+                                            <div class="dash-skeleton-line" style="width:70%; height:16px;"></div>
+                                            <div class="dash-skeleton-line" style="width:90%;"></div>
+                                            <div class="dash-skeleton-line" style="width:60%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endfor; ?>
+                        </div>
+
+                        <div class="pagination-bar">
+                            <button class="page-link" id="prev-page" disabled><i class="bi bi-chevron-left"></i></button>
+                            <span><span class="fw-semibold" id="current-page">1</span> / <span id="total-pages">1</span></span>
+                            <button class="page-link" id="next-page"><i class="bi bi-chevron-right"></i></button>
+                        </div>
+
+                        <?php if ($user['is_admin'] == "1"): ?>
+                            <div style="position: fixed; bottom: 10%; right: 3%;">
+                                <button class="menuquickly" onclick="window.location.href = '../pages/course_create.php'">
+                                    <img src="../assets/images/add.png" width="25px" height="25px" />
+                                </button>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>

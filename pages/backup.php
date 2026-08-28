@@ -1,6 +1,10 @@
 <?php
 include '../components/session.php';
 checkLogin();
+if (empty($_SESSION['user']['is_admin'])) {
+    header("Location: ../pages/home.php");
+    exit();
+}
 $user = $_SESSION['user'] ?? 'N/A';
 ?>
 
@@ -15,43 +19,96 @@ $user = $_SESSION['user'] ?? 'N/A';
     <title><?= $lang['backup'] ?> - E-learning</title>
 </head>
 
-<body class="bg-custom">
+<body>
     <?php include "../include/header.php"; ?>
+    <div class="d-flex" style="min-height: 100vh;">
+        <?php include "../components/sidemenu.php"; ?>
+        <div id="main-content" class="flex-grow-1" style="transition: all 0.3s ease;">
+            <div class="page-wrap">
 
-    <div class=" d-flex bg-light bg-opacity-75">
-        <div class="bg-light d-flex" style="width: 100%;">
-            <?php include "../components/sidemenu.php"; ?>
-            <div class="d-flex flex-column justify-content-center w-100">
-                <div class="container w-100">
-                    <div class="d-flex align-items-center">
-                        <button onclick="window.history.back();" class="btn col-2 col-lg-1 "><i class="bi bi-arrow-left fs-3"></i></button>
-                        <h3><?= $lang['backup'] ?></h3>
+                <div class="page-title">
+                    <button onclick="window.history.back();" class="icon-btn"><i class="bi bi-arrow-left"></i></button>
+                    <span class="page-title-icon"><i class="bi bi-database-fill-down"></i></span>
+                    <h2><?= $lang['backup'] ?></h2>
+                </div>
+
+                <div class="result-stats" id="backup-stats">
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-file-earmark-zip"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-total">0</div>
+                            <div class="result-stat-label"><?= $lang['totalbackup'] ?></div>
+                        </div>
                     </div>
-                    <div class="px-4 py-2 d-flex justify-content-end gap-2">
-                        <button class="btn btn-outline-secondary" style="width: 50%; max-width: 100px;" onclick="click_import()"><?= $lang['import'] ?></button>
-                        <button class="btn btn-outline-secondary" style="width: 50%; max-width: 100px;" onclick="export_sql()"><?= $lang['export'] ?></button>
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-hdd"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-size">0</div>
+                            <div class="result-stat-label"><?= $lang['totalsize'] ?></div>
+                        </div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-clock-history"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-latest">-</div>
+                            <div class="result-stat-label"><?= $lang['latestbackup'] ?></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="toolbar">
+                        <input type="text" id="backup-search" class="form-control" style="max-width: 320px;" placeholder="<?= $lang['searchbackup'] ?>" oninput="filterBackups()">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary" onclick="click_import()"><i class="bi bi-upload me-1"></i><?= $lang['import'] ?></button>
+                            <button class="btn btn-primary" onclick="export_sql()"><i class="bi bi-download me-1"></i><?= $lang['export'] ?></button>
+                        </div>
                     </div>
                     <!-- ซ่อน input file -->
                     <input type="file" id="sqlInput" class="d-none" accept=".sql" onchange="import_sql(event)">
-                    <div id="status"></div>
-                    <div class="d-flex w-100 border rounded border-secondary-subtle" style="min-height: 60vh;">
-                        <div id="log_list" class="w-100 border-end border-secondary-subtle">
-                            <div class="p-2">
-                                <table id="table_backup">
-                                    <thead>
-                                        <tr class="text-center">
-                                            <th> <?=$lang['time']?> </th>
-                                            <th> <?=$lang['name']?>  </th>
-                                            <th> <?=$lang['size']?>  </th>
-                                            <th> <?=$lang['action']?> </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+
+                    <div class="cert-table-wrap">
+                        <table id="table_backup">
+                            <thead>
+                                <tr>
+                                    <th><?= $lang['time'] ?></th>
+                                    <th><?= $lang['filename'] ?></th>
+                                    <th><?= $lang['size'] ?></th>
+                                    <th><?= $lang['action'] ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
                     </div>
+
+                    <div class="pagination-bar">
+                        <button class="page-link" id="prev-page" disabled><i class="bi bi-chevron-left"></i></button>
+                        <span><span class="fw-semibold" id="current-page">1</span> / <span id="total-pages">1</span></span>
+                        <button class="page-link" id="next-page"><i class="bi bi-chevron-right"></i></button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ยืนยันการนำเข้าข้อมูล -->
+    <div class="modal fade" id="importConfirmModal" tabindex="-1" aria-labelledby="importConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importConfirmModalLabel"><?= $lang['confirmimport'] ?></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><?= $lang['textconfirmimport'] ?></p>
+                    <p class="mb-0"><strong id="importFileName"></strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $lang['cancel'] ?></button>
+                    <button type="button" class="btn btn-danger" id="confirmImportBtn" onclick="confirmImport()"><?= $lang['import'] ?></button>
                 </div>
             </div>
         </div>
@@ -60,6 +117,7 @@ $user = $_SESSION['user'] ?? 'N/A';
     <script id="lang-data" type="application/json">
         <?= json_encode($lang, JSON_UNESCAPED_UNICODE); ?>
     </script>
+
     <?php include "../include/footer.php"; ?>
     <?php include "../include/scriptjs.html"; ?>
     <?php include "../include/scriptjs-backup.html"; ?>

@@ -1,20 +1,39 @@
-<!-- Video Player -->
+<!-- Home profile / homepage content management -->
 <script>
-    // const id_list = ['slide01', 'slide02', 'slide03', 'icon01', 'icon02', 'icon03', 'icon04', 'icon05', 'icon06', 'icon07', 'icon08', 'icon09'];
+    const LANG_INFO = {
+        selectImageFirst: <?= json_encode($lang['selectimagefirst'], JSON_UNESCAPED_UNICODE) ?>,
+        uploadFailed: <?= json_encode($lang['uploadfailed'], JSON_UNESCAPED_UNICODE) ?>,
+    };
+
     document.addEventListener('DOMContentLoaded', async () => {
         await refresh();
     });
+
+    function renderYoutube(id) {
+        const el = document.getElementById('youtube-video');
+        if (!el) return;
+        id = (id || '').trim();
+        el.innerHTML = id ?
+            `<iframe src="https://www.youtube.com/embed/${encodeURIComponent(id)}"
+                title="YouTube preview" frameborder="0" allowfullscreen
+                style="width:100%;height:100%;border:0;border-radius:var(--radius-md);"></iframe>` :
+            '';
+    }
+
     async function generateOptionList(json) {
         fetch('../config/get_image.php')
             .then(response => response.json())
             .then(files => {
-                console.log(files);
+                const stat = document.getElementById('stat-images');
+                if (stat) stat.textContent = files.length;
+
                 Object.entries(json).forEach(([key, value]) => {
                     if (key == 'id') {
                         return
                     }
                     if (key !== 'youtube_id') {
                         let container = document.getElementById('select-' + key);
+                        if (!container) return;
                         files.forEach(filename => {
                             const option = document.createElement('option');
                             option.value = filename;
@@ -28,7 +47,9 @@
                         });
                     } else {
                         let ele = document.getElementById('youtube_id');
+                        if (!ele) return;
                         ele.value = value;
+                        ele.addEventListener('input', () => renderYoutube(ele.value));
                     }
                 })
             })
@@ -44,38 +65,14 @@
 
         generateOptionList(json);
         Object.entries(json).forEach(([key, value]) => {
-            try {
-                let element = document.getElementById('img_' + key);
-                if (key !== 'youtube_id') {
-                    element.setAttribute('src', "../assets/images/home/" + value);
-                }
-            } catch (error) { 
-                console.warn("error : ", error);
-                
-            }
+            if (key === 'id' || key === 'youtube_id') return;
+            const element = document.getElementById('img_' + key);
+            if (!element) return;
+            element.setAttribute('src', "../assets/images/home/" + value);
         });
 
+        renderYoutube(json['youtube_id']);
 
-        const videoContainer = document.getElementById('youtube-video');
-        // const observer = new IntersectionObserver(entries => {
-        //     entries.forEach(entry => {
-        //         if (entry.isIntersecting) {
-        //             videoContainer.innerHTML = `
-        //             <iframe
-        //                 src="https://www.youtube.com/embed/${json['youtube_id']}?autoplay=0&mute=1"
-        //                 title="YouTube video"
-        //                 frameborder="0"
-        //                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        //                 allowfullscreen
-        //                 style="width:50vw; height: 415px;">
-        //             </iframe>
-        //         `;
-        //             observer.disconnect(); // หยุดสังเกตเมื่อโหลด iframe แล้ว
-        //         }
-        //     });
-        // });
-        // observer.observe(videoContainer);
-        
     }
 
     const imageInput = document.getElementById('imageInput');
@@ -96,7 +93,7 @@
         const fileInput = document.getElementById('imageInput');
         const file = fileInput.files[0];
         if (!file) {
-            alert("กรุณาเลือกรูปภาพก่อน");
+            showNotify(LANG_INFO.selectImageFirst);
             return;
         }
 
@@ -107,19 +104,19 @@
             method: "POST",
             body: formData
         })
-            .then(response => response.text()) // หรือ .json() ถ้าคุณ return JSON
+            .then(response => response.text())
             .then(result => {
                 window.location.reload();
             })
             .catch(error => {
-                console.error("เกิดข้อผิดพลาด:", error);
-                alert("อัปโหลดไม่สำเร็จ");
+                console.error("upload error : ", error);
+                showNotify(LANG_INFO.uploadFailed);
             });
     }
 
     document.getElementById('manageimage').addEventListener("click", () => {
         const managebox = document.getElementById('managebox');
         managebox.classList.toggle('show'); // toggle class ที่เลื่อนกล่องเข้า/ออก
-        
+
     });
 </script>

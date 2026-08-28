@@ -1,13 +1,15 @@
 <?php
-session_start();
+include '../components/session.php';
+checkLogin();
 include '../config/connect.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
     $course_id = $_GET['courseid'] ?? null;
 
-    $sql = "SELECT * FROM course WHERE id = ?";
+    $sql = "SELECT * FROM course WHERE id = ? AND is_deleted = 0";
     $stmt = $conn->prepare($sql);
 
+    $course = null;
     if ($stmt) {
         $stmt->bind_param("i", $course_id);
         $stmt->execute();
@@ -18,8 +20,16 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $stmt->close();
     }
 
+    if (!$course) {
+        // ไม่พบคอร์ส (ถูกลบ/ไม่มีจริง) — กลับไปหน้ารายการคอร์สแทนที่จะเซ็ต session ว่างแล้วพังต่อที่ detail.php
+        $conn->close();
+        header("Location: ../pages/course.php");
+        exit();
+    }
+
     $_SESSION['course'] = $course;
 
+    $owner = null;
     $sql_user = "SELECT * FROM user WHERE id = ?";
     $stmt = $conn->prepare($sql_user);
 
@@ -37,7 +47,6 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     $_SESSION['owner'] = $owner;
 
     // เปลี่ยนเส้นทางไปยัง detail.php
-    // header("Location: ../pages/course_detail.php?courseid=" . $course_id);
     header("Location: ../pages/detail.php?courseid=" . $course_id);
     exit();
 }

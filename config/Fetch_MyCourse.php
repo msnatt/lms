@@ -5,43 +5,53 @@ include '../config/connect.php';
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-if ($_SERVER["REQUEST_METHOD"] == "GET") {
-    $user_id = $_GET['user_id'] ?? null;
 
-    $sql = "SELECT course_student.id, 
-                   course_student.course_id, 
-                   course_student.owner_id, 
-                   course_student.create_date, 
-                   course_student.update_date, 
-                   course_student.is_active, 
+// ต้อง login ก่อนถึงดูรายการคอร์สของตัวเองได้
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(403);
+    echo json_encode(['error' => 'forbidden']);
+    exit;
+}
+
+// อ่าน user id จาก session เท่านั้น — เดิมอ่านจาก $_GET['user_id'] ทำให้ใครก็ตาม
+// ใส่เลข user_id ใดๆ แล้วดึงรายชื่อคอร์ส + อีเมล/เบอร์โทร/username ของคนอื่นได้ (IDOR)
+$user_id = $_SESSION['user_id'];
+
+if ($_SERVER["REQUEST_METHOD"] == "GET") {
+    $sql = "SELECT course_student.id,
+                   course_student.course_id,
+                   course_student.owner_id,
+                   course_student.create_date,
+                   course_student.update_date,
+                   course_student.is_active,
                    course_student.is_deleted,
 
-                   course.id AS course_id, 
-                   course.code AS course_code, 
-                   course.image_code AS course_image_code, 
-                   course.name AS course_name, 
-                   course.description AS course_description, 
-                   course.objective AS course_objective, 
-                   course.faculty_id AS course_faculty_id, 
-                   course.department_id AS course_department_id, 
-                   course.create_date AS course_create_date, 
-                   course.update_date AS course_update_date, 
-                   course.create_by AS course_create_by, 
-                   course.update_by AS course_update_by, 
-                   course.is_publish AS course_is_publish, 
+                   course.id AS course_id,
+                   course.code AS course_code,
+                   course.image_code AS course_image_code,
+                   course.name AS course_name,
+                   course.description AS course_description,
+                   course.objective AS course_objective,
+                   course.faculty_id AS course_faculty_id,
+                   course.department_id AS course_department_id,
+                   course.create_date AS course_create_date,
+                   course.update_date AS course_update_date,
+                   course.create_by AS course_create_by,
+                   course.update_by AS course_update_by,
+                   course.is_publish AS course_is_publish,
                    course.is_deleted AS course_is_deleted,
-                   
-                   user.id AS user_id, 
-                   user.code AS user_code, 
-                   user.name AS user_name, 
-                   user.username AS user_username, 
-                   user.email AS user_email, 
-                   user.rank AS user_rank, 
-                   user.telephone AS user_telephone, 
-                   user.create_date AS user_create_date, 
-                   user.update_date AS user_update_date, 
-                   user.is_pushhandup AS user_is_pushhandup, 
-                   user.is_admin AS user_is_admin, 
+
+                   user.id AS user_id,
+                   user.code AS user_code,
+                   user.name AS user_name,
+                   user.username AS user_username,
+                   user.email AS user_email,
+                   user.rank AS user_rank,
+                   user.telephone AS user_telephone,
+                   user.create_date AS user_create_date,
+                   user.update_date AS user_update_date,
+                   user.is_pushhandup AS user_is_pushhandup,
+                   user.is_admin AS user_is_admin,
                    user.is_deleted AS user_is_deleted
             FROM course_student
             LEFT JOIN course ON course_student.course_id = course.id
@@ -53,18 +63,20 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     $stmt->execute();
     $result = $stmt->get_result();
 
-    $data = [];
+    // ตั้งค่าโครงสร้างเริ่มต้นไว้ก่อนเสมอ กัน response กลายเป็น [] (array ว่าง) เวลาไม่มีคอร์สที่ลงทะเบียน
+    // ซึ่งเป็นต้นเหตุที่ frontend เข้าถึง .courses บน array แล้ว TypeError
+    $data = [
+        "create_date" => null,
+        "update_date" => null,
+        "courses" => [],
+        "owner" => null
+    ];
 
     while ($row = $result->fetch_assoc()) {
 
-        // ✅ สร้างโครงสร้างหลักหากยังไม่มีข้อมูลใน `$data`
-        if (empty($data)) {
-            $data = [
-                "create_date" => $row["create_date"],
-                "update_date" => $row["update_date"],
-                "courses" => [],
-                "owner" => null
-            ];
+        if ($data["create_date"] === null) {
+            $data["create_date"] = $row["create_date"];
+            $data["update_date"] = $row["update_date"];
         }
 
         // ✅ ตรวจสอบว่า `courses` มีข้อมูลนี้อยู่แล้วหรือยัง

@@ -1,45 +1,192 @@
+<!-- page product -->
 <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        let action_btn = document.getElementById('action_btn');
-        let error_btn = document.getElementById('error_btn');
-        let debug_btn = document.getElementById('debug_btn');
-        action_btn.click();
-    });
-    //  log generate
-    action_btn.addEventListener("click", async () => {
-        const response = await fetch("../config/Fetch_log_login.php"); // เรียกใช้ PHP
-        const json_res = await response.json();
-        let logs = json_res;
-        console.log("action :");
-        console.log(logs);
+    const langData = document.getElementById('lang-data').textContent;
+    const lang = JSON.parse(langData);
 
+    let allLogs = [];
+    let filteredLogs = [];
+    let currentPage = 1;
+    const logsPerPage = 15;
+    let currentTab = 'login'; // 'login' | 'error' | 'action'
+
+    const TAB_CONFIG = {
+        login: {
+            endpoint: '../config/Fetch_log_login.php',
+            btnId: 'action_btn',
+            columns: [lang['time'], lang['username'], lang['action'], lang['ipaddress']],
+            normalize: row => ({ time: row.log_time, username: row.username, col3: row.action, col4: row.ip_address, isBadge: true })
+        },
+        error: {
+            endpoint: '../config/Fetch_log_error.php',
+            btnId: 'error_btn',
+            columns: [lang['time'], lang['username'], lang['category'], lang['detail']],
+            normalize: row => ({ time: row.created_at, username: row.username, col3: row.category, col4: row.message, isBadge: false })
+        },
+        action: {
+            endpoint: '../config/Fetch_log_action.php',
+            btnId: 'log_action_btn',
+            columns: [lang['time'], lang['username'], lang['category'], lang['detail']],
+            normalize: row => ({ time: row.created_at, username: row.username, col3: row.category, col4: row.message, isBadge: false })
+        }
+    };
+
+    const ACTION_BADGE_CLASS = {
+        login: 'bg-success',
+        logout: 'bg-secondary',
+        login_failed: 'bg-danger'
+    };
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        document.getElementById('prev-page').addEventListener('click', () => changePage(-1));
+        document.getElementById('next-page').addEventListener('click', () => changePage(1));
+        await switchTab('login');
+    });
+
+    async function switchTab(tab) {
+        currentTab = tab;
+
+        // active state — ยืม token สีจาก .btn-c:hover เพราะไม่มีคลาส active สำเร็จรูป
+        Object.values(TAB_CONFIG).forEach(cfg => {
+            const btn = document.getElementById(cfg.btnId);
+            btn.style.backgroundColor = '';
+            btn.style.color = '';
+            btn.style.border = '';
+        });
+        const activeBtn = document.getElementById(TAB_CONFIG[tab].btnId);
+        activeBtn.style.backgroundColor = 'var(--color-primary-light)';
+        activeBtn.style.color = 'var(--color-primary-dark)';
+        activeBtn.style.border = '1px solid var(--color-primary)';
+
+        // เขียนหัวตารางใหม่ตาม schema ของแท็บที่เลือก
+        const theadRow = document.getElementById('log-thead-row');
+        theadRow.innerHTML = '';
+        TAB_CONFIG[tab].columns.forEach(label => {
+            const th = document.createElement('th');
+            th.textContent = label;
+            theadRow.appendChild(th);
+        });
+
+        document.getElementById('log-search').value = '';
+        await loadLogs();
+    }
+
+    async function loadLogs() {
+        const config = TAB_CONFIG[currentTab];
+
+        // ลบตารางเดิมทิ้งทันทีแล้วใส่ loading UI แทนที่ระหว่างรอข้อมูลใหม่
+        renderLoadingRow();
+
+        try {
+            const res = await fetch(config.endpoint);
+            const data = await res.json();
+            allLogs = Array.isArray(data) ? data.map(config.normalize) : [];
+        } catch (error) {
+            allLogs = [];
+            showNotify(lang['loadlogfailed']);
+            console.error('Fetch error:', error);
+        }
+
+        updateStats();
+        filterLogs(); // แทนที่ loading UI ด้วยข้อมูลจริงผ่าน renderLogs()
+    }
+
+    // แสดง loading UI คั่นกลางตาราง (แทนที่ showLoadingById เดิม เพราะ div overlay
+    // ไม่สามารถแทรกอยู่ใต้ <table> ได้ตรง ๆ — เบราว์เซอร์จะเด้งออกไปนอกตารางเสมอ)
+    function renderLoadingRow() {
         let table = document.getElementById('table_log').getElementsByTagName('tbody')[0];
         table.innerHTML = "";
 
-        logs.forEach(user => {
-            let newRow = table.insertRow();
-            newRow.insertCell(0).innerHTML = user.log_time;
-            newRow.insertCell(1).innerHTML = user.username;
-            newRow.insertCell(2).innerHTML = user.action;
-            newRow.insertCell(3).innerHTML = "-";
-        });
-    });
-    error_btn.addEventListener("click", async () => {
-        const response = await fetch("../config/Fetch_log_error.php"); // เรียกใช้ PHP
-        const json_res = await response.json();
-        let logs = json_res;
-        console.log("error :");
-        console.log(logs);
+        let row = table.insertRow();
+        let cell = row.insertCell(0);
+        cell.colSpan = 4;
+        cell.className = "text-center text-muted py-4";
 
+        let spinner = document.createElement('span');
+        spinner.className = "spinner-border spinner-border-sm text-primary me-2";
+        spinner.setAttribute('role', 'status');
+        spinner.setAttribute('aria-hidden', 'true');
+
+        cell.appendChild(spinner);
+        cell.appendChild(document.createTextNode(lang['loading']));
+    }
+
+    function updateStats() {
+        document.getElementById('stat-total').textContent = allLogs.length;
+
+        const todayPrefix = new Date().toISOString().slice(0, 10);
+        const todayCount = allLogs.filter(l => (l.time || '').startsWith(todayPrefix)).length;
+        document.getElementById('stat-today').textContent = todayCount;
+
+        document.getElementById('stat-latest').textContent = allLogs.length > 0 ? (allLogs[0].time || '-') : '-';
+    }
+
+    // filter (client-side only — ไม่แตะ allLogs)
+    function filterLogs() {
+        const searchInput = document.getElementById('log-search');
+        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+
+        filteredLogs = !query ? allLogs : allLogs.filter(l => {
+            return (l.username || '').toLowerCase().includes(query)
+                || (l.col3 || '').toLowerCase().includes(query)
+                || (l.col4 || '').toLowerCase().includes(query)
+                || (l.time || '').toLowerCase().includes(query);
+        });
+
+        currentPage = 1;
+        renderLogs();
+    }
+
+    function changePage(offset) {
+        currentPage += offset;
+        renderLogs();
+    }
+
+    function renderLogs() {
         let table = document.getElementById('table_log').getElementsByTagName('tbody')[0];
         table.innerHTML = "";
 
-        logs.forEach(log => {
+        if (filteredLogs.length === 0) {
+            let row = table.insertRow();
+            let cell = row.insertCell(0);
+            cell.colSpan = 4;
+            cell.className = "text-center text-muted py-4";
+            cell.textContent = allLogs.length === 0 ? lang['nolog'] : lang['nomatchlog'];
+
+            document.getElementById('current-page').textContent = 1;
+            document.getElementById('total-pages').textContent = 1;
+            document.getElementById('prev-page').disabled = true;
+            document.getElementById('next-page').disabled = true;
+            return;
+        }
+
+        const totalPages = Math.max(1, Math.ceil(filteredLogs.length / logsPerPage));
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIndex = (currentPage - 1) * logsPerPage;
+        const pageLogs = filteredLogs.slice(startIndex, startIndex + logsPerPage);
+
+        pageLogs.forEach(l => {
             let newRow = table.insertRow();
-            newRow.insertCell(0).innerHTML = log.created_at;
-            newRow.insertCell(1).innerHTML = log.username;
-            newRow.insertCell(2).innerHTML = log.category;
-            newRow.insertCell(3).innerHTML = log.message;
+            newRow.insertCell(0).textContent = l.time || '-';
+            newRow.insertCell(1).textContent = l.username || '-';
+
+            let col3Cell = newRow.insertCell(2);
+            if (l.isBadge) {
+                let badge = document.createElement('span');
+                badge.className = 'badge ' + (ACTION_BADGE_CLASS[l.col3] || 'bg-secondary');
+                badge.textContent = l.col3 || '-';
+                col3Cell.appendChild(badge);
+            } else {
+                col3Cell.textContent = l.col3 || '-';
+            }
+
+            newRow.insertCell(3).textContent = l.col4 || '-';
         });
-    });
+
+        document.getElementById('current-page').textContent = currentPage;
+        document.getElementById('total-pages').textContent = totalPages;
+        document.getElementById('prev-page').disabled = currentPage === 1;
+        document.getElementById('next-page').disabled = currentPage === totalPages;
+    }
 </script>

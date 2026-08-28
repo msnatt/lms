@@ -11,57 +11,104 @@ $user = $_SESSION['user'] ?? 'N/A';
 <?php include "../include/style.html"; ?>
 
 <head>
+    <meta charset="UTF-8">
     <title><?= $lang['certificate'] ?> - E-learning</title>
 </head>
 
-
-<body class="bg-custom">
+<body>
     <?php include "../include/header.php"; ?>
+    <div class="d-flex" style="min-height: 100vh;">
+        <?php include "../components/sidemenu.php"; ?>
+        <div id="main-content" class="flex-grow-1" style="transition: all 0.3s ease;">
+            <div class="page-wrap">
 
-    <div class="main-inner d-flex">
-        <div class="bg-light d-flex" style="width: 100%;">
-            <?php include "../components/sidemenu.php"; ?>
-            <div class="d-flex flex-column justify-content-center w-100">
-                <h2 class="p-4" style="max-width: 100%"><?= $lang['certificatemanagement'] ?></h2>
-                <div class="d-flex flex-wrap justify-content-center">
-                    <div class="col-12 col-lg-7">
-                        <div class="px-4 d-flex justify-content-center  gap-2 ">
-                            <h5 class="col-3 col-lg-2"><?= $lang['template'] ?> : </h5>
-                            <select id="select-template" class="col-8 form-select w-50" required>
-                                <option value="">=== <?= $lang['templateblank'] ?> ===</option>
-                            </select>
-                            <button class="btn btn-primary" style="width: 50%; max-width: 150px;" onclick="Export()"><?= $lang['export'] ?></button>
-                        </div>
-                        <div class="px-4 d-flex justify-content-center">
-                            <div id="select-list" class="d-flex flex-wrap m-4 gap-2" style="width: 600px; min-height: 30px;"></div>
-                        </div>
-                        <div id="student_list" class="mt-3 d-flex flex-column align-items-center" style="min-height: 60vh;">
-                            <table id="table_list_student" style="max-width: 800px;">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 40px !important;"></th>
-                                        <th> <?= $lang['code'] ?> </th>
-                                        <th> <?= $lang['name'] ?> </th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
+                <div class="page-title">
+                    <span class="page-title-icon"><i class="bi bi-patch-check"></i></span>
+                    <h2><?= $lang['certificatemanagement'] ?></h2>
+                </div>
 
-                                </tbody>
-                            </table>
+                <div class="result-stats" id="cert-stats">
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-people"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-total">0</div>
+                            <div class="result-stat-label"><?= $lang['totalstudent'] ?></div>
                         </div>
                     </div>
-                    <div class="col-12 col-lg-4 d-flex justify-content-center" style="border-left: 1px solid #ccc;">
-                        <div class="w-100 " style="max-width: 500px;">
-                            <h4><?= $lang['pretemplate'] ?></h4>
-                            <img id="image-Show" src="../assets/images/default-template.png" class="mt-3" width="100%" style="max-width:100%; border: 2px solid #ccc;" />
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-check2-square"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-selected">0</div>
+                            <div class="result-stat-label"><?= $lang['selectedstudent'] ?></div>
+                        </div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-file-earmark-image"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-templates">0</div>
+                            <div class="result-stat-label"><?= $lang['template'] ?></div>
                         </div>
                     </div>
                 </div>
+
+                <div class="row g-4">
+                    <div class="col-12 col-lg-7">
+
+                        <div class="panel mb-3">
+                            <h3><span class="step-badge">1</span><?= $lang['steptemplate'] ?></h3>
+                            <select id="select-template" class="form-select" required>
+                                <option value="">=== <?= $lang['templateblank'] ?> ===</option>
+                            </select>
+                        </div>
+
+                        <div class="panel mb-3">
+                            <h3><span class="step-badge">2</span><?= $lang['stepstudent'] ?></h3>
+
+                            <input type="text" id="student-search" class="form-control" placeholder="<?= $lang['searchstudent'] ?>" oninput="filterStudents()">
+                            <div class="text-muted small mt-2" id="student-count"></div>
+
+                            <div id="select-list" class="cert-chips">
+                                <div class="cert-chips-empty"><?= $lang['nostudentselected'] ?></div>
+                            </div>
+
+                            <div id="student_list" class="cert-table-wrap">
+                                <table id="table_list_student">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40px !important;"></th>
+                                            <th><?= $lang['code'] ?></th>
+                                            <th><?= $lang['name'] ?></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="panel-soft">
+                            <h3><span class="step-badge">3</span><?= $lang['stepexport'] ?></h3>
+                            <button class="btn btn-primary w-100" onclick="Export()">
+                                <i class="bi bi-download me-1"></i><?= $lang['export'] ?>
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <div class="col-12 col-lg-5">
+                        <div class="panel cert-preview">
+                            <h3><i class="bi bi-eye"></i><?= $lang['pretemplate'] ?></h3>
+                            <div class="cert-preview-frame">
+                                <img id="image-Show" src="../assets/images/default-template.png" alt="">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
-
 
     <?php include "../include/footer.php"; ?>
     <?php include "../include/scriptjs.html"; ?>

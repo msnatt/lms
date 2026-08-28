@@ -15,39 +15,78 @@ $user = $_SESSION['user'] ?? 'N/A';
     <title>UMS - E-learning</title>
 </head>
 
-
-<body class="bg-custom">
+<body>
     <?php include "../include/header.php"; ?>
+    <div class="d-flex" style="min-height: 100vh;">
+        <?php include "../components/sidemenu.php"; ?>
+        <div id="main-content" class="flex-grow-1" style="transition: all 0.3s ease;">
+            <div class="page-wrap">
 
-    <div class="main-inner d-flex">
-        <div class="bg-light d-flex" style="width: 100%;">
-            <?php include "../components/sidemenu.php"; ?>
-            <div class="d-flex flex-column justify-content-center w-100">
-                <h2 class="p-4 text-center" style="max-width: 100%">UMS - <?= $lang['ums'] ?></h2>
-                <div class="px-4 d-flex justify-content-start gap-2 mb-2">
-                    <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Import_csv()"><?= $lang['import'] ?></button>
-                    <button class="btn btn-outline-secondary" style="width: 33%; max-width: 100px;" onclick="Export_csv()"><?= $lang['export'] ?></button>
+                <div class="page-title">
+                    <span class="page-title-icon"><i class="bi bi-people"></i></span>
+                    <h2><?= $lang['ums'] ?></h2>
                 </div>
-                <!-- ซ่อน input file -->
-                <input type="file" id="csvInput" class="d-none" accept=".csv" onchange="handleFileUpload(event)">
 
-                <div class="px-4" style="min-height: 60vh;">
-                    <table id="table_user">
-                        <thead>
-                            <tr>
-                                <th style="width: 20%;"><?= $lang['name'] ?> </th>
-                                <th style="width: 10%;"><?= $lang['code'] ?> </th>
-                                <th style="width: 10%;"><?= $lang['username'] ?> </th>
-                                <th style="width: 10%;"><?= $lang['tel'] ?> </th>
-                                <th style="width: 10%;"><?= $lang['roles'] ?> </th>
-                                <th style="width: 20%;"><?= $lang['action'] ?> </th>
-                            </tr>
-                        </thead>
-                        <tbody>
-
-                        </tbody>
-                    </table>
+                <div class="result-stats" id="user-stats">
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-people"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-total">0</div>
+                            <div class="result-stat-label"><?= $lang['totaluser'] ?></div>
+                        </div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-person-badge"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-admin">0</div>
+                            <div class="result-stat-label">Admin</div>
+                        </div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-mortarboard"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-student">0</div>
+                            <div class="result-stat-label">Student</div>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="panel">
+                    <div class="toolbar">
+                        <input type="text" id="user-search" class="form-control" style="max-width: 320px;" placeholder="<?= $lang['searchuser'] ?>" oninput="filterUsers()">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-secondary" onclick="Import_csv()"><i class="bi bi-upload me-1"></i><?= $lang['import'] ?></button>
+                            <button class="btn btn-outline-secondary" onclick="Export_csv()"><i class="bi bi-download me-1"></i><?= $lang['export'] ?></button>
+                        </div>
+                    </div>
+                    <!-- ซ่อน input file -->
+                    <input type="file" id="csvInput" class="d-none" accept=".csv" onchange="handleFileUpload(event)">
+
+                    <div class="cert-table-wrap">
+                        <table id="table_user">
+                            <thead>
+                                <tr>
+                                    <th style="width: 20%;"><?= $lang['name'] ?> </th>
+                                    <th style="width: 10%;"><?= $lang['code'] ?> </th>
+                                    <th style="width: 10%;"><?= $lang['username'] ?> </th>
+                                    <th style="width: 10%;"><?= $lang['tel'] ?> </th>
+                                    <th style="width: 10%;"><?= $lang['roles'] ?> </th>
+                                    <th style="width: 20%;"><?= $lang['action'] ?> </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="pagination-bar">
+                        <button class="page-link" id="prev-page" disabled><i class="bi bi-chevron-left"></i></button>
+                        <span><span class="fw-semibold" id="current-page">1</span> / <span id="total-pages">1</span></span>
+                        <button class="page-link" id="next-page"><i class="bi bi-chevron-right"></i></button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -57,26 +96,26 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="resetPasswordModalLabel">Reset Password</h5>
+                    <h5 class="modal-title" id="resetPasswordModalLabel"><?= $lang['resetpassword'] ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="resetPasswordForm">
-                        <input type="hidden" id="userId">
+                        <input type="hidden" id="resetUserId">
                         <div class="mb-3">
-                            <label for="newPassword" class="form-label">New Password</label>
+                            <label for="newPassword" class="form-label"><?= $lang['newpassword'] ?></label>
                             <input type="password" class="form-control" id="newPassword" required>
                         </div>
                         <div class="mb-3">
-                            <label for="confirmPassword" class="form-label">Confirm Password</label>
+                            <label for="confirmPassword" class="form-label"><?= $lang['confirmpassword'] ?></label>
                             <input type="password" class="form-control" id="confirmPassword" required>
                         </div>
                     </form>
                     <p id="alert_box"></p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="submitResetPassword()">Reset</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $lang['cancel'] ?></button>
+                    <button type="button" class="btn btn-primary" onclick="submitResetPassword()"><?= $lang['confirm'] ?></button>
                 </div>
             </div>
         </div>
@@ -86,38 +125,46 @@ $user = $_SESSION['user'] ?? 'N/A';
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="deleteUserModalLabel">Confirm user deletion</h5>
+                    <h5 class="modal-title" id="deleteUserModalLabel"><?= $lang['confirmdelete'] ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Are you sure you want to delete the user? <strong id="deleteUserName"></strong>?</p>
+                    <p><?= $lang['confirmdeleteuser'] ?> <strong id="deleteUserName"></strong>?</p>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $lang['cancel'] ?></button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn"><?= $lang['delete'] ?></button>
                 </div>
             </div>
         </div>
     </div>
-    <!-- rename -->
+    <!-- edit user -->
     <!-- Modal -->
-    <div class="modal fade" id="renameModal" tabindex="-1" aria-labelledby="renameModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="renameModalLabel"><?= $lang['newname'] ?></h5>
+                    <h5 class="modal-title" id="editUserModalLabel"><?= $lang['edituser'] ?></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <input type="hidden" id="userId">
+                    <input type="hidden" id="editUserId">
                     <div class="mb-3">
-                        <label for="newname" class="form-label"><?= $lang['newname'] ?></label>
-                        <input type="text" class="form-control" id="newname" required>
+                        <label for="edit-name" class="form-label"><?= $lang['name'] ?></label>
+                        <input type="text" class="form-control" id="edit-name" maxlength="50" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-username" class="form-label"><?= $lang['username'] ?></label>
+                        <input type="text" class="form-control" id="edit-username" maxlength="20" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit-telephone" class="form-label"><?= $lang['tel'] ?></label>
+                        <input type="text" class="form-control" id="edit-telephone" maxlength="10">
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><?= $lang['cancel'] ?></button>
-                    <button type="button" class="btn btn-primary" onclick="submitRename()"><?= $lang['update'] ?></button>
+                    <button type="button" class="btn btn-primary" onclick="submitEditUser()"><?= $lang['update'] ?></button>
                 </div>
             </div>
         </div>

@@ -29,36 +29,54 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // รับค่าจากฟอร์ม
         $user_id = $_POST['user_id'] ?? null;
         $newname = $_POST['newname'] ?? null;
+        $newusername = $_POST['username'] ?? null;
+        $telephone = $_POST['telephone'] ?? null;
 
-        if (!$user_id) {
+        if (!$user_id || !$newname || !$newusername) {
             echo json_encode(["success" => false, "message" => "ข้อมูลไม่ครบถ้วน"]);
             exit();
         }
 
-        // ตรวจสอบว่ามี course_id นี้หรือไม่
+        // ตรวจสอบว่ามี user นี้หรือไม่
         $sql_check_user = "SELECT id FROM user WHERE id = ?";
         $stmt = $conn->prepare($sql_check_user);
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
         $stmt->store_result();
 
-        if ($stmt->num_rows > 0) {
-            // อัปเดตข้อมูล course
-            $sql_update_user = "UPDATE user SET username = ?, update_date = NOW() WHERE id = ?";
-            $stmt = $conn->prepare($sql_update_user);
-            $stmt->bind_param("si", $newname, $user_id);
-            $stmt->execute();
-        } else {
-            die("Error: user ID not found.");
+        if ($stmt->num_rows === 0) {
+            $conn->rollback();
+            echo json_encode(["success" => false, "message" => "Error: user ID not found."]);
+            exit();
         }
+
+        // ตรวจสอบว่า username ซ้ำกับผู้ใช้อื่นหรือไม่
+        $sql_check_username = "SELECT id FROM user WHERE username = ? AND id != ? AND is_deleted = 0";
+        $stmt = $conn->prepare($sql_check_username);
+        $stmt->bind_param("si", $newusername, $user_id);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            $conn->rollback();
+            echo json_encode(["success" => false, "message" => "usernametaken"]);
+            exit();
+        }
+
+        // อัปเดตข้อมูล user
+        $sql_update_user = "UPDATE user SET name = ?, username = ?, telephone = ?, update_date = NOW() WHERE id = ?";
+        $stmt = $conn->prepare($sql_update_user);
+        $stmt->bind_param("sssi", $newname, $newusername, $telephone, $user_id);
+        $stmt->execute();
 
         // ถ้าทุกอย่างสำเร็จ ให้ commit
         $conn->commit();
+        log_action("แก้ไขข้อมูลผู้ใช้ id={$user_id}", "user_management");
         echo json_encode(["success" => true, "message" => "บันทึกข้อมูลเรียบร้อย"]);
     } catch (Exception $e) {
         // หากเกิดข้อผิดพลาด ยกเลิกการบันทึกทั้งหมด
         $conn->rollback();
-        echo json_encode(["success" => true, "message" => "เกิดข้อผิดพลาด: " . $e->getMessage()]);
+        echo json_encode(["success" => false, "message" => "เกิดข้อผิดพลาด: " . $e->getMessage()]);
     }
 }
 

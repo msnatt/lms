@@ -1,581 +1,454 @@
 <!-- page product -->
-<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 <script>
-    let courseID;
-    let course_detail_id = 0;
-    let data = {};
-    let create_by_detail_id = 0;
-    let user_now_detail_id = 0;
-    const langData = document.getElementById('lang-data').textContent;
-    const lang = JSON.parse(langData);
+    const lang = JSON.parse(document.getElementById('lang-data').textContent);
+    const pageData = JSON.parse(document.getElementById('page-data').textContent);
+
+    let removeStudentTarget = null; // { owner_id, name } รอ modal ยืนยันก่อนถอนสมาชิก
+
     document.addEventListener('DOMContentLoaded', async () => {
+        await loadDetail();
 
-        const urlParams = new URLSearchParams(window.location.search);
-        courseID = urlParams.get('courseid');
-        const res_course = await fetch(`../config/Find_CourseAll.php?courseid=${courseID}`); // เรียกใช้ PHP
-        const json_res_course = await res_course.json(); // รับผลลัพธ์เป็น JSON
-        let course_ = json_res_course;
+        document.getElementById('confirmRemoveStudentBtn').addEventListener('click', confirmRemoveStudent);
 
-        const response_mycourse = await fetch("../config/Fetch_MyCourse.php?user_id=<?php echo $_SESSION['user']['id']; ?>"); // เรียกใช้ PHP
-        const json_res_mycourse = await response_mycourse.json(); // รับผลลัพธ์เป็น JSON
-        let mycourse = json_res_mycourse;
-
-        const response_unit = await fetch('../config/Fetch_Unit.php'); // เรียกใช้ PHP
-        const json_res_unit = await response_unit.json(); // รับผลลัพธ์เป็น JSON
-        let Units = json_res_unit;
-
-        const response_content = await fetch('../config/Fetch_content.php'); // เรียกใช้ PHP
-        const json_res_content = await response_content.json(); // รับผลลัพธ์เป็น JSON
-        let Contents = json_res_content;
-
-        const res_user_course = await fetch(`../config/Fetch_usercourse.php?courseid=${courseID}`); // เรียกใช้ PHP
-        const json_res_user_course = await res_user_course.json(); // รับผลลัพธ์เป็น JSON
-        if (!json_res_user_course['users']) {
-            json_res_user_course['users'] = [];
+        const searchBox = document.getElementById('search_box');
+        if (searchBox) {
+            searchBox.addEventListener('input', filterMembers);
         }
-
-        const detail_div = document.getElementById("detail_div");
-
-        const Title_div = document.createElement("div");
-        Title_div.className = 'd-flex justify-content-center flex-wrap';
-        Title_div.innerHTML = `
-            <button onclick="window.history.back();" class="btn"><i class="bi bi-arrow-left fs-3"></i></button>
-        `;
-
-        const Title = document.createElement("div");
-        Title.id = "title";
-        Title.className = "col-10 col-lg-10";
-        Title.style.padding = "20px 10px 0px 10px";
-        Title.innerHTML = `
-            <h1>${course_[0].name}</h1>
-            <p class="text-black opacity-75">${course_[0].description}</p>
-        `;
-
-        const info_div = document.createElement("div");
-        info_div.id = "title";
-        info_div.className = "d-flex flex-column gap-1";
-        let stop_findCourse = 0;
-        course_detail_id = courseID;
-        create_by_detail_id = course_[0].create_by;
-        user_now_detail_id = '<?php echo $user["id"]; ?>';
-        if (typeof mycourse['courses'] !== 'undefined') {
-            mycourse['courses'].forEach(element => {
-                if (stop_findCourse < 1) {
-                    if (course_[0].id == element['course_id']) {
-                        info_div.innerHTML = `
-                    <div class="col-12 text-center form-control">
-                        <button id="register_btn" class="btn btn-secondary w-50" disabled ><?=$lang['registered']?></button>
-                    </div>
-                    <div class="form-control d-flex flex-column col-12 align-items-center ">
-                        <h4><?=$lang['information']?></h4>
-                        <div class="d-none d-lg-flex flex-wrap align-items-center mt-3">
-                            <h6 style="color:#444"><?=$lang['createby']?>&nbsp&nbsp</h6>
-                            <h6><?php echo $owner['name']; ?></h6>
-                        </div>
-                    </div>
-                    `;
-                        stop_findCourse++;
-                    } else {
-                        info_div.innerHTML = `
-                    <div class="col-12 text-center form-control">
-                        <button id="register_btn" class="btn btn-secondary " ><?=$lang['registerc']?></button>
-                    </div>
-                    <div class="form-control d-flex flex-column col-12 align-items-center ">
-                        <h4><?=$lang['information']?></h4>
-                        <div class="d-none d-lg-flex flex-wrap align-items-center mt-3">
-                            <h6 style="color:#444"><?=$lang['createby']?>&nbsp&nbsp</h6>
-                            <h6><?php echo $owner['name']; ?></h6>
-                        </div>
-                    </div>
-                    `;
-                    }
-                }
-            });
-        } else {
-            info_div.innerHTML = `
-                    <div class="col-12 text-center form-control">
-                        <button id="register_btn" class="btn btn-secondary " ><?=$lang['registerc']?></button>
-                    </div>
-                    <div class="form-control d-flex flex-column col-12 align-items-center ">
-                        <h4><?=$lang['information']?></h4>
-                        <div class="d-none d-lg-flex flex-wrap align-items-center mt-3">
-                            <h6 style="color:#444"><?=$lang['createby']?>&nbsp&nbsp</h6>
-                            <h6><?php echo $owner['name']; ?></h6>
-                        </div>
-                    </div>
-                `;
-        }
-
-        Title_div.appendChild(Title);
-        detail_div.appendChild(Title_div);
-
-        // box_
-        const center_ = document.createElement("div");
-        center_.className = "d-flex justify-content-center flex-wrap";
-        const box_ = document.createElement("div");
-        box_.className = "d-flex w-100 gap-1 justify-content-center";
-        box_.style.maxWidth = "85%";
-        const info_ = document.createElement("div");
-        info_.className = "w-25 me-1 d-flex flex-column gap-1";
-        info_.appendChild(info_div);
-        info_.innerHTML += `
-            <div class="form-control">
-                <h4 class="text-center"><?=$lang['obj']?></h4>
-                <textarea readonly class="w-100 px-2" style="border:0px; min-height:150px;" >${course_[0].objective}</textarea>  
-            </div>
-            `;
-        const content_ = document.createElement("div");
-        content_.id = "content_course";
-        content_.className = "w-75";
-        content_.style.position = "relative";
-        content_.style.display = "block";
-        content_.style.transition = "all 0.5s ease-in-out";
-        content_.style.top = "0";
-        content_.style.left = "0";
-        content_.style.width = "100%";
-        content_.style.opacity = "1";
-        content_.style.zIndex = "1";
-        content_.innerHTML = `
-        `;
-
-        const users_ = document.createElement("div");
-        users_.id = "users_course";
-        users_.className = "w-75 p-4";
-        users_.style.position = "relative";
-        users_.style.display = "none";
-        users_.style.transition = "all 0.5s ease-in-out";
-        users_.style.top = "0";
-        users_.style.left = "0";
-        users_.style.width = "100%";
-        users_.style.opacity = "0";
-        users_.style.zIndex = "0";
-        users_.innerHTML = `
-            <h4></h4>
-            <input type="text" id="search_box" name="search_box" class="form-control" height="60px" placeholder="Search name you interest!"> 
-            <button id="btn_schedule" class="btn py-0" style="position: absolute; top: 0; right: 0;" onclick="toggle_users_content()">
-                <i class="bi bi-x-circle"></i>
-            </button>
-            <table id="table_user">
-                <thead>
-                    <tr>
-                        <th> Name </th>
-                        <th> Code </th>
-                        <th> Status </th>
-                        <th> roles </th>
-                        <th> Actions </th>
-                    </tr>
-                </thead>
-                <tbody>
-
-                </tbody>
-            </table>
-            `;
-
-        // user viewer
-        const viewer_ = document.createElement("div");
-        viewer_.className = "form-control";
-        viewer_.innerHTML = `
-        <div class="d-flex px-2">
-            <h5 class="text-center col-11"><?=$lang['memberc']?></h5>
-            <?php if (isset($_SESSION['user']['is_admin']) && $_SESSION['user']['is_admin'] == 1): ?>
-                <div id="last_options" class="col-1" onclick="toggle_users_content()">
-                    <i class="bi bi-three-dots"></i>
-                </div>
-            <?php endif; ?>
-        </div>
-        `;
-
-        info_.appendChild(viewer_);
-        let ex_user_count = 0;
-        json_res_user_course['users'].forEach(user => {
-            const user_ = document.createElement("div");
-            user_.className = "my-3 ms-3 ";
-            user_.style.width = "auto";
-            if (ex_user_count < 3) {
-                user_.style.fontSize = "0.9rem";
-                user_.innerHTML = "- " + user.name;
-                viewer_.appendChild(user_);
-                ex_user_count++;
-            }
-        });
-
-
-        //calendar course
-        const calendarDiv = document.createElement("div");
-        calendarDiv.id = "calendar";
-        calendarDiv.className = "calender mb-5 form-control";
-
-
-        loadCalendar(calendarDiv);
-        info_.appendChild(calendarDiv);
-
-        // Units and Contents create div
-        for (let i = 0; i < Units.length; i++) {
-            const unit = Units[i];
-            if (courseID == unit.course_id) {
-                if (!data[String(unit.id)]) {
-                    data[String(unit.id)] = []; // ถ้ายังไม่มี key นี้ ให้สร้าง array ว่าง
-                }
-                // สร้าง container หลัก
-                const unitDiv = document.createElement("div");
-                unitDiv.className = "form-control mb-1";
-
-
-                // ปุ่ม Toggle
-                const toggleDiv = document.createElement("div");
-                toggleDiv.style.fontWeight = '600';
-                toggleDiv.style.cursor = "pointer";
-                toggleDiv.style.border = "1px";
-                toggleDiv.style.borderColor = "#fff";
-                toggleDiv.style.fontSize = "1.5rem";
-                toggleDiv.style.transition = "all 0.6s ease";
-                toggleDiv.style.paddingLeft = "30px";
-                const toggleTitleDiv = document.createElement("div");
-                toggleTitleDiv.textContent = unit.name;
-
-                const toggleDescDiv = document.createElement("div");
-                toggleDescDiv.style.fontSize = '1rem';
-                toggleDescDiv.style.fontWeight = '400';
-                toggleDescDiv.style.paddingLeft = '0.5rem';
-                toggleDescDiv.textContent = unit.introduction;
-
-                toggleDiv.appendChild(toggleTitleDiv);
-                toggleDiv.appendChild(toggleDescDiv);
-
-
-                const contentDiv = document.createElement("div");
-                // กล่องเนื้อหา (ซ่อนไว้ก่อน)
-                contentDiv.className = "rounded bg-white m-2";
-                contentDiv.style.opacity = "0";
-                contentDiv.style.paddingLeft = "2rem";
-                contentDiv.style.height = "0";
-                contentDiv.style.transition = "all 0.3s ease";
-                for (let j = 0; j < Contents.length; j++) {
-                    const content = Contents[j];
-                    if (unit.id == content.unit_id) {
-                        data[String(unit.id)].push({
-                            "courseid": unit.course_id,
-                            "unitid": unit.id,
-                            "contentid": content.id,
-                            "type": content.type_id,
-                            "content": content.content
-                        });
-
-                        const innercontentDiv = document.createElement("div");
-                        innercontentDiv.style.padding = "10px";
-                        switch (content.type_id) {
-                            case "1": // Text
-                                innercontentDiv.innerHTML = content.content;
-                                break;
-
-                            case "2": // Image
-                                innercontentDiv.innerHTML = `<img src="${content.content}" alt="Image" style="width: 100%; max-width: 500px;">`;
-                                break;
-
-                            case "3": // Video
-                                const observer = new IntersectionObserver(entries => {
-                                    entries.forEach(entry => {
-                                        if (entry.isIntersecting) {
-                                            innercontentDiv.innerHTML = `
-                                                <iframe
-                                                    src="${content.content}?autoplay=0&mute=1"
-                                                    title="YouTube video"
-                                                    frameborder="0"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowfullscreen
-                                                    style="width: 100%; max-width:500px; height: 50vw; max-height:300px;">
-                                                </iframe>
-                                            `;
-                                            observer.disconnect(); // หยุดสังเกตเมื่อโหลด iframe แล้ว
-                                        }
-                                    });
-                                });
-                                observer.observe(innercontentDiv);
-                                break;
-
-                            case "4": // PDF
-                                innercontentDiv.innerHTML = `
-                                    <embed src="${content.content}" type="application/pdf" width="100%" height="500px" />
-                                    
-                                    `;
-                                break;
-                            case "5": // PDF
-                                innercontentDiv.innerHTML = `
-                                    <a href="${content.content}"  target="_blank">${content.content}</a>
-                                    `;
-                                break;
-                            case "6": // PDF
-                                // แปลง path สำหรับ HTML
-                                let publicPath = content.content.replace('../', '/lms/');
-
-                                innercontentDiv.innerHTML = `
-                                <div class="d-flex justify-content-center">
-                                    <model-viewer src="${publicPath}"
-                                                alt="3D model"
-                                                auto-rotate
-                                                camera-controls
-                                                ar
-                                                style="width:100%; height:50vh; max-height: 400px;">
-                                    </model-viewer>
-                                </div>    
-                                    `;
-                                break;
-                            case "7":
-                                const [id, name] = content.content.split('_');
-                                const is_registered = mycourse['courses'].some(
-                                    m => m.course_id == course_[0].id
-                                );
-
-                                const buttonHtml = is_registered
-                                    ? `
-                                    <div class="text-center">
-                                        <button
-                                            class="btn btn-outline-success rounded-pill px-4"
-                                            onclick="window.open('examination.php?exam=${id}&c=${courseID}&u=${unit.id}', '_blank')">
-                                            <?=$lang['clickhere']?>
-                                        </button>
-                                    </div>
-                                    `
-                                    : "<div class='text-center'><?=$lang['srynotreg']?></div>";
-
-                                innercontentDiv.innerHTML = `
-                                <div class="class d-flex flex-column justify-content-center">
-                                    <div class="text-center mb-2 fw-medium">
-                                        <?=$lang['exam']?> ${name}.
-                                    </div>
-                                    ${buttonHtml}
-                                </div>
-                                `;
-
-                                break;
-                            default:
-                                innercontentDiv.innerHTML = `<p>Unsupported content type</p>`;
-                        }
-                        contentDiv.appendChild(innercontentDiv);
-                    }
-                };
-
-                let conclusion = document.createElement('div');
-                conclusion.innerHTML = `
-                <div>
-                    <h6 style="font-weight:800;"><?=$lang['conclusion']?></h6>
-                    <p>${unit.conclusion}</p>
-                </div>
-                `;
-
-                contentDiv.appendChild(conclusion);
-
-                // ใส่ปุ่มและเนื้อหาเข้าไปใน container หลัก
-                unitDiv.appendChild(toggleDiv);
-                unitDiv.appendChild(contentDiv);
-
-                // เพิ่ม Event Listener สำหรับการซ่อน/แสดง
-                toggleDiv.addEventListener("click", () => {
-                    const isVisible = contentDiv.style.opacity === "0";
-                    contentDiv.style.opacity = isVisible ? "1" : "0";
-                    contentDiv.style.height = isVisible ? "auto" : "0";
-                });
-
-                // เพิ่มเข้าไปใน detail_div
-                content_.appendChild(unitDiv);
-            }
-        };
-
-        box_.appendChild(users_);
-        box_.appendChild(content_);
-        box_.appendChild(info_);
-        center_.appendChild(box_);
-        detail_div.appendChild(center_);
-
-
-        registeraddEvent();
-        // add all div before and do below
-        let table = document.getElementById('table_user').getElementsByTagName('tbody')[0];
-        table.innerHTML = "";
-
-        json_res_user_course['users'].forEach(user => {
-            let newRow = table.insertRow();
-            newRow.insertCell(0).innerHTML = user.name;
-            newRow.insertCell(1).innerHTML = user.code;
-            newRow.insertCell(2).innerHTML = user.telephone;
-            newRow.insertCell(3).innerHTML = user.is_admin == 1 ? "Admin" : "Student";
-            let cell04 = newRow.insertCell(4);
-            cell04.className = "";
-            cell04.style.maxWidth = "100px";
-            cell04.style.textAlign = "center"; // จัดให้อยู่ตรงกลาง
-            cell04.innerHTML = `
-                <div style="display: flex; gap: 5px; width: 100%;">
-                    <button class="btn btn-danger" onclick="openDeleteUserModal(${user.user_id},'${user.name}')">
-                        <i class="bi bi-trash3"></i> Delete
-                    </button>
-                </div>
-            `;
-        });
     });
 
-    // ฟังก์ชันแสดง users_course
-    function toggle_users_content() {
-        const content = document.getElementById("content_course");
-        const users = document.getElementById("users_course");
-        const last_options = document.getElementById("last_options");
+    async function loadDetail() {
+        showLoadingById('content_course');
+        try {
+            const fetches = [
+                fetch(`../config/Fetch_DetailCourse.php?course_id=${pageData.courseid}`).then(r => r.json()),
+                fetch(`../config/Fetch_schedule.php?course_id=${pageData.courseid}`).then(r => r.json()),
+                fetch(`../config/Fetch_days.php`).then(r => r.json()),
+            ];
+            if (pageData.can_manage_members) {
+                fetches.push(fetch(`../config/Fetch_usercourse.php?courseid=${pageData.courseid}`).then(r => r.json()));
+            }
 
-        const isContentActive = window.getComputedStyle(content).opacity === "1";
+            const [detailRes, scheduleRes, daysRes, membersRes] = await Promise.all(fetches);
 
-        if (isContentActive) {
-            // แสดง users_course
-            users.style.opacity = "1";
-            users.style.zIndex = "1";
-            setTimeout(() => {
-                users.style.display = "block";
-            }, 600); // ต้องรอให้ animation จบก่อน
+            const course = detailRes && detailRes.course ? detailRes.course : null;
+            if (!course) {
+                showNotify(lang['loadfailed']);
+                return;
+            }
 
-            // ซ่อน content_course
-            content.style.opacity = "0";
-            content.style.zIndex = "0";
-            setTimeout(() => {
-                content.style.display = "none";
-            }, 600); // ต้องรอให้ animation จบก่อน
+            renderCourseInfo(course);
+            renderUnits(course);
 
-            last_options.innerHTML = `<i class="bi bi-x-circle"></i>`;
-        } else {
-            // แสดง content_course
-            content.style.opacity = "1";
-            content.style.zIndex = "1";
-            setTimeout(() => {
-                content.style.display = "block";
-            }, 600); // ต้องรอให้ animation จบก่อน
+            const schedules = Array.isArray(scheduleRes) ? scheduleRes : [];
+            const days = Array.isArray(daysRes) ? daysRes : [];
+            renderCalendar(schedules, days);
 
-            // ซ่อน users_course
-            users.style.opacity = "0";
-            users.style.zIndex = "0";
-            setTimeout(() => {
-                users.style.display = "none";
-            }, 600); // ต้องรอให้ animation จบก่อน
-            last_options.innerHTML = `<i class="bi bi-three-dots"></i>`;
+            const members = (membersRes && Array.isArray(membersRes.users)) ? membersRes.users : [];
+            renderMembers(members);
+        } catch (error) {
+            console.error('Load detail failed:', error);
+            showNotify(lang['loadfailed']);
+        } finally {
+            hideLoadingById('content_course');
         }
     }
 
-    // open Delete
-    function openDeleteUserModal(userId, userName) {
-        document.getElementById("deleteUserName").innerText = userName; // แสดงชื่อผู้ใช้ใน Modal
-        document.getElementById("confirmDeleteBtn").setAttribute("onclick", `deleteUser(${userId})`); // ตั้งค่าปุ่มลบ
+    function renderCourseInfo(course) {
+        document.getElementById('course-thumb-img').src = '../assets/images/bg_cards/' + course.image_code;
+        document.getElementById('course-description').textContent = course.description || '';
+        document.getElementById('course-objective').textContent = course.objective || '';
 
-        let deleteUserModal = new bootstrap.Modal(document.getElementById("deleteUserModal"));
-        deleteUserModal.show(); // เปิด Modal
-    }
-
-    // submit deleted
-    async function deleteUser(userId) {
-        console.log("ลบผู้ใช้ ID:", userId); // Debug ดูว่าได้ค่า userId ไหม
-        let formData = new FormData();
-        formData.append("user_id", userId);
-
-        fetch("../config/user_deleted.php", {
-            method: "POST",
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log(data)
-                }
-            })
-            .catch(error => console.error("Error:", error));
-
-        let deleteUserModal = bootstrap.Modal.getInstance(document.getElementById("deleteUserModal"));
-        deleteUserModal.hide(); // ปิด Modal
-
-        await generate_user();
-    }
-
-    // register btn
-    function registeraddEvent() {
         const registerBtn = document.getElementById('register_btn');
-        registerBtn.addEventListener('click', () => {
-            let detail_data = new FormData();
-            detail_data.append('user_id', user_now_detail_id);
-            detail_data.append('create_by', create_by_detail_id);
-            detail_data.append('course_id', course_detail_id);
-
-            // ถ้าข้อมูล 'data' เป็น object หรือ array ที่ต้องการส่ง
-            // คุณสามารถแปลงเป็น JSON string ก่อน
-            detail_data.append('data', JSON.stringify(data));
-
-            fetch('../config/mycourse_create.php', {
-                method: 'POST',  // ใช้ POST request
-                body: detail_data // ส่งข้อมูลเป็น FormData
-            })
-                .then(response => response.json()) // แปลง response เป็น JSON
-                .then(result => {
-                    console.log('Success:', result);
-                    window.location.href = `../pages/detail.php?courseid=${courseID}`;
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('เกิดข้อผิดพลาด!');
-                });
-        });
+        if (pageData.is_admin || pageData.can_manage_members) {
+            // admin/เจ้าของคอร์สไม่ต้องลงทะเบียน ซ่อนปุ่มไปเลย
+            registerBtn.classList.add('d-none');
+        } else if (pageData.is_registered) {
+            registerBtn.textContent = lang['registered'];
+            registerBtn.disabled = true;
+        } else {
+            registerBtn.textContent = lang['registerc'];
+            registerBtn.disabled = false;
+            registerBtn.addEventListener('click', registerCourse);
+        }
     }
 
-    //calendar
-    async function loadCalendar(calendarDiv) {
-        const response_schedule = await fetch("../config/Fetch_schedule.php?course_id=<?php echo $courseid; ?>"); // เรียกใช้ PHP
-        const schedules = await response_schedule.json();
+    async function registerCourse() {
+        const registerBtn = document.getElementById('register_btn');
+        registerBtn.disabled = true;
+        try {
+            const formData = new FormData();
+            formData.append('course_id', pageData.courseid);
 
-        const response_days = await fetch("../config/Fetch_days.php"); // เรียกใช้ PHP
-        const json_res_days = await response_days.json(); // รับผลลัพธ์เป็น JSON
-        let days = json_res_days;
+            const res = await fetch('../config/mycourse_create.php', { method: 'POST', body: formData });
+            const result = await res.json();
 
-        let header_table_title = document.createElement('div');
-        header_table_title.className = "my-3";
-        header_table_title.innerHTML = "<h4 class='text-center'><?=$lang['timetable']?></h4>";
-        schedules.forEach(schedule => {
-            for (let i = 0; i < days.length; i++) {
-                if (days[i]['id'] == schedule['day_id']) {
-                    header_table_title.innerHTML += `<div class="px-2">${lang[days[i]['name']]} : ${schedule['start_time']} - ${schedule['end_time']}</div>`;
-                }
+            if (result.status === 'success') {
+                showNotify(lang['registersuccess']);
+                window.location.reload();
+            } else {
+                showNotify(result.message || lang['registerfailed']);
+                registerBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error('Register failed:', error);
+            showNotify(lang['registerfailed']);
+            registerBtn.disabled = false;
+        }
+    }
+
+    // ต้องมี <model-viewer> เฉพาะตอนคอร์สมีเนื้อหาโมเดล 3 มิติ (type 6) จริงเท่านั้น
+    // เดิมโหลด CDN นี้ทุกครั้งไม่ว่าคอร์สจะมีเนื้อหาแบบนี้หรือไม่
+    function ensureModelViewerLoaded() {
+        if (document.getElementById('model-viewer-script')) return;
+        const script = document.createElement('script');
+        script.id = 'model-viewer-script';
+        script.type = 'module';
+        script.src = 'https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js';
+        document.head.appendChild(script);
+    }
+
+    function renderUnits(course) {
+        const container = document.getElementById('content_course');
+        const lockedBox = document.getElementById('content-locked');
+        container.innerHTML = '';
+
+        if (!pageData.can_see_content) {
+            lockedBox.classList.remove('d-none');
+            container.classList.add('d-none');
+            return;
+        }
+        lockedBox.classList.add('d-none');
+        container.classList.remove('d-none');
+
+        const units = Array.isArray(course.units) ? course.units : [];
+        if (units.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'cert-chips-empty';
+            empty.textContent = lang['nounit'];
+            container.appendChild(empty);
+            return;
+        }
+
+        const hasModel = units.some(u => (u.contents || []).some(c => Number(c.type_id) === 6));
+        if (hasModel) ensureModelViewerLoaded();
+
+        units.forEach(unit => {
+            if (unit.is_deleted == 1) return;
+
+            const header = document.createElement('div');
+            header.className = 'degree-item degree-item-header';
+            header.style.cursor = 'pointer';
+
+            const headerLeft = document.createElement('div');
+            const chevron = document.createElement('i');
+            chevron.className = 'bi bi-chevron-right me-2';
+            const titleSpan = document.createElement('span');
+            titleSpan.textContent = unit.unit_name;
+            headerLeft.appendChild(chevron);
+            headerLeft.appendChild(titleSpan);
+
+            const introSpan = document.createElement('span');
+            introSpan.className = 'badge text-bg-light';
+            introSpan.textContent = (unit.contents || []).filter(c => c.is_deleted != 1).length;
+
+            header.appendChild(headerLeft);
+            header.appendChild(introSpan);
+            container.appendChild(header);
+
+            const body = document.createElement('div');
+            body.style.display = 'none';
+            body.style.paddingLeft = '1.5rem';
+            container.appendChild(body);
+
+            header.addEventListener('click', () => {
+                const isVisible = body.style.display === 'block';
+                body.style.display = isVisible ? 'none' : 'block';
+                chevron.className = isVisible ? 'bi bi-chevron-right me-2' : 'bi bi-chevron-down me-2';
+            });
+
+            if (unit.unit_introduction) {
+                const introText = document.createElement('div');
+                introText.className = 'text-muted mb-2';
+                introText.textContent = unit.unit_introduction;
+                body.appendChild(introText);
+            }
+
+            (unit.contents || []).forEach(content => {
+                if (content.is_deleted == 1) return;
+                const row = document.createElement('div');
+                row.className = 'degree-item';
+                row.style.marginBottom = '.5rem';
+                row.appendChild(renderContentItem(content.type_id, content.content, unit));
+                body.appendChild(row);
+            });
+
+            if (unit.unit_conclusion) {
+                const consWrap = document.createElement('div');
+                consWrap.className = 'mt-2';
+                const consTitle = document.createElement('div');
+                consTitle.className = 'fw-bold';
+                consTitle.textContent = lang['conclusion'];
+                const consText = document.createElement('div');
+                consText.textContent = unit.unit_conclusion;
+                consWrap.appendChild(consTitle);
+                consWrap.appendChild(consText);
+                body.appendChild(consWrap);
             }
         });
+    }
 
-        calendarDiv.appendChild(header_table_title);
+    // สร้าง element แสดงเนื้อหาตามชนิด — ใช้ createElement/textContent ทั้งหมด (ไม่ใช้ innerHTML
+    // กับข้อมูลจาก DB) ยกเว้น type 1 ซึ่งเป็น rich text ที่ตั้งใจให้เป็น HTML จาก editor โดยตรง
+    function renderContentItem(typeId, content, unit) {
+        const type = Number(typeId);
+        const wrap = document.createElement('div');
+        wrap.style.width = '100%';
 
-        // ** 1. กำหนดเวลาและวัน **
-        const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00", "20:00"];
+        switch (type) {
+            case 1: // ข้อความ (rich text จาก editor — ตั้งใจให้เป็น HTML)
+                wrap.innerHTML = content;
+                break;
+            case 2: { // รูปภาพ
+                const img = document.createElement('img');
+                img.src = content;
+                img.alt = 'Image';
+                img.style.width = '100%';
+                img.style.maxWidth = '500px';
+                wrap.appendChild(img);
+                break;
+            }
+            case 3: { // YouTube — โหลดแบบ lazy ด้วย IntersectionObserver
+                const observer = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const iframe = document.createElement('iframe');
+                            iframe.src = content + '?autoplay=0&mute=1';
+                            iframe.title = 'YouTube video';
+                            iframe.setAttribute('frameborder', '0');
+                            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                            iframe.allowFullscreen = true;
+                            iframe.style.width = '100%';
+                            iframe.style.maxWidth = '500px';
+                            iframe.style.height = '50vw';
+                            iframe.style.maxHeight = '300px';
+                            wrap.appendChild(iframe);
+                            observer.disconnect();
+                        }
+                    });
+                });
+                observer.observe(wrap);
+                break;
+            }
+            case 4: { // PDF
+                const embed = document.createElement('embed');
+                embed.src = content;
+                embed.type = 'application/pdf';
+                embed.width = '100%';
+                embed.height = '500';
+                wrap.appendChild(embed);
+                break;
+            }
+            case 5: { // ลิงก์ — จำกัดเฉพาะ http/https กัน javascript: URL
+                const a = document.createElement('a');
+                let safeUrl = '#';
+                try {
+                    const url = new URL(content, window.location.href);
+                    if (url.protocol === 'http:' || url.protocol === 'https:') safeUrl = content;
+                } catch (e) { /* invalid URL, keep '#' */ }
+                a.href = safeUrl;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                a.textContent = content;
+                wrap.appendChild(a);
+                break;
+            }
+            case 6: { // โมเดล 3 มิติ
+                const modelViewer = document.createElement('model-viewer');
+                modelViewer.setAttribute('src', content.replace('../', '/lms/'));
+                modelViewer.setAttribute('alt', '3D model');
+                modelViewer.setAttribute('auto-rotate', '');
+                modelViewer.setAttribute('camera-controls', '');
+                modelViewer.setAttribute('ar', '');
+                modelViewer.style.width = '100%';
+                modelViewer.style.height = '50vh';
+                modelViewer.style.maxHeight = '400px';
+                wrap.appendChild(modelViewer);
+                break;
+            }
+            case 7: { // แบบทดสอบ
+                const parts = (content || '').split('_');
+                const examId = parts[0];
+                const examName = parts.slice(1).join('_');
 
-        // ** 2. สร้างส่วนหัวของตาราง (แสดงวัน) **
+                const label = document.createElement('div');
+                label.className = 'text-center mb-2 fw-medium';
+                label.textContent = lang['exam'] + ' ' + examName;
+                wrap.appendChild(label);
 
-        const calendar_ = document.createElement("div");
-        const temp_ = document.createElement("div");
-        temp_.className = "d-flex";
-        temp_.innerHTML += `<div class="day-header col-2 py-2">Time</div>`;
-        hours.forEach(hour => {
-            temp_.innerHTML += `
-                <div style=" border:1px solid #ddd; width:6.1%;">
-                    <div class="d-flex justify-content-center align-items-center" style="transform: rotate(-90deg); font-size:smaller; padding-right:20px;">${hour}</div>
-                </div>`;
+                const actionWrap = document.createElement('div');
+                actionWrap.className = 'text-center';
+                if (pageData.can_see_content) {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-outline-success rounded-pill px-4';
+                    btn.textContent = lang['clickhere'];
+                    btn.addEventListener('click', () => {
+                        window.open(`examination.php?exam=${examId}&c=${pageData.courseid}&u=${unit.unit_id}`, '_blank');
+                    });
+                    actionWrap.appendChild(btn);
+                } else {
+                    actionWrap.textContent = lang['srynotreg'];
+                }
+                wrap.appendChild(actionWrap);
+                break;
+            }
+            default:
+                wrap.textContent = lang['unsupportedcontent'];
+        }
+
+        return wrap;
+    }
+
+    // ตารางเรียนแบบ CSS grid ตาม .calendar (style.html) — คอลัมน์ = วัน, แถว = ชั่วโมง
+    // เดิมสร้างเป็น flex row ต่อวัน ใช้ class ผิด (.calender สะกดผิด, ของจริงคือ .calendar) และ
+    // ตรรกะระบายช่องผิดเวลามีมากกว่า 1 คาบต่อวัน
+    function renderCalendar(schedules, days) {
+        const infoBox = document.getElementById('calendar-info');
+        const calendarBox = document.getElementById('calendar');
+        infoBox.innerHTML = '';
+        calendarBox.innerHTML = '';
+        calendarBox.className = 'calendar';
+
+        schedules.forEach(sc => {
+            const day = days.find(d => d.id == sc.day_id);
+            if (!day) return;
+            const line = document.createElement('div');
+            line.className = 'small';
+            line.textContent = `${lang[day.name] || day.name} : ${sc.start_time} - ${sc.end_time}`;
+            infoBox.appendChild(line);
         });
-        calendar_.appendChild(temp_);
+
+        const timeHeader = document.createElement('div');
+        timeHeader.className = 'day-header';
+        timeHeader.textContent = lang['time'];
+        calendarBox.appendChild(timeHeader);
+
         days.forEach(day => {
-            var intimer = false;
-            const temp_ = document.createElement("div");
-            temp_.className = "d-flex";
-            temp_.innerHTML += `<div class="day-header col-2">${day['short_name']}</div>`;
-            hours.forEach(hour => {
-                var default_ = `<div class="time-slot"></div>`;
-                for (const sc of schedules) {
-                    if (intimer) {
-                        if (hour == sc['end_time']) intimer = false;
-                        default_ = `<div class="time-slot bg-primary"></div>`;
-                    }
-                    if (day['id'] == sc['day_id'] && hour == sc['start_time']) {
-                        default_ = `<div class="time-slot bg-primary"></div>`;
-                        intimer = true;
-                    }
-                };
-                temp_.innerHTML += default_;
-            });
-            calendar_.appendChild(temp_);
+            const dh = document.createElement('div');
+            dh.className = 'day-header';
+            dh.textContent = day.short_name || day.name;
+            calendarBox.appendChild(dh);
         });
-        calendarDiv.appendChild(calendar_);
+
+        const hours = [];
+        for (let h = 8; h <= 20; h++) hours.push(h.toString().padStart(2, '0') + ':00');
+
+        hours.forEach(hour => {
+            const hourLabel = document.createElement('div');
+            hourLabel.className = 'day-header';
+            hourLabel.style.fontSize = '11px';
+            hourLabel.textContent = hour;
+            calendarBox.appendChild(hourLabel);
+
+            days.forEach(day => {
+                const cell = document.createElement('div');
+                cell.className = 'time-slot';
+                // เช็คทุก schedule ของวันนี้อิสระต่อกัน กันบั๊กเดิมที่คาบที่ 2 ในวันเดียวกันระบายผิด
+                const isBusy = schedules.some(sc => sc.day_id == day.id && hour >= sc.start_time && hour < sc.end_time);
+                if (isBusy) cell.classList.add('event');
+                calendarBox.appendChild(cell);
+            });
+        });
+    }
+
+    let allMembers = [];
+
+    function renderMembers(members) {
+        allMembers = members;
+        document.getElementById('member-count').textContent = members.length;
+
+        const preview = document.getElementById('member-preview');
+        preview.innerHTML = '';
+        members.slice(0, 3).forEach(m => {
+            const line = document.createElement('div');
+            line.className = 'small';
+            line.textContent = '- ' + m.name;
+            preview.appendChild(line);
+        });
+
+        renderMemberTable(members);
+    }
+
+    function filterMembers() {
+        const query = document.getElementById('search_box').value.trim().toLowerCase();
+        const filtered = !query ? allMembers : allMembers.filter(m =>
+            (m.name || '').toLowerCase().includes(query) || (m.code || '').toLowerCase().includes(query)
+        );
+        renderMemberTable(filtered);
+    }
+
+    function renderMemberTable(members) {
+        const table = document.getElementById('table_user');
+        if (!table) return;
+        const tbody = table.getElementsByTagName('tbody')[0];
+        tbody.innerHTML = '';
+
+        if (members.length === 0) {
+            const row = tbody.insertRow();
+            const cell = row.insertCell(0);
+            cell.colSpan = 4;
+            cell.className = 'text-center text-muted py-3';
+            cell.textContent = allMembers.length === 0 ? lang['nomember'] : lang['nomatchstudent'];
+            return;
+        }
+
+        members.forEach(user => {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = user.name;
+            row.insertCell(1).textContent = user.code;
+            row.insertCell(2).textContent = user.is_admin == 1 ? lang['roleadmin'] : lang['rolestudent'];
+
+            const actionCell = row.insertCell(3);
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-sm btn-outline-danger';
+            btn.innerHTML = '<i class="bi bi-person-dash"></i> ' + lang['removestudent'];
+            // ผูก event ด้วย addEventListener แทนการฝัง onclick string จากชื่อผู้ใช้ดิบๆ
+            // (เดิม `onclick="openDeleteUserModal(${id},'${name}')"` แก้ JS ได้ถ้าชื่อมี ' อยู่)
+            btn.addEventListener('click', () => openRemoveStudentModal(user.user_id, user.name));
+            actionCell.appendChild(btn);
+        });
+    }
+
+    function openRemoveStudentModal(ownerId, name) {
+        removeStudentTarget = { owner_id: ownerId, name };
+        document.getElementById('removeStudentName').textContent = name;
+        new bootstrap.Modal(document.getElementById('removeStudentModal')).show();
+    }
+
+    async function confirmRemoveStudent() {
+        if (!removeStudentTarget) return;
+        try {
+            const formData = new FormData();
+            formData.append('course_id', pageData.courseid);
+            formData.append('owner_id', removeStudentTarget.owner_id);
+
+            const res = await fetch('../config/course_student_remove.php', { method: 'POST', body: formData });
+            const result = await res.json();
+
+            bootstrap.Modal.getInstance(document.getElementById('removeStudentModal'))?.hide();
+
+            if (result.success) {
+                showNotify(lang['studentremoved']);
+                const res2 = await fetch(`../config/Fetch_usercourse.php?courseid=${pageData.courseid}`);
+                const membersRes = await res2.json();
+                renderMembers(Array.isArray(membersRes.users) ? membersRes.users : []);
+            } else {
+                showNotify(lang['loadfailed']);
+            }
+        } catch (error) {
+            console.error('Remove student failed:', error);
+            showNotify(lang['loadfailed']);
+        } finally {
+            removeStudentTarget = null;
+        }
     }
 </script>

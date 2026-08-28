@@ -1,30 +1,149 @@
 <!-- page product -->
 <script>
-    // LINE Form
-    document.getElementById("lineForm").addEventListener("submit", function (e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch("../config/send_line.php", {
-            method: "POST",
-            body: formData
-        })
-            .then(res => res.text())
-            .then(result => {
-                document.getElementById("line_result").innerText = result;
-            });
+    let selectedRecipients = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        await generate_recipient();
+        document.getElementById('email_message').addEventListener('input', updatePreview);
+        document.getElementById('email_to').addEventListener('input', updatePreview);
     });
 
-    // Email Form
-    document.getElementById("emailForm").addEventListener("submit", function (e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch("../config/send_email.php", {
-            method: "POST",
-            body: formData
-        })
-            .then(res => res.text())
-            .then(result => {
-                document.getElementById("email_result").innerText = result;
+    async function generate_recipient() {
+        let response = await fetch("../config/Fetch_user.php");
+        let users = await response.json();
+        users = users.filter(u => u.email);
+
+        let table = document.getElementById('table_list_recipient').getElementsByTagName('tbody')[0];
+        table.innerHTML = "";
+
+        users.forEach(user => {
+            let newRow = table.insertRow();
+            newRow.className = "recipient-row";
+            let cell0 = newRow.insertCell(0);
+            let checkbox = document.createElement('input');
+            checkbox.type = "checkbox";
+            checkbox.className = "form-check-input";
+            checkbox.value = user.email;
+            checkbox.addEventListener('change', preview);
+            cell0.appendChild(checkbox);
+            newRow.insertCell(1).textContent = user.code;
+            newRow.insertCell(2).textContent = user.name;
+        });
+
+        document.getElementById('stat-total').textContent = users.length;
+        filterRecipients();
+    }
+
+    function preview() {
+        let selectlist = document.getElementById('select-list');
+        selectlist.innerHTML = "";
+        selectedRecipients = [];
+        const checkboxes = document.querySelectorAll('#table_list_recipient input[type="checkbox"]:checked');
+        checkboxes.forEach(checkbox => {
+            let temp = document.createElement('div');
+            temp.className = "cert-chip";
+            temp.textContent = checkbox.value;
+            selectlist.appendChild(temp);
+            selectedRecipients.push(checkbox.value);
+        });
+
+        if (selectedRecipients.length === 0) {
+            const emptyDiv = document.createElement('div');
+            emptyDiv.className = 'cert-chips-empty';
+            emptyDiv.textContent = <?= json_encode($lang['norecipientselected'], JSON_UNESCAPED_UNICODE) ?>;
+            selectlist.appendChild(emptyDiv);
+        }
+
+        document.getElementById('stat-selected').textContent = selectedRecipients.length;
+        updatePreview();
+    }
+
+    function filterRecipients() {
+        const searchInput = document.getElementById('recipient-search');
+        const query = (searchInput ? searchInput.value : '').trim().toLowerCase();
+        const tbody = document.getElementById('table_list_recipient').getElementsByTagName('tbody')[0];
+        const rows = Array.from(tbody.getElementsByClassName('recipient-row'));
+
+        let visibleCount = 0;
+        rows.forEach(row => {
+            const code = row.cells[1].textContent.toLowerCase();
+            const name = row.cells[2].textContent.toLowerCase();
+            const match = code.includes(query) || name.includes(query);
+            row.style.display = match ? '' : 'none';
+            if (match) visibleCount++;
+        });
+
+        let noMatchRow = document.getElementById('no-match-row');
+        if (visibleCount === 0 && rows.length > 0) {
+            if (!noMatchRow) {
+                noMatchRow = tbody.insertRow();
+                noMatchRow.id = 'no-match-row';
+                const cell = noMatchRow.insertCell(0);
+                cell.colSpan = 3;
+                cell.className = "text-center text-muted py-4";
+                cell.textContent = <?= json_encode($lang['nomatchuser'], JSON_UNESCAPED_UNICODE) ?>;
+            }
+            noMatchRow.style.display = '';
+        } else if (noMatchRow) {
+            noMatchRow.remove();
+        }
+
+        document.getElementById('recipient-count').textContent = `${visibleCount} / ${rows.length}`;
+    }
+
+    function updatePreview() {
+        const otherEmail = document.getElementById('email_to').value.trim();
+        const all = otherEmail ? [...selectedRecipients, otherEmail] : selectedRecipients;
+        document.getElementById('preview-recipients').textContent = all.length > 0
+            ? all.join(', ')
+            : <?= json_encode($lang['norecipientselected'], JSON_UNESCAPED_UNICODE) ?>;
+        document.getElementById('preview-message').textContent = document.getElementById('email_message').value;
+    }
+
+    async function sendEmail() {
+        const message = document.getElementById('email_message').value.trim();
+        const otherEmail = document.getElementById('email_to').value.trim();
+
+        if (selectedRecipients.length === 0 && !otherEmail) {
+            showNotify(<?= json_encode($lang['norecipient'], JSON_UNESCAPED_UNICODE) ?>);
+            return;
+        }
+        if (!message) {
+            showNotify(<?= json_encode($lang['nomessage'], JSON_UNESCAPED_UNICODE) ?>);
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("email_message", message);
+        formData.append("email_to", otherEmail);
+        selectedRecipients.forEach(email => formData.append("recipients[]", email));
+
+        const btn = document.getElementById('btn-send');
+        btn.disabled = true;
+        showLoading();
+
+        try {
+            const response = await fetch("../config/send_email.php", {
+                method: "POST",
+                body: formData
             });
-    });
+            const data = await response.json();
+
+            const messages = {
+                sendsuccess: <?= json_encode($lang['sendsuccess'], JSON_UNESCAPED_UNICODE) ?>,
+                sendpartial: <?= json_encode($lang['sendpartial'], JSON_UNESCAPED_UNICODE) ?>,
+                sendfailed: <?= json_encode($lang['sendfailed'], JSON_UNESCAPED_UNICODE) ?>,
+                mailnotconfigured: <?= json_encode($lang['mailnotconfigured'], JSON_UNESCAPED_UNICODE) ?>,
+                noemail: <?= json_encode($lang['norecipient'], JSON_UNESCAPED_UNICODE) ?>,
+                forbidden: <?= json_encode($lang['error'], JSON_UNESCAPED_UNICODE) ?>
+            };
+            showNotify(messages[data.message] || data.message || <?= json_encode($lang['error'], JSON_UNESCAPED_UNICODE) ?>);
+        } catch (error) {
+            console.error("Error:", error);
+            showNotify(<?= json_encode($lang['sendfailed'], JSON_UNESCAPED_UNICODE) ?>);
+        } finally {
+            btn.disabled = false;
+            hideLoading();
+        }
+    }
 </script>

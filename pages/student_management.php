@@ -1,6 +1,10 @@
 <?php
 include '../components/session.php';
 checkLogin();
+if (empty($_SESSION['user']['is_admin'])) {
+    header("Location: ../pages/home.php");
+    exit();
+}
 $user = $_SESSION['user'] ?? 'N/A';
 ?>
 
@@ -9,46 +13,64 @@ $user = $_SESSION['user'] ?? 'N/A';
 
 <?php include "../include/ref.html"; ?>
 <?php include "../include/style.html"; ?>
+
 <head>
     <meta charset="UTF-8">
     <title>SMS - E-learning</title>
 </head>
 
-<body class="bg-custom">
+<body>
     <?php include "../include/header.php"; ?>
+    <div class="d-flex" style="min-height: 100vh;">
+        <?php include "../components/sidemenu.php"; ?>
+        <div id="main-content" class="flex-grow-1" style="transition: all 0.3s ease;">
+            <div class="page-wrap">
 
-    <div class="main-inner d-flex">
-        <div class="bg-light d-flex" style="width: 100%;">
-            <?php include "../components/sidemenu.php"; ?>
-            <div class="d-flex flex-column justify-content-center w-100">
-                <h2 class="p-4 text-center" style="max-width: 100%">SMS - <?=$lang['sms']?>.</h2>
-                <div class="px-4 d-flex flex-wrap justify-content-center  gap-3 ">
-                    <select id="select-course" class="w-75 form-select" required>
-                        <option value="">=== <?=$lang['select']?> <?=$lang['course']?> ===</option>
+                <div class="page-title">
+                    <span class="page-title-icon"><i class="bi bi-book-half"></i></span>
+                    <h2><?= $lang['sms'] ?></h2>
+                </div>
+
+                <div class="panel mb-3">
+                    <h3><span class="step-badge">1</span><?= $lang['stepselectcourse'] ?></h3>
+                    <select id="select-course" class="form-select" required>
+                        <option value="">=== <?= $lang['select'] ?> <?= $lang['course'] ?> ===</option>
                     </select>
-                    <button class="btn btn-primary col-12 col-lg-2" style="max-width: 150px;" onclick="registerall()"><?=$lang['registerc']?><?=$lang['all']?></button>
                 </div>
-                <div class="px-4 d-flex justify-content-center">
-                    <div id="select-list" class="d-flex flex-wrap m-4 gap-2" style="width: 600px; min-height: 30px;"></div>
-                </div>
-                <div id="student_list" class="mt-3 d-flex flex-column align-items-center" style="min-height: 60vh;">
-                    <table id="table_list_student" style="max-width: 800px;">
-                        <thead>
-                            <tr>
-                                <th style="width: 40px !important;"></th>
-                                <th><?=$lang['code']?></th>
-                                <th><?=$lang['name']?></th>
-                            </tr>
-                        </thead>
-                        <tbody>
 
-                        </tbody>
-                    </table>
+                <div class="panel mb-3">
+                    <h3><span class="step-badge">2</span><?= $lang['stepselectstudent'] ?></h3>
+
+                    <div id="select-list" class="cert-chips">
+                        <div class="cert-chips-empty"><?= $lang['nostudentselected'] ?></div>
+                    </div>
+
+                    <div id="student_list" class="cert-table-wrap">
+                        <table id="table_list_student">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px !important;"></th>
+                                    <th><?= $lang['code'] ?></th>
+                                    <th><?= $lang['name'] ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+
+                <div class="panel-soft">
+                    <h3><span class="step-badge">3</span><?= $lang['stepsave'] ?></h3>
+                    <button class="btn btn-primary w-100" id="btn-save" onclick="registerall()">
+                        <i class="bi bi-check2-circle me-1"></i><?= $lang['save'] ?>
+                    </button>
+                </div>
+
             </div>
         </div>
     </div>
-
 
     <?php include "../include/footer.php"; ?>
     <?php include "../include/scriptjs.html"; ?>

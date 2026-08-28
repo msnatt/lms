@@ -2,48 +2,115 @@
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         const response = await fetch("../config/Fetch_results.php"); // เรียกใช้ PHP
-        const json_res = await response.json();
-        let results = json_res;
+        const results = await response.json();
 
         const response_mycourse = await fetch("../config/Fetch_MyCourse.php?user_id=<?php echo $_SESSION['user']['id']; ?>"); // เรียกใช้ PHP
-        const json_mycourse = await response_mycourse.json();
+        const mycourse = await response_mycourse.json();
 
+        const courses = (mycourse && mycourse['courses']) || [];
+        const resultCourses = (results && results['courses']) || [];
 
-        json_mycourse['courses'].forEach(course => {
-            create_Table(course, results['courses']);
-        });
+        renderStats(courses, resultCourses);
+        renderCards(courses, resultCourses);
     });
 
-    async function create_Table(course, results) {
-        let tablelist = document.getElementById('table-container');
-        const table = document.createElement('table');
-        table.classList.add('table', 'table-bordered');
-        table.style.width = "100%";
-        table.style.maxWidth = "600px";
-        const thead = document.createElement('thead');
-        thead.innerHTML = `
-            <tr >
-                <th class="text-center" colspan="3">${course.course_name}</th>
-            </tr>
-        `;
-        const tbody = document.createElement('tbody');
-        let index = 0;
-        results.forEach(res_course => {
-            if (course.course_id == res_course.id) {
-                res_course['questions'].forEach(q => {
-                    index++;
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="text-center">${index}</td>
-                        <td>${q.title}</td>
-                        <td class="text-center">${q.point}/${q.total}</td>
-                        `;
-                    tbody.appendChild(tr);
-                });
-            }
-            table.appendChild(thead);
-            table.appendChild(tbody);
-            tablelist.appendChild(table);
+    function scoreLevel(pct) {
+        if (pct >= 80) return 'good';
+        if (pct >= 50) return 'mid';
+        return 'low';
+    }
+
+    function courseScore(course, resultCourses) {
+        const match = resultCourses.find(rc => rc.id == course.course_id);
+        const questions = match ? (match.questions || []) : [];
+        let sumPoint = 0, sumTotal = 0;
+        questions.forEach(q => {
+            sumPoint += Number(q.point) || 0;
+            sumTotal += Number(q.total) || 0;
         });
+        const pct = sumTotal > 0 ? Math.round((sumPoint / sumTotal) * 100) : null;
+        return { questions, pct };
+    }
+
+    function renderStats(courses, resultCourses) {
+        let totalExams = 0, sumPoint = 0, sumTotal = 0;
+        resultCourses.forEach(rc => {
+            (rc.questions || []).forEach(q => {
+                totalExams++;
+                sumPoint += Number(q.point) || 0;
+                sumTotal += Number(q.total) || 0;
+            });
+        });
+        const overallPct = sumTotal > 0 ? Math.round((sumPoint / sumTotal) * 100) : 0;
+
+        const statsEl = document.getElementById('result-stats');
+        statsEl.innerHTML = `
+            <div class="result-stat">
+                <div class="result-stat-icon"><i class="bi bi-journal-bookmark"></i></div>
+                <div>
+                    <div class="result-stat-value">${courses.length}</div>
+                    <div class="result-stat-label"><?= $lang['courses'] ?></div>
+                </div>
+            </div>
+            <div class="result-stat">
+                <div class="result-stat-icon"><i class="bi bi-pencil-square"></i></div>
+                <div>
+                    <div class="result-stat-value">${totalExams}</div>
+                    <div class="result-stat-label"><?= $lang['examstaken'] ?></div>
+                </div>
+            </div>
+            <div class="result-stat">
+                <div class="result-stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                <div>
+                    <div class="result-stat-value">${totalExams > 0 ? overallPct + '%' : '-'}</div>
+                    <div class="result-stat-label"><?= $lang['overallscore'] ?></div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderCards(courses, resultCourses) {
+        const container = document.getElementById('table-container');
+
+        if (courses.length === 0) {
+            container.innerHTML = `
+                <div class="result-empty-state">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    <?= $lang['noresult'] ?>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = courses.map(course => {
+            const { questions, pct } = courseScore(course, resultCourses);
+            const level = pct === null ? 'none' : scoreLevel(pct);
+
+            const rows = questions.length > 0
+                ? questions.map((q, i) => {
+                    const qPct = q.total > 0 ? Math.round((q.point / q.total) * 100) : 0;
+                    const qLevel = scoreLevel(qPct);
+                    return `
+                        <div class="result-row">
+                            <div class="result-row-top">
+                                <span class="result-row-title">${i + 1}. ${q.title}</span>
+                                <span class="result-row-score">${q.point}/${q.total}</span>
+                            </div>
+                            <div class="result-bar"><div class="result-bar-fill result-score-${qLevel}" style="width:${qPct}%"></div></div>
+                        </div>
+                    `;
+                }).join('')
+                : `<div class="result-empty"><?= $lang['noresult'] ?></div>`;
+
+            return `
+                <div class="result-card">
+                    <div class="result-card-head">
+                        <div class="result-card-title">${course.course_code ?? ''} ${course.course_name}</div>
+                        <span class="result-score-badge result-score-${level}">${pct === null ? '-' : pct + '%'}</span>
+                    </div>
+                    <div class="result-card-body">${rows}</div>
+                </div>
+            `;
+        }).join('');
     }
 </script>

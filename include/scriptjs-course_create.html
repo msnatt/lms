@@ -272,10 +272,7 @@
         datas.forEach(row => {
             if (row['type'] == "header" && row['is_deleted'] == 0) {
                 const unit_ = document.createElement('div');
-                unit_.className = 'p-2 rounded bg-shadow-10 d-flex justify-content-between';
-                unit_.style.width = '100%';
-                unit_.style.fontSize = '1.25rem';
-                unit_.style.border = '1px solid #eee';
+                unit_.className = 'degree-item degree-item-header';
                 unit_.innerHTML = `
                 <div>
                     <div id="header_${row['id']}">${row['content']}</div>
@@ -288,20 +285,21 @@
                 const editUnitBtn = document.createElement('button');
                 editUnitBtn.id = "edit_header_" + row['id'];
                 editUnitBtn.type = 'button';
-                editUnitBtn.textContent = lang['edit'];
-                editUnitBtn.className = 'btn btn-sm';
-                editUnitBtn.style.marginLeft = '10px';
+                editUnitBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+                editUnitBtn.title = lang['edit'];
+                editUnitBtn.className = 'btn btn-sm btn-outline-secondary';
                 editUnitBtn.onclick = () => popup_update_header(row['id']);
-                // ปุ่มลบ 
+                // ปุ่มลบ
                 const delUnitBtn = document.createElement('button');
                 delUnitBtn.id = "delete_header_" + row['id'];
                 delUnitBtn.type = 'button';
-                delUnitBtn.textContent = lang['delete'];
-                delUnitBtn.className = 'btn btn-sm';
-                delUnitBtn.style.marginLeft = '10px';
+                delUnitBtn.innerHTML = '<i class="bi bi-trash3"></i>';
+                delUnitBtn.title = lang['delete'];
+                delUnitBtn.className = 'btn btn-sm btn-outline-danger ms-2';
                 delUnitBtn.onclick = () => deleteIndata(row['id'], "header");
 
                 const end_header = document.createElement('div');
+                end_header.className = 'd-flex';
 
                 end_header.appendChild(editUnitBtn);
                 end_header.appendChild(delUnitBtn);
@@ -310,8 +308,7 @@
 
             } else if (row['type'] == "content" && row['is_deleted'] == 0) {
                 const content_ = document.createElement('div');
-                content_.className = 'rounded p-2 d-flex justify-content-between';
-                content_.style.width = '100%';
+                content_.className = 'degree-item degree-item-content';
                 switch (row['selecttype']) {
                     case 1:
                         content_.innerHTML = `<div id="content_${row['id']}">${row['content']}</div>`;
@@ -356,22 +353,23 @@
 
                 // ปุ่มแก้ไข Content
                 const editContentBtn = document.createElement('button');
-                editContentBtn.textContent = lang['edit'];
+                editContentBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+                editContentBtn.title = lang['edit'];
                 editContentBtn.id = "edit_content_" + row['id'];
                 editContentBtn.type = 'button';
-                editContentBtn.className = 'btn btn-sm';
-                editContentBtn.style.marginLeft = '10px';
+                editContentBtn.className = 'btn btn-sm btn-outline-secondary';
                 editContentBtn.onclick = () => popup_update_content(row['id']);
-                // ปุ่มลบ 
+                // ปุ่มลบ
                 const delcontentBtn = document.createElement('button');
                 delcontentBtn.id = "delete_content_" + row['id'];
                 delcontentBtn.type = 'button';
-                delcontentBtn.textContent = lang['delete'];
-                delcontentBtn.className = 'btn btn-sm';
-                delcontentBtn.style.marginLeft = '10px';
+                delcontentBtn.innerHTML = '<i class="bi bi-trash3"></i>';
+                delcontentBtn.title = lang['delete'];
+                delcontentBtn.className = 'btn btn-sm btn-outline-danger ms-2';
                 delcontentBtn.onclick = () => deleteIndata(row['id'], "content");
 
                 const end_content = document.createElement('div');
+                end_content.className = 'd-flex';
 
                 end_content.appendChild(editContentBtn);
                 end_content.appendChild(delcontentBtn);
@@ -386,6 +384,21 @@
 
     async function create_course() {
         const formcourse = document.getElementById('form-course');
+
+        // ตัดแถว schedule ที่ยังไม่ได้เลือกวันออกก่อนส่ง ป้องกัน day_id ว่าง
+        // ทำให้ insert ทั้งคอร์สล้มเหลว (course_schedule.day_id มี FK อ้างตาราง days)
+        let removedIncompleteSchedule = false;
+        Array.from(div_schedule.children).forEach(row => {
+            const daySelect = row.querySelector('select[name="select_day[]"]');
+            if (daySelect && !daySelect.value) {
+                removedIncompleteSchedule = true;
+                row.remove();
+            }
+        });
+        if (removedIncompleteSchedule) {
+            showNotify(lang['selectdaywarn'] || 'Schedule rows without a selected day were skipped.');
+        }
+
         const form_course = new FormData(formcourse);
         form_course.append('data', JSON.stringify(data));
 

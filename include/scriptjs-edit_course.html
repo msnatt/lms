@@ -6,23 +6,23 @@
     const langData = document.getElementById('lang-data').textContent;
     const lang = JSON.parse(langData);
     const div_degree_course = document.getElementById('degree_course');
-    //schedule course
 
+    //schedule course
     var btn_schedule = document.getElementById('btn_schedule');
     var div_schedule = document.getElementById('div_schedule');
 
     document.addEventListener('DOMContentLoaded', async () => {
         // fetch
-        const response_details = await fetch("../config/Fetch_DetailCourse.php?course_id=<?php echo $courseid; ?>"); // เรียกใช้ PHP
-        const json_res_details = await response_details.json(); // รับผลลัพธ์เป็น JSON
+        const response_details = await fetch("../config/Fetch_DetailCourse.php?course_id=<?php echo $courseid; ?>");
+        const json_res_details = await response_details.json();
         let detail_course = json_res_details;
 
-        const response_schedule = await fetch("../config/Fetch_schedule.php?course_id=<?php echo $courseid; ?>"); // เรียกใช้ PHP
-        const json_res_schedule = await response_schedule.json(); // รับผลลัพธ์เป็น JSON
+        const response_schedule = await fetch("../config/Fetch_schedule.php?course_id=<?php echo $courseid; ?>");
+        const json_res_schedule = await response_schedule.json();
         let schedule = json_res_schedule;
         generate_course_schedule(schedule);
 
-        generateOption('image_code', detail_course['course']['image_code']);
+        await generateOption('image_code', detail_course['course']['image_code']);
         const imgcourse = document.getElementById('img-course');
         const course_name = document.getElementById('name_course');
         const title_course = document.getElementById('title_edit');
@@ -31,16 +31,15 @@
         const course_Objective = document.getElementById('textBoxObjective');
         const is_publish = document.getElementById('is_publish');
 
-        imgcourse.setAttribute('src', "../assets/images/bg_cards/" + detail_course['course']['image_code'])
+        imgcourse.setAttribute('src', "../assets/images/bg_cards/" + detail_course['course']['image_code']);
         course_name.value = detail_course['course']['course_name'];
-        title_course.textContent += detail_course['course']['course_name'];
+        title_course.textContent += ' ' + detail_course['course']['course_name'];
         course_code.value = detail_course['course']['course_code'];
         course_Objective.value = detail_course['course']['objective'];
         course_Description.value = detail_course['course']['description'];
-        is_publish.checked = detail_course['course']['is_publish'] == 1 ? true : false;
+        is_publish.checked = detail_course['course']['is_publish'] == 1;
 
         detail_course['course']['units'].forEach(unit => {
-            console.log(unit);
             data.push({ id: unit['unit_id'], type: 'header', content: unit['unit_name'], intro: unit['unit_introduction'], cons: unit['unit_conclusion'], is_deleted: unit['is_deleted'] });
             unit['contents'].forEach(content => {
                 if (content['unit_id'] == unit['unit_id']) {
@@ -48,149 +47,201 @@
                 }
             });
         });
+
+        // เริ่มนับ id ของรายการใหม่ต่อจาก id ที่โหลดมาจาก DB เสมอ กัน id ชนกับของจริงในฐานข้อมูล
+        // (เดิม countNo เริ่มที่ 0 ตายตัว ทั้งที่ data ข้างบน preload id จริงจาก DB มาแล้ว ถ้า id ใหม่
+        // ชนกับ id จริงของ unit/content คอร์สอื่น จะพา backend ไป UPDATE ทับข้อมูลคอร์สอื่นโดยไม่ตั้งใจ)
+        const maxId = data.reduce((max, row) => Math.max(max, Number(row.id) || 0), 0);
+        countNo = maxId + 1;
+
         generate_degree_course(data);
 
+        // เติมตัวเลือกคณะ/สาขาจริงจาก DB แล้ว preselect ค่าที่คอร์สนี้บันทึกไว้
+        // (เดิม select ทั้งสองเป็น option hardcode ตายตัว ไม่เคยผูกกับข้อมูลจริง และไม่เคยถูกบันทึกเลย)
+        const res_faculty = await fetch('../config/Fetch_facultyall.php');
+        const json_faculty = await res_faculty.json();
+        generateOptionfilter('select_faculty', json_faculty);
+        document.getElementById('select_faculty').value = detail_course['course']['faculty_id'];
 
+        const res_department = await fetch('../config/Fetch_departmentall.php');
+        const json_department = await res_department.json();
+        generateOptionfilter('select_department', json_department);
+        document.getElementById('select_department').value = detail_course['course']['department_id'];
+
+        btn_schedule.addEventListener('click', addScheduleRow);
     });
 
+    function generateOptionfilter(id, json) {
+        let select = document.getElementById(id);
+        select.innerHTML = '';
+        json.forEach(row => {
+            let option = document.createElement('option');
+            option.value = row.id;
+            option.textContent = row.name;
+            select.appendChild(option);
+        });
+    }
+
+    // สร้าง element แสดงตัวอย่างเนื้อหาตามชนิด (selecttype) ด้วย createElement/textContent ล้วน
+    // ไม่ใช้ innerHTML กับข้อมูลที่มาจาก DB/ผู้ใช้กรอก กัน XSS ผ่านชื่อ header หรือเนื้อหาลิงก์
+    function buildContentPreview(selecttype, contentId, content) {
+        const type = parseInt(selecttype);
+        let el;
+        switch (type) {
+            case 1: // ข้อความ
+                el = document.createElement('div');
+                el.textContent = content;
+                break;
+            case 2: // รูปภาพ
+                el = document.createElement('img');
+                el.src = content;
+                el.alt = 'Image';
+                el.style.width = '100%';
+                el.style.maxWidth = '200px';
+                break;
+            case 3: // YouTube
+                el = document.createElement('iframe');
+                el.src = content + '?autoplay=0&mute=1';
+                el.title = 'YouTube video';
+                el.setAttribute('frameborder', '0');
+                el.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                el.allowFullscreen = true;
+                el.style.width = '100%';
+                el.style.maxWidth = '500px';
+                el.style.height = '50vw';
+                el.style.maxHeight = '300px';
+                break;
+            case 4: // PDF
+                el = document.createElement('embed');
+                el.src = content;
+                el.type = 'application/pdf';
+                el.width = '100%';
+                el.height = '50%';
+                break;
+            case 5: // ลิงก์
+                el = document.createElement('a');
+                el.textContent = content;
+                break;
+            case 6: { // ไฟล์แนบ / โมเดล 3 มิติ
+                el = document.createElement('div');
+                const filepath = content || '';
+                el.textContent = filepath.split('/').pop();
+                break;
+            }
+            case 7: { // แบบทดสอบ
+                el = document.createElement('div');
+                const parts = (content || '').split('_');
+                el.textContent = lang['exam'] + ' ' + (parts[1] || '');
+                break;
+            }
+            default:
+                el = document.createElement('div');
+                el.textContent = lang['unknowncontenttype'];
+        }
+        el.id = 'content_' + contentId;
+        return el;
+    }
+
     function generate_degree_course(datas) {
-        const div_degree_course = document.getElementById('degree_course');
-        div_degree_course.innerHTML = '';
+        const container = document.getElementById('degree_course');
+        container.innerHTML = '';
 
         datas.forEach(row => {
             if (row['type'] == "header" && row['is_deleted'] == 0) {
                 const unit_ = document.createElement('div');
-                unit_.className = 'p-2 rounded bg-shadow-10 bg-white bg-opacity-50 d-flex justify-content-between';
-                unit_.style.width = '100%';
-                unit_.style.fontSize = '1.25rem';
-                unit_.style.border = '1px solid #eee';
-                unit_.innerHTML = `
-                <div>
-                    <div id="header_${row['id']}">${row['content']}</div>
-                    <div class="fs-6" id="header_intro_${row['id']}"><?=$lang['nn-intro']?>: ${row['intro']}</div>
-                    <div class="fs-6" id="header_cons_${row['id']}"><?=$lang['nn-conclu']?>: ${row['cons']}</div>
-                </div>
-                `;
+                unit_.className = 'degree-item degree-item-header';
+
+                const info = document.createElement('div');
+                const titleDiv = document.createElement('div');
+                titleDiv.id = 'header_' + row['id'];
+                titleDiv.textContent = row['content'];
+                const introDiv = document.createElement('div');
+                introDiv.className = 'fs-6';
+                introDiv.id = 'header_intro_' + row['id'];
+                introDiv.textContent = lang['nn-intro'] + ': ' + (row['intro'] || '');
+                const consDiv = document.createElement('div');
+                consDiv.className = 'fs-6';
+                consDiv.id = 'header_cons_' + row['id'];
+                consDiv.textContent = lang['nn-conclu'] + ': ' + (row['cons'] || '');
+                info.appendChild(titleDiv);
+                info.appendChild(introDiv);
+                info.appendChild(consDiv);
+                unit_.appendChild(info);
 
                 // ปุ่มแก้ไข Unit
                 const editUnitBtn = document.createElement('button');
                 editUnitBtn.id = "edit_header_" + row['id'];
                 editUnitBtn.type = 'button';
-                editUnitBtn.textContent = lang['edit'];
-                editUnitBtn.className = 'btn btn-sm';
-                editUnitBtn.style.marginLeft = '10px';
+                editUnitBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+                editUnitBtn.title = lang['edit'];
+                editUnitBtn.className = 'btn btn-sm btn-outline-secondary';
                 editUnitBtn.onclick = () => popup_update_header(row['id']);
-                // ปุ่มลบ 
+                // ปุ่มลบ
                 const delUnitBtn = document.createElement('button');
                 delUnitBtn.id = "delete_header_" + row['id'];
                 delUnitBtn.type = 'button';
-                delUnitBtn.textContent = lang['delete'];
-                delUnitBtn.className = 'btn btn-sm';
-                delUnitBtn.style.marginLeft = '10px';
+                delUnitBtn.innerHTML = '<i class="bi bi-trash3"></i>';
+                delUnitBtn.title = lang['delete'];
+                delUnitBtn.className = 'btn btn-sm btn-outline-danger ms-2';
                 delUnitBtn.onclick = () => deleteIndata(row['id'], "header");
 
                 const end_header = document.createElement('div');
-                end_header.style.minWidth = "15%";
-
+                end_header.className = 'd-flex';
                 end_header.appendChild(editUnitBtn);
                 end_header.appendChild(delUnitBtn);
                 unit_.appendChild(end_header);
-                div_degree_course.appendChild(unit_);
+                container.appendChild(unit_);
 
-            }
-            else if (row['type'] == "content" && row['is_deleted'] == 0) {
+            } else if (row['type'] == "content" && row['is_deleted'] == 0) {
                 const content_ = document.createElement('div');
-                content_.className = 'rounded p-2 d-flex justify-content-between';
-                content_.style.width = '100%';
-                switch (row['selecttype']) {
-                    case 1:
-                        content_.innerHTML = `<div id="content_${row['id']}">${row['content']}</div>`;
-                        break;
-                    case 2:
-                        content_.innerHTML = `<img id="content_${row['id']}" src="${row['content']}" alt="Image" style="width: 100%; max-width: 200px">`;
-                        break;
-                    case 3:
-                        content_.innerHTML = `
-                            <iframe
-                                id="content_${row['id']}"
-                                src="${row['content']}?autoplay=0&mute=1"
-                                title="YouTube video"
-                                frameborder="0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowfullscreen
-                                style="width: 100%; max-width:500px; height: 50vw; max-height:300px;">
-                            </iframe>
-                        `;
-                        break;
-                    case 4:
-                        content_.innerHTML = `
-                            <embed id="content_${row['id']}" src="${row['content']}" type="application/pdf" width="100%" height="50%" />
-                            `;
-                        break;
-                    case 5:
-                        content_.innerHTML = `<a id="content_${row['id']}">${row['content']}</a>`;
-                        break;
-                    case 6:
-                        let filepath = row['content'];
-                        let filename = filepath.split('/').pop(); // ตัดเอาเฉพาะชื่อไฟล์
-                        content_.innerHTML = `<div id="content_${row['id']}">${filename}</div>`;
-                        break;
-                    case 7:
-                        const [id, name] = row['content'].split('_');
-                        content_.innerHTML = `แบบทดสอบ  ${name}`;
-                        break;
-                    default:
-                        content_.innerHTML = "ไม่พบข้อมูลที่ตรงกับชนิดข้อมูล โปรดติดต่อแอดมิน.";
-                        break;
-                }
+                content_.className = 'degree-item degree-item-content';
+
+                content_.appendChild(buildContentPreview(row['selecttype'], row['id'], row['content']));
 
                 // ปุ่มแก้ไข Content
                 const editContentBtn = document.createElement('button');
-                editContentBtn.textContent = lang['edit'];
+                editContentBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+                editContentBtn.title = lang['edit'];
                 editContentBtn.id = "edit_content_" + row['id'];
                 editContentBtn.type = 'button';
-                editContentBtn.className = 'btn btn-sm';
-                editContentBtn.style.marginLeft = '10px';
+                editContentBtn.className = 'btn btn-sm btn-outline-secondary';
                 editContentBtn.onclick = () => popup_update_content(row['id']);
-                // ปุ่มลบ 
+                // ปุ่มลบ
                 const delcontentBtn = document.createElement('button');
                 delcontentBtn.id = "delete_content_" + row['id'];
                 delcontentBtn.type = 'button';
-                delcontentBtn.textContent = lang['delete'];
-                delcontentBtn.className = 'btn btn-sm';
-                delcontentBtn.style.marginLeft = '10px';
+                delcontentBtn.innerHTML = '<i class="bi bi-trash3"></i>';
+                delcontentBtn.title = lang['delete'];
+                delcontentBtn.className = 'btn btn-sm btn-outline-danger ms-2';
                 delcontentBtn.onclick = () => deleteIndata(row['id'], "content");
 
                 const end_content = document.createElement('div');
-                end_content.style.minWidth = "15%";
-
+                end_content.className = 'd-flex';
                 end_content.appendChild(editContentBtn);
                 end_content.appendChild(delcontentBtn);
                 content_.appendChild(end_content);
-                div_degree_course.appendChild(content_);
+                container.appendChild(content_);
             }
-
         });
     }
 
     async function generate_course_schedule(params) {
-
-        const response_days = await fetch("../config/Fetch_days.php"); // เรียกใช้ PHP
-        const json_res_days = await response_days.json(); // รับผลลัพธ์เป็น JSON
+        const response_days = await fetch("../config/Fetch_days.php");
+        const json_res_days = await response_days.json();
         days = json_res_days;
         params.forEach(schedule => {
             var _schedule = document.createElement('div');
             _schedule.className = "bg-light rounded m-1";
             _schedule.innerHTML = `
             <div class="d-flex p-2 justify-content-center">
-                <label class="col-2 ">Day :</label>
-                <select class="form-select col-10 mx-2 w-auto" required id="select_day[]" name="select_day[]">
-                    <option value="">-- Select Day --</option>
+                <label class="col-2"><?= $lang['day'] ?> :</label>
+                <select class="form-select col-10 mx-2 w-auto" required name="select_day[]">
+                    <option value=""><?= $lang['select_day'] ?></option>
                 </select>
             </div>
             <div class="d-flex justify-content-around p-2">
-                <label>Start</label>
-                <label>End</label>
+                <label><?= $lang['start'] ?></label>
+                <label><?= $lang['end'] ?></label>
             </div>
             <div class="d-flex justify-content-around p-2">
                 <select class="form-select mx-2" required name="select_start[]"></select>
@@ -200,13 +251,11 @@
 
             var id_ = document.createElement('input');
             id_.type = "hidden";
-            id_.id = "id_schedule[]";
             id_.name = "id_schedule[]";
             id_.value = schedule['id'];
 
             var deleted_ = document.createElement('input');
             deleted_.type = "hidden";
-            deleted_.id = "schedule_is_deleted[]";
             deleted_.name = "schedule_is_deleted[]";
             deleted_.value = schedule['is_deleted'];
 
@@ -214,36 +263,64 @@
             _schedule.appendChild(id_);
             div_schedule.appendChild(_schedule);
 
-            // ดึง <select> ภายใน _schedule ที่เพิ่งสร้างใหม่
             var select_day = _schedule.querySelector('select[name="select_day[]"]');
             var select_start = _schedule.querySelector('select[name="select_start[]"]');
             var select_end = _schedule.querySelector('select[name="select_end[]"]');
 
-
-
-            // ✅ วนลูปเพิ่ม <option> สำหรับวัน (Monday - Sunday)
             days.forEach(day => {
                 let option_day = new Option(day.name, day.id);
                 select_day.add(option_day);
             });
-
             select_day.value = schedule.day_id;
 
-            // ✅ วนลูปเพิ่ม <option> สำหรับช่วงเวลา 08:00 - 20:00
             for (let hour = 8; hour <= 20; hour++) {
-                let time = hour.toString().padStart(2, '0') + ":00"; // "08:00", "09:00" ...
-                let option_start = new Option(time, time);
-                let option_end = new Option(time, time);
-
-                select_start.add(option_start);
-                select_end.add(option_end);
+                let time = hour.toString().padStart(2, '0') + ":00";
+                select_start.add(new Option(time, time));
+                select_end.add(new Option(time, time));
             }
 
-            // ✅ ตั้งค่าเวลาตามค่าที่ดึงมาจากฐานข้อมูล
             select_start.value = schedule.start_time;
             select_end.value = schedule.end_time;
-
         });
+    }
+
+    function addScheduleRow() {
+        var _schedule = document.createElement('div');
+        _schedule.className = "bg-light rounded m-1";
+        _schedule.innerHTML = `
+        <div class="d-flex p-2 justify-content-center">
+            <label class="col-2"><?= $lang['day'] ?> :</label>
+            <select class="form-select col-10 mx-2 w-auto" required name="select_day[]">
+                <option value=""><?= $lang['select_day'] ?></option>
+                <option value="1"><?= $lang['monday'] ?></option>
+                <option value="2"><?= $lang['tuesday'] ?></option>
+                <option value="3"><?= $lang['wednesday'] ?></option>
+                <option value="4"><?= $lang['thursday'] ?></option>
+                <option value="5"><?= $lang['friday'] ?></option>
+                <option value="6"><?= $lang['saturday'] ?></option>
+                <option value="7"><?= $lang['sunday'] ?></option>
+            </select>
+        </div>
+        <div class="d-flex justify-content-around p-2">
+            <label><?= $lang['start'] ?></label>
+            <label><?= $lang['end'] ?></label>
+        </div>
+        <div class="d-flex justify-content-around p-2">
+            <select class="form-select mx-2" required name="select_start[]"></select>
+            <select class="form-select mx-2" required name="select_end[]"></select>
+        </div>
+    `;
+
+        div_schedule.appendChild(_schedule);
+
+        var select_start = _schedule.querySelector('select[name="select_start[]"]');
+        var select_end = _schedule.querySelector('select[name="select_end[]"]');
+
+        for (let hour = 8; hour <= 20; hour++) {
+            let time = hour.toString().padStart(2, '0') + ":00";
+            select_start.add(new Option(time, time));
+            select_end.add(new Option(time, time));
+        }
     }
 
     function validateNumberInput(event) {
@@ -254,7 +331,6 @@
     // ++++++++++++++++++++++++ Header and content +++++++++++++++++++++++++++
 
     function create_popup_header() {
-        // ลบ modal_div เดิมถ้ามี
         const oldModal = document.getElementById('modal_div');
         if (oldModal) {
             oldModal.remove();
@@ -267,7 +343,7 @@
                     <div class="modal-content" style="min-height: 30vh;">
                         <div class="modal-header">
                             <h5 class="modal-title" id="exampleModalLabel"><?=$lang['nn-header']?></h5>
-                            <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <label><?=$lang['nn-header']?></label>
@@ -291,7 +367,6 @@
     }
 
     function create_popup_content() {
-        // ลบ modal_div เดิมถ้ามี
         const oldModal = document.getElementById('modal_div');
         if (oldModal) {
             oldModal.remove();
@@ -304,7 +379,7 @@
                     <div class="modal-content" style="min-height: 70vh;">
                         <div class="modal-header">
                             <h5 class="modal-title" id="exampleModalLabel"><?=$lang['nn-content']?></h5>
-                            <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <label><?=$lang['typecontent']?></label>
@@ -328,14 +403,11 @@
         dynamicModal.show();
         fetch_typefile();
         changedropdown();
-
-        console.log('create modal');
-
     }
 
     async function fetch_typefile() {
-        const response_typefile = await fetch('../config/Fetch_typefile.php'); // เรียกใช้ PHP
-        const json_res_typefile = await response_typefile.json(); // รับผลลัพธ์เป็น JSON
+        const response_typefile = await fetch('../config/Fetch_typefile.php');
+        const json_res_typefile = await response_typefile.json();
         let types = json_res_typefile;
 
         const dropdown = document.getElementById('select_content');
@@ -348,21 +420,21 @@
     }
 
     function changedropdown() {
-        var dropdown_content = document.getElementById('select_content');
+        const dropdown_content = document.getElementById('select_content');
         dropdown_content.addEventListener('change', async () => {
-            var dropdown_content = document.getElementById('select_content');
             const selectedValue = dropdown_content.value;
             const content_div = document.getElementById('contentofcontent');
+            let contentHtml;
             switch (selectedValue) {
                 case "1": // Text Box
-                    innerHTML = `
+                    contentHtml = `
                     <label for="textBox">Enter text:</label>
                     <textarea id="inputContent" rows="4" cols="50" class="form-control"></textarea>
                 `;
                     break;
 
                 case "2": // Image
-                    innerHTML = `
+                    contentHtml = `
                     <label for="imageInput">Choose an image:</label>
                     <input type="file" id="inputContent" name="image" accept="image/*">
                     <br>
@@ -370,7 +442,7 @@
                     break;
 
                 case "3": // Video
-                    innerHTML = `
+                    contentHtml = `
                     <label for="videoInput">Choose a video:</label>
                     <input type="file" id="inputContent" accept="video/*">
                     <br>
@@ -378,15 +450,15 @@
                     break;
 
                 case "4": // PDF
-                    innerHTML = `
+                    contentHtml = `
                     <label for="pdfInput">Choose a PDF:</label>
                     <input type="file" id="inputContent" accept="application/pdf">
                     <br>
                 `;
                     break;
 
-                case "5": // PDF
-                    innerHTML = `
+                case "5": // Activity
+                    contentHtml = `
                     <br>
                     <label for="pdfInput"> Write the event link here. </label>
                     <input type="text" id="inputContent" class="form-control">
@@ -395,36 +467,35 @@
                     break;
 
                 case "6": // 3D
-                    innerHTML = `
+                    contentHtml = `
                     <div id="dropZone">drag or drop here. (.glb .gltf)</div>
                     <input type="file" id="inputContent" class="form-control" accept=".glb, .gltf, .bin, .jpg, .png" multiple />
                     <br>
                 `;
                     break;
-                case "7": // 3D
-                    innerHTML = `
+                case "7": // Exam
+                    contentHtml = `
                     <br>
                     <div>select Examination / Quiz</div>
                     <select type="text" id="inputContent" class="form-select"></select>
                     <br>
                     <br>
-                    <p class="text-danger">Don't forget create in quiz managment before do this.</p>                   
+                    <p class="text-danger">Don't forget create in quiz managment before do this.</p>
                 `;
                     break;
                 default:
-                    innerHTML = "<p>Please select a content type.</p>";
+                    contentHtml = "<p>Please select a content type.</p>";
             }
-            content_div.innerHTML = innerHTML;
+            content_div.innerHTML = contentHtml;
             if (selectedValue === "7") {
                 let allExam = await fetch('../config/Fetch_question_sets.php');
                 let json_res = await allExam.json();
                 const selectQuiz = document.getElementById("inputContent");
 
-                // ตรวจว่าได้ array มาจริงหรือไม่
                 json_res.forEach(item => {
                     const option = document.createElement("option");
-                    option.value = item.id + "_" + item.title;        // หรือ field ที่คุณใช้เป็น id
-                    option.textContent = item.title; // หรือ field ที่คุณใช้เป็นชื่อข้อสอบ
+                    option.value = item.id + "_" + item.title;
+                    option.textContent = item.title;
                     selectQuiz.appendChild(option);
                 });
             }
@@ -441,42 +512,41 @@
         const intro_header_ = document.getElementById('intro_header');
         const cons_header_ = document.getElementById('cons_header');
 
-        data.push({ id: countNo, type: 'header', content: new_header_.value, intro: intro_header_.value, cons: cons_header_.value, is_deleted: 0 });
+        data.push({ id: countNo, type: 'header', content: new_header_.value, intro: intro_header_.value, cons: cons_header_.value, is_deleted: 0, is_new: true });
 
         countNo++;
         generate_degree_course(data);
         clearModal('modal_div');
-
-        console.log(data);
     }
 
-    async function create_content_div(id) {
-        const header_div = document.getElementById('content_' + id);
+    async function create_content_div() {
         const inputContent = document.getElementById('inputContent');
-
-        var dropdown_content = document.getElementById('select_content');
+        const dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
+
         if (['1', '5', '7'].includes(selectedValue)) { // Text
-            data.push({ id: countNo, type: 'content', selecttype: parseInt(selectedValue), content: inputContent.value, is_deleted: 0 });
+            data.push({ id: countNo, type: 'content', selecttype: parseInt(selectedValue), content: inputContent.value, is_deleted: 0, is_new: true });
         } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
-            var filename = await upload_file_temp(inputContent, parseInt(selectedValue));
+            await upload_file_temp(inputContent, parseInt(selectedValue));
         }
 
-        // div_degree_course.appendChild(header_div);
         countNo++;
         clearModal('modal_div');
         generate_degree_course(data);
-        console.log(data);
     }
 
     // ========================= End Header and content =======================
 
     function is_deleted_course() {
-        const deleted = document.getElementById('is_deleted');
-        deleted.value = "1";
-        console.log("deleted course");
-        update_course();
-        console.log("completed delete course");
+        // เปิด modal ยืนยันก่อนเสมอ — เดิมกดปุ่มแล้วลบทันทีไม่มีการยืนยัน
+        const modal = new bootstrap.Modal(document.getElementById('deleteCourseModal'));
+        modal.show();
+    }
+
+    async function confirmDeleteCourse() {
+        document.getElementById('is_deleted').value = "1";
+        bootstrap.Modal.getInstance(document.getElementById('deleteCourseModal'))?.hide();
+        await update_course();
     }
 
     function RedirectToPage(page) {
@@ -499,25 +569,22 @@
                 else {
                     row['is_deleted'] = 1;
                 }
-
             }
         });
         generate_degree_course(data);
-        console.log(data);
     }
 
-    function updateIndata(id, type, content) {
+    function updateIndata(id, type, content, intro, cons) {
         data.forEach(row => {
             if (id == row['id'] && type == row['type']) {
                 row['content'] = content;
+                if (intro !== undefined) row['intro'] = intro;
+                if (cons !== undefined) row['cons'] = cons;
             }
         });
-
-        console.log(data);
     }
 
     function popup_update_header(id) {
-        // ลบ modal_div เดิมถ้ามี
         const oldModal = document.getElementById('modal_div');
         if (oldModal) {
             oldModal.remove();
@@ -530,7 +597,7 @@
                     <div class="modal-content" style="min-height: 30vh;">
                         <div class="modal-header">
                             <h5 class="modal-title" id="exampleModalLabel"><?=$lang['edit-header']?></h5>
-                            <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <label><?=$lang['nn-header']?></label>
@@ -541,8 +608,8 @@
                             <input type="text" class="form-control" id="cons_header">
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id="update-header" data-bs-dismiss="modal">Update</button>
-                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal">Close</button>
+                            <button type="button" class="btn btn-primary" id="update-header" data-bs-dismiss="modal"><?=$lang['update']?></button>
+                            <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal"><?=$lang['close']?></button>
                         </div>
                     </div>
                 </div>
@@ -559,7 +626,6 @@
                 update_header(id, new_content.value, new_intro.value, new_cons.value);
             }
         });
-
     }
 
     async function update_header(id, content, intro, cons) {
@@ -567,15 +633,14 @@
         const intro_header = document.getElementById('header_intro_' + id);
         const cons_header = document.getElementById('header_cons_' + id);
         ele_header.textContent = content;
-        intro_header.innerHTML = intro;
-        cons_header.innerHTML = cons;
+        intro_header.textContent = lang['nn-intro'] + ': ' + intro;
+        cons_header.textContent = lang['nn-conclu'] + ': ' + cons;
 
         updateIndata(id, "header", content, intro, cons);
         clearModal('modal_div');
     };
 
     function popup_update_content(id) {
-        // ลบ modal_div เดิมถ้ามี
         const oldModal = document.getElementById('modal_div');
         if (oldModal) {
             oldModal.remove();
@@ -588,7 +653,7 @@
                     <div class="modal-content" style="min-height: 70vh;">
                         <div class="modal-header">
                             <h5 class="modal-title" id="exampleModalLabel">Edit about of content</h5>
-                            <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <h6>Select new content.</h6>
@@ -621,132 +686,123 @@
     }
 
     async function update_content(id, content) {
-        const ele_content = document.getElementById('content_' + id);
-        console.log(ele_content);
-        var dropdown_content = document.getElementById('select_content');
+        const dropdown_content = document.getElementById('select_content');
         const selectedValue = dropdown_content.value;
+        const oldEl = document.getElementById('content_' + id);
 
-        if (['1', '5', '7'].includes(selectedValue)) { // Text
-            ele_content.textContent = content.value;
-        } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF
-            var [filename, message] = await upload_file_temp(content, selectedValue);
-            ele_content.innerHTML = filename;
+        let newContentValue = null;
+        if (['1', '5', '7'].includes(selectedValue)) { // Text/link/quiz
+            newContentValue = content.value;
+        } else if (['2', '3', '4', '6'].includes(selectedValue)) { // Image, Video, PDF, 3D
+            // ไม่ push แถวใหม่ลง data ตอนเป็นการแก้ของเดิม (pushToData: false) — เดิมเรียกฟังก์ชัน
+            // เดียวกับตอนสร้างใหม่ ทำให้เกิดแถวซ้ำใน data ทุกครั้งที่แก้ไขไฟล์แนบของรายการเดิม
+            const uploaded = await upload_file_temp(content, selectedValue, { pushToData: false });
+            if (!uploaded) {
+                clearModal('modal_div');
+                return;
+            }
+            newContentValue = uploaded.path;
+        } else {
+            clearModal('modal_div');
+            return;
         }
 
-        console.log('Updated Data:', data);
+        // สร้าง element ใหม่ตามชนิดเนื้อหาแล้วสลับเข้าไปแทนที่ของเดิมทั้งก้อน — เดิมยัดชื่อไฟล์ดิบ
+        // เป็น innerHTML ทับ <img>/<iframe>/<embed> เดิม ทำให้ path ของไฟล์แนบพังหลังบันทึก
+        const newEl = buildContentPreview(selectedValue, id, newContentValue);
+        if (oldEl) {
+            oldEl.replaceWith(newEl);
+        }
 
-        updateIndata(id, "content", ele_content.innerHTML);
+        updateIndata(id, "content", newContentValue);
         clearModal('modal_div');
     };
 
-    async function upload_file_temp(input, selectedValue) {
-
-        file = input.files[0];
-        if (file) {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('type', selectedValue);
-
-            const response = await fetch('../config/upload_temp.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-            if (result.success) {
-                data.push({ id: countNo, type: 'content', selecttype: selectedValue, content: result.results, is_deleted: 0 }); // ได้ path กลับมา
-            } else {
-                console.error('Upload failed:', result.results);
-            }
-            return [file.name, result.results];
-        } else {
-            return [file.name, "Upload failed file error."]
+    async function upload_file_temp(input, selectedValue, options = {}) {
+        const pushToData = options.pushToData !== false;
+        const file = input.files[0];
+        if (!file) {
+            console.error('Upload failed: no file selected.');
+            return null;
         }
 
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', selectedValue);
+
+        const response = await fetch('../config/upload_temp.php', {
+            method: 'POST',
+            body: formData
+        });
+        const result = await response.json();
+
+        if (!result.success) {
+            showNotify(result.results || lang['fail-save']);
+            console.error('Upload failed:', result.results);
+            return null;
+        }
+
+        if (pushToData) {
+            data.push({ id: countNo, type: 'content', selecttype: parseInt(selectedValue), content: result.results, is_deleted: 0, is_new: true });
+        }
+
+        return { path: result.results, filename: result.filename };
     }
-
-    btn_schedule.addEventListener('click', () => {
-        var _schedule = document.createElement('div');
-        _schedule.className = "bg-light rounded m-1";
-        _schedule.innerHTML = `
-        <div class="d-flex p-2 justify-content-center">
-            <label class="col-2 ">Day :</label>
-            <select class="form-select col-10 mx-2 w-auto" required name="select_day[]">
-                <option value="">-- Select Day --</option>
-                <option value="1">Monday</option>
-                <option value="2">Tuesday</option>
-                <option value="3">Wednesday</option>
-                <option value="4">Thursday</option>
-                <option value="5">Friday</option>
-                <option value="6">Saturday</option>
-                <option value="7">Sunday</option>
-            </select>
-        </div>
-        <div class="d-flex justify-content-around p-2">
-            <label>Start</label>
-            <label>End</label>
-        </div>
-        <div class="d-flex justify-content-around p-2">
-            <select class="form-select mx-2" required name="select_start[]"></select>
-            <select class="form-select mx-2" required name="select_end[]"></select>
-        </div>
-    `;
-
-        div_schedule.appendChild(_schedule);
-
-        // ดึง <select> ภายใน _schedule ที่เพิ่งสร้างใหม่
-        var select_start = _schedule.querySelector('select[name="select_start[]"]');
-        var select_end = _schedule.querySelector('select[name="select_end[]"]');
-
-        // วนลูปตั้งแต่ 08:00 - 20:00
-        for (let hour = 8; hour <= 20; hour++) {
-            let time = hour.toString().padStart(2, '0') + ":00"; // "08:00", "09:00" ...
-
-            // สร้าง <option>
-            let option_start = new Option(time, time);
-            let option_end = new Option(time, time);
-
-            // เพิ่ม <option> เข้าไปใน select
-            select_start.add(option_start);
-            select_end.add(option_end);
-        }
-    });
 
     async function update_course() {
         const formcourse = document.getElementById('form-course');
+
+        // ตัดแถวตารางเรียนที่ยังไม่ได้เลือกวันออกก่อนส่ง ป้องกัน day_id ว่างทำให้บันทึกทั้งคอร์สล้มเหลว
+        let removedIncompleteSchedule = false;
+        Array.from(div_schedule.children).forEach(row => {
+            const daySelect = row.querySelector('select[name="select_day[]"]');
+            if (daySelect && !daySelect.value) {
+                removedIncompleteSchedule = true;
+                row.remove();
+            }
+        });
+        if (removedIncompleteSchedule) {
+            showNotify(lang['selectdaywarn']);
+        }
+
         const form_course = new FormData(formcourse);
         form_course.append('data', JSON.stringify(data));
-
-        form_course.forEach((value, key) => {
-            console.log(`${key}: ${value}`);
-        });
 
         try {
             const response = await fetch('../config/course_edit.php', {
                 method: 'POST',
                 body: form_course
             });
+            const result = await response.json();
 
+            // เดิมไม่เคยอ่าน response เลย เด้งกลับหน้ารายการทันทีไม่ว่าบันทึกจะสำเร็จหรือพัง
+            if (result.status === 'success') {
+                RedirectToPage('course');
+            } else {
+                showNotify(result.message || lang['fail-save']);
+            }
         } catch (error) {
-            console.error('Error Create course:', error);
+            console.error('Error update course:', error);
+            showNotify(lang['fail-save']);
         }
-        RedirectToPage('course');
     }
 
-    function generateOption(targetparent, optionselected) {
+    async function generateOption(targetparent, optionselected) {
         let select = document.getElementById(targetparent);
-        fetch('../config/get_bgcards.php')
-            .then(response => response.json())
-            .then(files => {
-                files.forEach(filename => {
-                    const option = document.createElement('option');
-                    option.value = filename;
-                    option.textContent = filename;
-                    option.selected = filename === optionselected ? true : '';
-                    select.appendChild(option);
-                });
-            })
+        try {
+            const response = await fetch('../config/get_bgcards.php');
+            const files = await response.json();
 
+            files.forEach(filename => {
+                const option = document.createElement('option');
+                option.value = filename;
+                option.textContent = filename;
+                option.selected = filename === optionselected;
+                select.appendChild(option);
+            });
+        } catch (error) {
+            console.error("เกิดข้อผิดพลาดในการโหลดไฟล์:", error);
+        }
     }
 
     function toggleEditImage() {
@@ -758,7 +814,7 @@
     function changeImage() {
         let showimg = document.getElementById('img-course');
         let select = document.getElementById('image_code');
-        showimg.src = "../assets/images/bg_cards/" + select.value
+        showimg.src = "../assets/images/bg_cards/" + select.value;
     }
 
     const imageInput = document.getElementById('imageInput');
@@ -779,7 +835,7 @@
         const fileInput = document.getElementById('imageInput');
         const file = fileInput.files[0];
         if (!file) {
-            alert("กรุณาเลือกรูปภาพก่อน");
+            showNotify(lang['invalidfiletype']);
             return;
         }
 
@@ -790,51 +846,18 @@
             method: "POST",
             body: formData
         })
-            .then(response => response.text()) // หรือ .json() ถ้าคุณ return JSON
+            .then(response => response.text())
             .then(result => {
                 window.location.reload();
             })
             .catch(error => {
                 console.error("เกิดข้อผิดพลาด:", error);
-                alert("อัปโหลดไม่สำเร็จ");
+                showNotify(lang['fail-save']);
             });
     }
 
     document.getElementById('manage').addEventListener("click", () => {
         const managebox = document.getElementById('managebox');
-        managebox.classList.toggle('show'); // toggle class ที่เลื่อนกล่องเข้า/ออก
-
+        managebox.classList.toggle('show');
     });
-
-    async function generateOptionList(json) {
-        fetch('../config/get_image.php')
-            .then(response => response.json())
-            .then(files => {
-                console.log(files);
-                Object.entries(json).forEach(([key, value]) => {
-                    if (key == 'id') {
-                        return
-                    }
-                    if (key !== 'youtube_id') {
-                        let container = document.getElementById('select-' + key);
-                        files.forEach(filename => {
-                            const option = document.createElement('option');
-                            option.value = filename;
-                            option.textContent = filename;
-                            option.selected = filename === value ? true : '';
-                            container.appendChild(option);
-                        });
-                        container.addEventListener("change", () => {
-                            const img = document.getElementById('img_' + key);
-                            img.setAttribute('src', "../assets/images/home/" + container.value);
-                        });
-                    } else {
-                        let ele = document.getElementById('youtube_id');
-                        ele.value = value;
-                    }
-                })
-            })
-            .catch(error => console.error('Error loading images:', error));
-
-    }
 </script>
