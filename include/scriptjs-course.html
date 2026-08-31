@@ -1,26 +1,106 @@
 <!-- page product -->
 <script>
-    let productsPerPage = 6; // จำนวนสินค้าต่อหน้า
+    const langData = document.getElementById('lang-data').textContent;
+    const lang = JSON.parse(langData);
+
+    let productsPerPage = window.innerWidth < 768 ? 3 : 6;
     let currentPage = 1;
     let Courses = [];
     let filter_courses = [];
-    document.addEventListener('DOMContentLoaded', async () => {
+    let faculties = [];
+    let departments = [];
 
-        const response = await fetch('../config/course_search.php'); // เรียกใช้ PHP
-        const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
-        let Courses_access = json_res;
-        Courses = Courses_access['courses'];
-        console.log(Courses);
-        filter_courses = Courses;
+    document.addEventListener('DOMContentLoaded', () => {
+        loadAll();
 
-        // เริ่มต้น
-        updateProductsPerPage(Courses);
-
-        // Event Listeners
         document.getElementById("prev-page").addEventListener("click", () => changePage(-1));
         document.getElementById("next-page").addEventListener("click", () => changePage(1));
-        window.addEventListener('resize', updateProductsPerPage);
+        document.getElementById("refresh-btn").addEventListener("click", () => loadAll());
+
+        // event delegation แทน inline onclick — กันการ inject ผ่าน course_id
+        document.getElementById("course_div").addEventListener("click", (e) => {
+            const card = e.target.closest('[data-course-id]');
+            if (card) handleCardClick(card.dataset.courseId);
+        });
+
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(updateProductsPerPage, 150);
+        });
     });
+
+    async function loadAll() {
+        showLoading();
+        try {
+            const [courseRes, facultyRes, departmentRes] = await Promise.all([
+                fetch('../config/Fetch_Course.php'),
+                fetch('../config/Fetch_facultyall.php'),
+                fetch('../config/Fetch_departmentall.php')
+            ]);
+
+            if (!courseRes.ok || !facultyRes.ok || !departmentRes.ok) {
+                throw new Error('response not ok');
+            }
+
+            const courseJson = await courseRes.json();
+            const facultyJson = await facultyRes.json();
+            const departmentJson = await departmentRes.json();
+
+            Courses = Array.isArray(courseJson) ? courseJson : [];
+
+            // ตาราง faculty/department มีแถวหลอกที่ใช้แทนความหมาย "ทั้งหมด"/"ยังไม่เลือก" อยู่แล้ว
+            // (เช่น id=0 "please select", id=1 "all faculty") — ตัดออกเพื่อไม่ให้ซ้ำกับตัวเลือก
+            // "-- All --" ที่เราสร้างเอง ซึ่งเป็นตัวเดียวที่กรองแบบ "ไม่กรอง" ได้จริง
+            const facultySentinels = ['please select', 'all faculty'];
+            const departmentSentinels = ['all'];
+
+            faculties = (Array.isArray(facultyJson) ? facultyJson : [])
+                .filter(f => Number(f.is_deleted) !== 1)
+                .filter(f => !facultySentinels.includes(String(f.name).trim().toLowerCase()));
+            departments = (Array.isArray(departmentJson) ? departmentJson : [])
+                .filter(d => Number(d.is_deleted) !== 1)
+                .filter(d => !departmentSentinels.includes(String(d.name).trim().toLowerCase()));
+
+            populateSelect('select_faculty', faculties, lang['all_faculty']);
+            populateSelect('select_department', departments, lang['all_department']);
+
+            filter_courses = Courses;
+            currentPage = 1;
+            renderProducts(currentPage);
+        } catch (err) {
+            console.error('Failed to load course data:', err);
+            renderError();
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function populateSelect(selectId, rows, allLabel) {
+        const select = document.getElementById(selectId);
+        const currentValue = select.value;
+        select.innerHTML = '';
+
+        const allOption = document.createElement('option');
+        allOption.value = '';
+        allOption.textContent = allLabel;
+        select.appendChild(allOption);
+
+        rows.forEach(row => {
+            const option = document.createElement('option');
+            option.value = row.id;
+            option.textContent = row.name;
+            select.appendChild(option);
+        });
+
+        select.value = currentValue;
+    }
+
+    function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
 
     function validateNumberInput(event) {
         // กรองเฉพาะตัวเลข
@@ -29,17 +109,12 @@
     }
 
     function handleCardClick(course_id) {
-        window.location.href = `../components/Set_Course.php?courseid=${course_id}`;
-        // alert('You clicked on course: ' + course_id);
+        window.location.href = `../components/Set_Course.php?courseid=${encodeURIComponent(course_id)}`;
     }
 
     // ฟังก์ชันตรวจสอบขนาดหน้าจอ
     function updateProductsPerPage() {
-        if (window.innerWidth < 768) {
-            productsPerPage = 3; // หน้าจอเล็ก
-        } else {
-            productsPerPage = 6; // หน้าจอใหญ่
-        }
+        productsPerPage = window.innerWidth < 768 ? 3 : 6;
         currentPage = 1; // รีเซ็ตไปหน้าแรก
         renderProducts(currentPage);
     }
@@ -50,69 +125,85 @@
         renderProducts(currentPage);
     }
 
-    function randomImage() {
-        var random = Math.floor((Math.random() * 6) + 1);
-        var pathofimage = `../assets/images/bg_cards/${random}.png`;
-        return pathofimage
-    }
-
     // ฟังก์ชันแสดงสินค้า
     function renderProducts(page) {
-        const startIndex = (page - 1) * productsPerPage;
+        const course_div = document.getElementById("course_div");
+        const totalPages = Math.max(1, Math.ceil(filter_courses.length / productsPerPage));
+        currentPage = Math.min(Math.max(page, 1), totalPages);
+
+        const startIndex = (currentPage - 1) * productsPerPage;
         const endIndex = startIndex + productsPerPage;
         const visibleCourse = filter_courses.slice(startIndex, endIndex);
 
-        const course_div = document.getElementById("course_div");
-        course_div.innerHTML = visibleCourse.map(course => `
-                <div class="col-12 col-md-6 col-xxl-3 d-flex justify-content-center" style="padding:1.5rem 0rem ;">
-                    <div class="card h-100" onclick="handleCardClick('${course.course_id}')">
-                        <img src="../assets/images/bg_cards/${course.image_code}" class="card-img-top" alt="img-${course.course_name}">
-                        <div class="card-body">
-                            <h5 class="card-title fw-bold">${course.course_code} ${course.course_name}</h5>
-                            <p class="">${course.description.substring(0, 50) + "..."}</p>
-                        </div>
+        if (filter_courses.length === 0) {
+            course_div.innerHTML = `
+                <div class="tw-col-span-full tw-text-center tw-text-slate-500 tw-py-16">
+                    <i class="bi bi-inbox tw-text-4xl tw-block tw-mb-2"></i>
+                    ${esc(lang['nocourse'])}
+                    <div class="tw-mt-3">
+                        <button type="button" onclick="clearFilters()" class="tw-bg-brand tw-text-white tw-border-0 tw-rounded-lg tw-px-4 tw-py-2">${esc(lang['clearfilter'])}</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            course_div.innerHTML = visibleCourse.map(course => `
+                <div class="tw-bg-white tw-rounded-xl tw-shadow tw-overflow-hidden tw-transition tw-duration-300 hover:tw-shadow-lg hover:-tw-translate-y-1 tw-cursor-pointer" data-course-id="${esc(course.id)}">
+                    <img src="../assets/images/bg_cards/${encodeURIComponent(course.image_code)}" class="tw-w-full tw-h-40 tw-object-cover" loading="lazy" alt="${esc(course.name)}" onerror="this.onerror=null;this.src='../assets/images/bg_cards/1.png';">
+                    <div class="tw-p-4">
+                        <h5 class="tw-font-bold tw-mb-2">${esc(course.code)} ${esc(course.name)}</h5>
+                        <p class="tw-text-sm tw-text-slate-600">${esc(String(course.description ?? '').substring(0, 50))}...</p>
                     </div>
                 </div>
             `).join("");
+        }
 
-        // คำนวณจำนวนหน้าสูงสุด
-        const totalPages = Math.ceil(Courses.length / productsPerPage);
         document.getElementById("total-pages").textContent = totalPages;
-
-        // อัปเดตปุ่ม Pagination
         document.getElementById("current-page").textContent = currentPage;
         document.getElementById("prev-page").disabled = currentPage === 1;
         document.getElementById("next-page").disabled = currentPage === totalPages;
-        
 
-        var numOfResult = document.getElementById('numofresult');
-        numOfResult.innerHTML = filter_courses.length;
+        document.getElementById('numofresult').textContent = filter_courses.length;
     }
 
-    //filter course
+    function renderError() {
+        const course_div = document.getElementById("course_div");
+        course_div.innerHTML = `
+            <div class="tw-col-span-full tw-text-center tw-text-slate-500 tw-py-16">
+                <i class="bi bi-exclamation-triangle tw-text-4xl tw-block tw-mb-2"></i>
+                ${esc(lang['loadfailed'])}
+                <div class="tw-mt-3">
+                    <button type="button" onclick="loadAll()" class="tw-bg-brand tw-text-white tw-border-0 tw-rounded-lg tw-px-4 tw-py-2">${esc(lang['tryagain'])}</button>
+                </div>
+            </div>
+        `;
+    }
 
     function filterCourses() {
         let codeFilter = document.getElementById("code_filter").value.trim().toLowerCase();
         let nameFilter = document.getElementById("name_filter").value.trim().toLowerCase();
-        let facultyFilter = parseInt(document.getElementById("select_faculty").value);
-        let departmentFilter =parseInt(document.getElementById("select_department").value);
+        let facultyVal = document.getElementById("select_faculty").value;
+        let departmentVal = document.getElementById("select_department").value;
 
         filter_courses = Courses.filter(course => {
-            let matchCode = codeFilter ? course['course_code'].toLowerCase().includes(codeFilter) : true;
-            let matchName = nameFilter ? course['course_name'].toLowerCase().includes(nameFilter) : true;
-            let matchFaculty = facultyFilter ? course['faculty_id'] === facultyFilter : true;
-            let matchDepartment = departmentFilter ? course['department_id'] === departmentFilter : true;
+            let matchCode = codeFilter ? String(course.code ?? '').toLowerCase().includes(codeFilter) : true;
+            let matchName = nameFilter ? String(course.name ?? '').toLowerCase().includes(nameFilter) : true;
+            let matchFaculty = facultyVal === '' ? true : Number(course.faculty_id) === Number(facultyVal);
+            let matchDepartment = departmentVal === '' ? true : Number(course.department_id) === Number(departmentVal);
 
             return matchCode && matchName && matchFaculty && matchDepartment;
         });
 
-        updateProductsPerPage();
-
+        currentPage = 1;
+        renderProducts(currentPage);
     }
 
-    function toggleFilter() {
-        let filterBox = document.getElementById('filter-box');
-        let resultBox = document.getElementById('result-box');
+    function clearFilters() {
+        document.getElementById("code_filter").value = '';
+        document.getElementById("name_filter").value = '';
+        document.getElementById("select_faculty").value = '';
+        document.getElementById("select_department").value = '';
+        filter_courses = Courses;
+        currentPage = 1;
+        renderProducts(currentPage);
     }
-
 </script>

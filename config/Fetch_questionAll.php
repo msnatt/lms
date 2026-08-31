@@ -1,12 +1,21 @@
 <?php
+// Student-facing exam loader for pages/examination.php.
+// SECURITY: must NOT expose choices.is_correct — that is the answer key.
+// Admin question preview uses config/Fetch_ExamDetail.php instead.
 session_start();
-include '../config/connect.php';
+
+include "../config/no-crash.php";
+include "../config/connect.php";
+include "../config/admin-guard.php";
 
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-if ($_SERVER["REQUEST_METHOD"] == "GET") {
-    $id = $_GET['exam_id'] ?? null;
+
+require_login_json();
+
+if ($_SERVER["REQUEST_METHOD"] === "GET") {
+    $id = isset($_GET['exam_id']) ? (int) $_GET['exam_id'] : 0;
 
     $sql = "SELECT  question_sets.id,
                     question_sets.title,
@@ -20,18 +29,18 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                     questions.id AS questions_id,
                     questions.question_set_id AS questions_question_set_id,
                     questions.question_text AS questions_question_text,
-                    questions.question_type AS questions_question_type,       
-                    questions.created_at AS questions_created_at,       
+                    questions.question_type AS questions_question_type,
+                    questions.created_at AS questions_created_at,
 
                     choices.id AS choices_id,
                     choices.question_id AS choices_question_id,
-                    choices.choice_text AS choices_choice_text,
-                    choices.is_correct AS choices_is_correct
+                    choices.choice_text AS choices_choice_text
 
             FROM question_sets
             LEFT JOIN questions ON question_sets.id = questions.question_set_id
             LEFT JOIN choices ON questions.id = choices.question_id
-            WHERE question_sets.is_deleted = 0 AND question_sets.id = ?";
+            WHERE question_sets.is_deleted = 0 AND question_sets.id = ?
+            ORDER BY questions.id, choices.id";
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
@@ -39,10 +48,10 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
     $result = $stmt->get_result();
 
     $data = [];
+    $qIndex = [];   // questions_id => index into $data['questions']
 
     while ($row = $result->fetch_assoc()) {
 
-        // ✅ สร้างโครงสร้างหลักหากยังไม่มีข้อมูลใน `$data`
         if (empty($data)) {
             $data = [
                 "id" => $row["id"],
@@ -57,12 +66,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
             ];
         }
 
-        // ✅ ตรวจสอบว่า `courses` มีข้อมูลนี้อยู่แล้วหรือยัง
-        $courseExists = array_filter($data["questions"], function ($c) use ($row) {
-            return $c["questions_id"] == $row["questions_id"];
-        });
-
-        if (!$courseExists) {
+        if ($row["questions_id"] !== null && !isset($qIndex[$row["questions_id"]])) {
+            $qIndex[$row["questions_id"]] = count($data["questions"]);
             $data["questions"][] = [
                 "questions_id" => $row["questions_id"],
                 "questions_question_set_id" => $row["questions_question_set_id"],
@@ -72,28 +77,17 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
                 "choices" => [],
             ];
         }
-        foreach ($data['questions'] as &$question) {
-            if ($question["questions_id"] == $row["choices_question_id"]) {
-                // หา choice ว่ามีหรือยัง
-                $choiceExists = array_filter($question["choices"], function ($c) use ($row) {
-                    return $c["choices_id"] == $row["choices_id"];
-                });
 
-                if (!$choiceExists && $row["choices_id"]) { // เผื่อว่า choices_id อาจว่าง
-                    $question["choices"][] = [
-                        "choices_id" => $row["choices_id"],
-                        "choices_question_id" => $row["choices_question_id"],
-                        "choices_choice_text" => $row["choices_choice_text"],
-                        "choices_is_correct" => $row["choices_is_correct"],
-                    ];
-                }
-            }
+        if ($row["choices_id"] !== null && isset($qIndex[$row["choices_question_id"]])) {
+            $data["questions"][$qIndex[$row["choices_question_id"]]]["choices"][] = [
+                "choices_id" => $row["choices_id"],
+                "choices_question_id" => $row["choices_question_id"],
+                "choices_choice_text" => $row["choices_choice_text"],
+            ];
         }
-        unset($question);
     }
 
     echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
 
     $stmt->close();
 }

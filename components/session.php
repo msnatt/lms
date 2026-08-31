@@ -17,13 +17,15 @@ function logout()
         include "../config/connect.php";
         $user_id = $_SESSION['user_id'];
         $username = $_SESSION['username'];
-        $ip_address = $_SERVER['REMOTE_ADDR'];
-        $user_agent = $_SERVER['HTTP_USER_AGENT'];
+        $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+        $logout_action = 'logout';
 
-        $log_sql = "INSERT INTO log_login (user_id, username, action, ip_address, user_agent) 
-                    VALUES ('$user_id', '$username', 'logout', '$ip_address', '$user_agent')";
-
-        $conn->query($log_sql);
+        // prepared statement — $user_agent มาจาก header ของ client ห้ามต่อสตริงลง SQL
+        $log_stmt = $conn->prepare("INSERT INTO log_login (user_id, username, action, ip_address, user_agent)
+                    VALUES (?, ?, ?, ?, ?)");
+        $log_stmt->bind_param("issss", $user_id, $username, $logout_action, $ip_address, $user_agent);
+        $log_stmt->execute();
     }
 
     session_unset();
@@ -62,9 +64,8 @@ function buildLangSwitchLink($targetLang)
 }
 
 // ถ้ามีการส่งฟอร์มมา
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['bg'])) {
     $_SESSION['bg'] = $_POST['bg'] ?? '#ffffff';
-    $_SESSION['bgbar'] = $_POST['bgbar'] ?? '#f8f9fa';
     $_SESSION['bgside'] = $_POST['bgside'] ?? '#e9ecef';
     $_SESSION['text'] = $_POST['text'] ?? '#000000';
     $_SESSION['button'] = $_POST['button'] ?? '#007bff';
@@ -72,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // ตั้งค่า default ถ้ายังไม่มีใน session
 $bg = $_SESSION['bg'] ?? '#ffffff';
-$bgbar = $_SESSION['bgbar'] ?? '#f8f9fa';
 $bgside = $_SESSION['bgside'] ?? '#e9ecef';
 $text = $_SESSION['text'] ?? '#000000';
 $button = $_SESSION['button'] ?? '#007bff';

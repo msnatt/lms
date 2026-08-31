@@ -1,45 +1,129 @@
+<!-- page log (Log viewer) -->
 <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        let action_btn = document.getElementById('action_btn');
-        let error_btn = document.getElementById('error_btn');
-        let debug_btn = document.getElementById('debug_btn');
-        action_btn.click();
-    });
-    //  log generate
-    action_btn.addEventListener("click", async () => {
-        const response = await fetch("../config/Fetch_log_login.php"); // เรียกใช้ PHP
-        const json_res = await response.json();
-        let logs = json_res;
-        console.log("action :");
-        console.log(logs);
+    const logLang = JSON.parse(document.getElementById('lang-data').textContent);
 
-        let table = document.getElementById('table_log').getElementsByTagName('tbody')[0];
-        table.innerHTML = "";
+    let currentType = 'login';
+    let currentPage = 1;
+    let perPage = 50;
+    let totalPages = 1;
 
-        logs.forEach(user => {
-            let newRow = table.insertRow();
-            newRow.insertCell(0).innerHTML = user.log_time;
-            newRow.insertCell(1).innerHTML = user.username;
-            newRow.insertCell(2).innerHTML = user.action;
-            newRow.insertCell(3).innerHTML = "-";
+    const els = {
+        tabs: document.querySelectorAll('.log-tab'),
+        perPage: document.getElementById('per-page'),
+        btnRefresh: document.getElementById('btn-refresh'),
+        btnExport: document.getElementById('btn-export'),
+        total: document.getElementById('log-total'),
+        tbody: document.querySelector('#table_log tbody'),
+        tableWrap: document.getElementById('table-wrap'),
+        emptyState: document.getElementById('empty-state'),
+        errorState: document.getElementById('error-state'),
+        retryBtn: document.getElementById('retry-btn'),
+        prev: document.getElementById('prev-page'),
+        next: document.getElementById('next-page'),
+        curPage: document.getElementById('current-page'),
+        totPages: document.getElementById('total-pages'),
+    };
+
+    function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function showState(which) {
+        els.tableWrap.classList.toggle('tw-hidden', which !== 'table');
+        els.emptyState.classList.toggle('tw-hidden', which !== 'empty');
+        els.emptyState.classList.toggle('tw-flex', which === 'empty');
+        els.errorState.classList.toggle('tw-hidden', which !== 'error');
+        els.errorState.classList.toggle('tw-flex', which === 'error');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        els.tabs.forEach(tab => tab.addEventListener('click', () => {
+            if (tab.dataset.type === currentType) return;
+            currentType = tab.dataset.type;
+            els.tabs.forEach(t => t.classList.toggle('active', t === tab));
+            currentPage = 1;
+            loadLogs();
+        }));
+
+        els.perPage.addEventListener('change', () => {
+            perPage = parseInt(els.perPage.value, 10) || 50;
+            currentPage = 1;
+            loadLogs();
         });
-    });
-    error_btn.addEventListener("click", async () => {
-        const response = await fetch("../config/Fetch_log_error.php"); // เรียกใช้ PHP
-        const json_res = await response.json();
-        let logs = json_res;
-        console.log("error :");
-        console.log(logs);
+        els.btnRefresh.addEventListener('click', () => loadLogs());
+        els.retryBtn.addEventListener('click', () => loadLogs());
+        els.btnExport.addEventListener('click', doExport);
+        els.prev.addEventListener('click', () => { if (currentPage > 1) { currentPage--; loadLogs(); } });
+        els.next.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; loadLogs(); } });
 
-        let table = document.getElementById('table_log').getElementsByTagName('tbody')[0];
-        table.innerHTML = "";
-
-        logs.forEach(log => {
-            let newRow = table.insertRow();
-            newRow.insertCell(0).innerHTML = log.created_at;
-            newRow.insertCell(1).innerHTML = log.username;
-            newRow.insertCell(2).innerHTML = log.category;
-            newRow.insertCell(3).innerHTML = log.message;
-        });
+        loadLogs();
     });
+
+    async function loadLogs() {
+        showLoading();
+        try {
+            const url = `../config/Fetch_LogList.php?type=${encodeURIComponent(currentType)}`
+                + `&page=${currentPage}&per_page=${perPage}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('response not ok: ' + res.status);
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message || 'load failed');
+
+            currentPage = data.page;
+            totalPages = data.pages;
+            perPage = data.per_page;
+            els.total.textContent = data.total;
+            els.curPage.textContent = data.page;
+            els.totPages.textContent = data.pages;
+            els.prev.disabled = data.page <= 1;
+            els.next.disabled = data.page >= data.pages;
+
+            renderRows(data.rows || []);
+        } catch (err) {
+            console.error('[log] load failed', err);
+            showState('error');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function renderRows(rows) {
+        if (rows.length === 0) {
+            els.tbody.innerHTML = '';
+            showState('empty');
+            return;
+        }
+        showState('table');
+        els.tbody.innerHTML = rows.map(r => `
+            <tr>
+                <td>${esc(r.time)}</td>
+                <td>${esc(r.username)}</td>
+                <td><span class="tw-text-xs tw-px-2 tw-py-0.5 tw-rounded-full tw-bg-slate-100 tw-text-slate-600">${esc(r.category)}</span></td>
+                <td class="msg">${r.message == null ? '<span class="tw-text-slate-300">-</span>' : esc(r.message)}</td>
+                <td>${esc(r.ip_address)}</td>
+                <td class="ua" title="${esc(r.user_agent)}">${esc(r.user_agent)}</td>
+            </tr>`).join('');
+    }
+
+    async function doExport() {
+        showLoading();
+        try {
+            const res = await fetch('../config/log_export.php?type=' + encodeURIComponent(currentType));
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.message || 'export failed');
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;base64,' + data.filedata;
+            link.download = data.filename || 'log_export.csv';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (err) {
+            console.error('[log] export failed', err);
+            showNotify(logLang['exportfailed2']);
+        } finally {
+            hideLoading();
+        }
+    }
 </script>

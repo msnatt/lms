@@ -6,15 +6,19 @@ error_reporting(E_ALL);
 
 
 include "../config/no-crash.php";
-include "../config/connect.php"; 
+include "../config/connect.php";
 
 // ตรวจสอบการเชื่อมต่อ
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// ดึงข้อมูลจากตาราง categories
-$sql = "SELECT * FROM log_login ORDER BY id DESC LIMIT 13";
+// ดึงคอร์สแนะนำล่าสุดที่เผยแพร่แล้ว สำหรับหน้าแรก
+$sql = "SELECT id, code, name, description, image_code
+        FROM course
+        WHERE is_publish = 1 AND is_deleted = 0
+        ORDER BY update_date DESC, id DESC
+        LIMIT 8";
 $result = $conn->query($sql);
 
 $options = [];

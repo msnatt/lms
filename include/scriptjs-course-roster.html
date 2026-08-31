@@ -1,0 +1,270 @@
+<!-- shared roster logic for SMS (course_student) + AMS (course_access) -->
+<!-- the per-page shim defines ROSTER_CFG = { type, addLabelKey } before including this -->
+<script>
+    const rosterLang = JSON.parse(document.getElementById('lang-data').textContent);
+    const CFG = window.ROSTER_CFG || { type: 'student', addLabelKey: 'registerc' };
+
+    let allUsers = [];              // [{id, code, name, is_admin, is_enrolled}]
+    const selected = new Map();     // id -> name
+
+    const els = {
+        course: document.getElementById('select-course'),
+        search: document.getElementById('search-student'),
+        tbody: document.querySelector('#table_list_student tbody'),
+        tableWrap: document.getElementById('table-wrap'),
+        checkAll: document.getElementById('check-all'),
+        chipBox: document.getElementById('select-list'),
+        selCount: document.getElementById('selected-count'),
+        addBtn: document.getElementById('btn-add'),
+        removeBtn: document.getElementById('btn-remove'),
+        addCount: document.getElementById('add-count'),
+        removeCount: document.getElementById('remove-count'),
+        clearBtn: document.getElementById('clear-selected'),
+        nocourseState: document.getElementById('nocourse-state'),
+        emptyState: document.getElementById('empty-state'),
+        errorState: document.getElementById('error-state'),
+        retryBtn: document.getElementById('retry-btn'),
+        confirmModalEl: document.getElementById('confirmModal'),
+        confirmTitle: document.getElementById('confirmModalLabel'),
+        confirmText: document.getElementById('confirmModalText'),
+        confirmBtn: document.getElementById('confirmModalBtn'),
+    };
+
+    let confirmModal;
+    let pendingAction = null; // 'add' | 'remove'
+
+    function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function showState(which) {
+        // which: 'table' | 'empty' | 'error' | 'nocourse'
+        els.tableWrap.classList.toggle('tw-hidden', which !== 'table');
+        els.nocourseState.classList.toggle('tw-hidden', which !== 'nocourse');
+        els.nocourseState.classList.toggle('tw-flex', which === 'nocourse');
+        els.emptyState.classList.toggle('tw-hidden', which !== 'empty');
+        els.emptyState.classList.toggle('tw-flex', which === 'empty');
+        els.errorState.classList.toggle('tw-hidden', which !== 'error');
+        els.errorState.classList.toggle('tw-flex', which === 'error');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        confirmModal = new bootstrap.Modal(els.confirmModalEl);
+
+        loadCourses();
+        showState('nocourse');
+
+        els.course.addEventListener('change', onCourseChange);
+        els.search.addEventListener('input', renderTable);
+        els.retryBtn.addEventListener('click', loadRoster);
+        els.checkAll.addEventListener('change', onCheckAll);
+        els.clearBtn.addEventListener('click', clearSelected);
+        els.addBtn.addEventListener('click', () => askConfirm('add'));
+        els.removeBtn.addEventListener('click', () => askConfirm('remove'));
+        els.confirmBtn.addEventListener('click', runAction);
+
+        els.tbody.addEventListener('change', (e) => {
+            const cb = e.target.closest('input[type="checkbox"][data-id]');
+            if (!cb) return;
+            toggleUser(cb.dataset.id, cb.dataset.name, cb.checked);
+        });
+    });
+
+    async function loadCourses() {
+        try {
+            const res = await fetch('../config/Fetch_Course.php');
+            const courses = await res.json();
+            (courses || []).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.code ? `${c.code} - ${c.name}` : c.name;
+                els.course.appendChild(opt);
+            });
+        } catch (err) {
+            console.error('[roster] course list failed', err);
+        }
+    }
+
+    function onCourseChange() {
+        if (!els.course.value) {
+            allUsers = [];
+            showState('nocourse');
+            syncUI();
+            return;
+        }
+        loadRoster();
+    }
+
+    async function loadRoster() {
+        if (!els.course.value) { showState('nocourse'); return; }
+        showLoading();
+        try {
+            const q = `?course_id=${encodeURIComponent(els.course.value)}&type=${encodeURIComponent(CFG.type)}`;
+            const res = await fetch(`../config/Fetch_CourseRoster.php${q}`);
+            if (!res.ok) throw new Error('response not ok: ' + res.status);
+            allUsers = await res.json();
+            if (!Array.isArray(allUsers)) allUsers = [];
+            renderTable();
+        } catch (err) {
+            console.error('[roster] load failed', err);
+            allUsers = [];
+            showState('error');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function visibleUsers() {
+        const term = els.search.value.trim().toLowerCase();
+        if (!term) return allUsers;
+        return allUsers.filter(u =>
+            String(u.code ?? '').toLowerCase().includes(term) ||
+            String(u.name ?? '').toLowerCase().includes(term)
+        );
+    }
+
+    function renderTable() {
+        const rows = visibleUsers();
+        if (allUsers.length === 0) {
+            els.tbody.innerHTML = '';
+            showState('empty');
+            syncUI();
+            return;
+        }
+        showState('table');
+
+        const enrolledLabel = CFG.type === 'access' ? rosterLang['granted'] : rosterLang['enrolled'];
+        const notLabel = CFG.type === 'access' ? rosterLang['notgranted'] : rosterLang['notenrolled'];
+
+        els.tbody.innerHTML = rows.map(u => {
+            const checked = selected.has(String(u.id)) ? 'checked' : '';
+            const badge = Number(u.is_enrolled) === 1
+                ? `<span class="tw-text-xs tw-px-2 tw-py-0.5 tw-rounded-full tw-bg-sky-100 tw-text-brand">${esc(enrolledLabel)}</span>`
+                : `<span class="tw-text-xs tw-px-2 tw-py-0.5 tw-rounded-full tw-bg-slate-100 tw-text-slate-500">${esc(notLabel)}</span>`;
+            return `
+                <tr>
+                    <td><input type="checkbox" class="form-check-input tw-m-0" data-id="${esc(u.id)}" data-name="${esc(u.name)}" ${checked}></td>
+                    <td>${esc(u.code)}</td>
+                    <td>${esc(u.name)}</td>
+                    <td>${badge}</td>
+                </tr>`;
+        }).join('');
+
+        syncUI();
+    }
+
+    function toggleUser(id, name, on) {
+        id = String(id);
+        if (on) selected.set(id, name);
+        else selected.delete(id);
+        syncUI();
+    }
+
+    function onCheckAll(e) {
+        const on = e.target.checked;
+        visibleUsers().forEach(u => {
+            if (on) selected.set(String(u.id), u.name);
+            else selected.delete(String(u.id));
+        });
+        els.tbody.querySelectorAll('input[type="checkbox"][data-id]').forEach(cb => {
+            cb.checked = selected.has(cb.dataset.id);
+        });
+        syncUI();
+    }
+
+    function clearSelected() {
+        selected.clear();
+        els.tbody.querySelectorAll('input[type="checkbox"][data-id]').forEach(cb => { cb.checked = false; });
+        syncUI();
+    }
+
+    function removeChip(id) {
+        selected.delete(String(id));
+        const cb = els.tbody.querySelector(`input[type="checkbox"][data-id="${CSS.escape(String(id))}"]`);
+        if (cb) cb.checked = false;
+        syncUI();
+    }
+
+    function syncUI() {
+        els.chipBox.innerHTML = '';
+        selected.forEach((name, id) => {
+            const chip = document.createElement('span');
+            chip.className = 'tw-inline-flex tw-items-center tw-gap-1 tw-px-3 tw-py-1 tw-rounded-full tw-bg-sky-50 tw-text-brand tw-text-sm';
+            chip.textContent = name;
+            const x = document.createElement('button');
+            x.type = 'button';
+            x.className = 'tw-border-0 tw-bg-transparent tw-text-brand tw-leading-none tw-p-0';
+            x.innerHTML = '&times;';
+            x.addEventListener('click', () => removeChip(id));
+            chip.appendChild(x);
+            els.chipBox.appendChild(chip);
+        });
+
+        const n = selected.size;
+        els.selCount.textContent = n;
+        els.addCount.textContent = n;
+        els.removeCount.textContent = n;
+        els.addBtn.disabled = n === 0;
+        els.removeBtn.disabled = n === 0;
+
+        const vis = visibleUsers();
+        const visSel = vis.filter(u => selected.has(String(u.id))).length;
+        els.checkAll.checked = vis.length > 0 && visSel === vis.length;
+        els.checkAll.indeterminate = visSel > 0 && visSel < vis.length;
+    }
+
+    function askConfirm(action) {
+        if (!els.course.value) { showNotify(rosterLang['pickcourse']); return; }
+        if (selected.size === 0) { showNotify(rosterLang['pickstudentfirst']); return; }
+        pendingAction = action;
+        const courseText = els.course.options[els.course.selectedIndex].textContent;
+        if (action === 'add') {
+            els.confirmTitle.textContent = rosterLang['confirmenroll'];
+        } else {
+            els.confirmTitle.textContent = rosterLang['confirmunenroll'];
+        }
+        els.confirmText.textContent =
+            `${rosterLang['confirmenrolltext']} "${courseText}" (${selected.size})`;
+        els.confirmBtn.className = action === 'remove'
+            ? 'btn btn-danger'
+            : 'btn btn-primary';
+        confirmModal.show();
+    }
+
+    async function runAction() {
+        const action = pendingAction;
+        if (!action) return;
+        confirmModal.hide();
+
+        const fd = new FormData();
+        fd.append('course_id', els.course.value);
+        fd.append('type', CFG.type);
+        fd.append('action', action);
+        fd.append('user_ids', JSON.stringify([...selected.keys()]));
+
+        showLoading();
+        els.addBtn.disabled = true;
+        els.removeBtn.disabled = true;
+        try {
+            const res = await fetch('../config/course_enroll.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                showNotify(action === 'remove' ? rosterLang['unenrollsuccess'] : rosterLang['enrollsuccess']);
+                clearSelected();
+                await loadRoster();
+            } else {
+                showNotify(rosterLang['enrollfailed']);
+            }
+        } catch (err) {
+            console.error('[roster] action failed', err);
+            showNotify(rosterLang['enrollfailed']);
+        } finally {
+            hideLoading();
+            els.addBtn.disabled = selected.size === 0;
+            els.removeBtn.disabled = selected.size === 0;
+            pendingAction = null;
+        }
+    }
+</script>

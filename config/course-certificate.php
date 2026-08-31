@@ -1,12 +1,35 @@
 <?php
+session_start();
 require('../vendor/setasign/fpdf/fpdf.php');
+include '../config/admin-guard.php';
+
+header('Content-Type: application/json');
+
+// Admin-only
+require_admin_json();
 
 // รับข้อมูล JSON
 $raw = file_get_contents("php://input");
 $data = json_decode($raw, true);
 
-$names = $data['names'];
-$template = $data['template'];
+$names = $data['names'] ?? null;
+$template = $data['template'] ?? null;
+
+if (!is_array($names) || count($names) === 0 || !is_string($template) || $template === '') {
+    http_response_code(400);
+    echo json_encode(['error' => 'invalid payload']);
+    exit();
+}
+
+// กัน path traversal: อนุญาตเฉพาะไฟล์รูปที่อยู่ในโฟลเดอร์ templates/ จริง
+$template = basename($template);
+$ext = strtolower(pathinfo($template, PATHINFO_EXTENSION));
+$templatePath = "../templates/" . $template;
+if (!in_array($ext, ['png', 'jpg', 'jpeg'], true) || !is_file($templatePath)) {
+    http_response_code(400);
+    echo json_encode(['error' => 'invalid template']);
+    exit();
+}
 
 // โฟลเดอร์สำหรับ certificate
 $cert_folder = '../certificates/';
@@ -17,12 +40,16 @@ if (!is_dir($cert_folder)) {
 // วนลูปสร้าง PDF
 $pdf_files = [];
 foreach ($names as $name) {
+    if (!is_string($name) || trim($name) === '') {
+        continue;
+    }
+
     $pdf = new FPDF('L', 'mm', 'A4');
     $pdf->AddPage();
-    $pdf->Image("../templates/$template", 0, 0, 297, 210);
+    $pdf->Image($templatePath, 0, 0, 297, 210);
 
-    $pdf->AddFont('THSarabun','','THSarabun.php');
-    $pdf->SetFont('THSarabun','',36);
+    $pdf->AddFont('THSarabun', '', 'THSarabun.php');
+    $pdf->SetFont('THSarabun', '', 36);
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetXY(0, 95);
     $pdf->Cell(297, 10, iconv('UTF-8', 'TIS-620', $name), 0, 1, 'C');
@@ -31,6 +58,12 @@ foreach ($names as $name) {
     $filePath = $cert_folder . $safeName . ".pdf";
     $pdf->Output('F', $filePath);
     $pdf_files[] = $filePath;
+}
+
+if (count($pdf_files) === 0) {
+    http_response_code(400);
+    echo json_encode(['error' => 'no valid names']);
+    exit();
 }
 
 // สร้าง ZIP

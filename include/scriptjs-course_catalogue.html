@@ -1,68 +1,95 @@
 <!-- page product -->
 <script>
-    let allcourse = [];
-    let catalogue_ = Object();
     const langData = document.getElementById('lang-data').textContent;
     const lang = JSON.parse(langData);
+    let catalogue_ = null;
+
     document.addEventListener('DOMContentLoaded', async () => {
-        const response = await fetch('../config/Fetch_faculty.php'); // เรียกใช้ PHP
-        const json_res = await response.json(); // รับผลลัพธ์เป็น JSON
-        let faculty = json_res;
-
+        showLoading();
         catalogue_ = document.getElementById('catalogue_div');
-        catalogue_.innerHTML = '';
-        generate_catalogue(faculty);
 
+        try {
+            const response = await fetch('../config/Fetch_faculty.php');
+            if (!response.ok) throw new Error('response not ok');
+            const faculty = await response.json();
+
+            catalogue_.innerHTML = '';
+            generate_catalogue(faculty);
+        } catch (err) {
+            console.error('Failed to load catalogue:', err);
+            renderError();
+        } finally {
+            hideLoading();
+        }
     });
 
-    function generate_catalogue(datas) {
-
-
-
-        Object.values(datas).forEach(row => {
-            console.log(row);
-            if (row.id != 1) {
-                generateCatalogue(catalogue_, row);
-            }
-        });
+    function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
     }
 
-    function generateCatalogue(catalogue_, row) {
-        var header_ = document.createElement('div');
-        header_.className = "px-4 py-1 form-control";
-        header_.style.fontSize = "1.25rem";
-        header_.style.fontWeight = "600"    ;
-        header_.style.width = "25%";
-        header_.textContent = lang[row['name']];
+    function generate_catalogue(datas) {
+        let rendered = 0;
+        Object.values(datas).forEach(row => {
+            if (row.id == 1) return; // 'all faculty' เป็นแถวหลอก ไม่ใช่คณะจริง
 
-        // loop course list 
-        var courses = row['courses'];
-        var course_ = document.createElement('div');
-        course_.style.display = "none";
-        course_.style.backgroundColor = "#ffffff";
-        row['courses'].forEach(course => {
-            allcourse = course;
-            var temp_ = document.createElement('div');
-            temp_.className = "w-100 px-4 py-2";
-            temp_.style.fontSize = "1rem";
-            temp_.style.fontWeight = "400";
+            // Fetch_faculty.php ไม่กรอง is_publish — กรองฝั่งนี้แทน
+            const publishedCourses = (row.courses || []).filter(c => Number(c.is_publish) === 1);
+            if (publishedCourses.length === 0) return;
+
+            generateCatalogue(catalogue_, row, publishedCourses);
+            rendered++;
+        });
+
+        if (rendered === 0) {
+            catalogue_.innerHTML = `
+                <div class="tw-text-center tw-text-slate-500 tw-py-16 tw-bg-white tw-rounded-xl tw-shadow">
+                    <i class="bi bi-inbox tw-text-4xl tw-block tw-mb-2"></i>
+                    ${esc(lang['nocourse'])}
+                </div>
+            `;
+        }
+    }
+
+    function generateCatalogue(catalogue_, row, courses) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'tw-bg-white tw-rounded-xl tw-shadow tw-overflow-hidden';
+
+        const header_ = document.createElement('button');
+        header_.type = 'button';
+        header_.className = 'tw-w-full tw-flex tw-items-center tw-justify-between tw-p-4 tw-bg-transparent tw-border-0 tw-text-left tw-font-bold tw-text-lg tw-cursor-pointer';
+        header_.innerHTML = `<span>${esc(lang[row['name']] ?? row['name'])}</span><i class="bi bi-chevron-down tw-transition-transform tw-duration-200"></i>`;
+
+        // course_ เป็น sibling ของ header_ ไม่ใช่ลูก — คลิกชื่อคอร์สจะไม่ไปยุบ accordion แม่อีกต่อไป
+        const course_ = document.createElement('div');
+        course_.className = 'tw-hidden tw-border-t tw-border-slate-100';
+
+        courses.forEach(course => {
+            const temp_ = document.createElement('a');
+            temp_.href = `../components/Set_Course.php?courseid=${encodeURIComponent(course.course_id)}`;
+            temp_.className = 'tw-block tw-px-4 tw-py-2 tw-text-slate-700 tw-no-underline hover:tw-bg-slate-50';
             temp_.textContent = "• " + course['course_code'] + " " + course['course_name'];
-
             course_.appendChild(temp_);
         });
 
-        header_.appendChild(course_);
-        catalogue_.appendChild(header_);
-        // เพิ่ม Event Listener สำหรับการซ่อน/แสดง
+        wrapper.appendChild(header_);
+        wrapper.appendChild(course_);
+        catalogue_.appendChild(wrapper);
+
         header_.addEventListener("click", () => {
-            const isVisible = course_.style.display === "block";
-            // unitcontentDiv.style.display = isVisible ? "none" : "block";
-            course_.style.display = isVisible ? "none" : "block";
-            header_.style.backgroundColor = isVisible ? "#ffffff" : "#ffffff"; // เขียว-แดง
+            const isVisible = !course_.classList.contains('tw-hidden');
+            course_.classList.toggle('tw-hidden', isVisible);
+            header_.querySelector('i').style.transform = isVisible ? '' : 'rotate(180deg)';
         });
     }
 
-    function RedirectToPage(page) {
-        window.location.href = '../pages/' + page + '.php';
+    function renderError() {
+        catalogue_.innerHTML = `
+            <div class="tw-text-center tw-text-slate-500 tw-py-16 tw-bg-white tw-rounded-xl tw-shadow">
+                <i class="bi bi-exclamation-triangle tw-text-4xl tw-block tw-mb-2"></i>
+                ${esc(lang['loadfailed'])}
+            </div>
+        `;
     }
 </script>

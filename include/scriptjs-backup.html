@@ -1,102 +1,207 @@
-<!-- page product -->
+<!-- page backup (Database backup) -->
 <script>
-    const langData = document.getElementById('lang-data').textContent;
-    const lang = JSON.parse(langData);
-    document.addEventListener('DOMContentLoaded', async () => {
-        await generate_table();
+    const bkLang = JSON.parse(document.getElementById('lang-data').textContent);
+
+    let deleteTarget = null;
+
+    const els = {
+        total: document.getElementById('backup-total'),
+        statCount: document.getElementById('stat-count'),
+        statSize: document.getElementById('stat-size'),
+        statLatest: document.getElementById('stat-latest'),
+        btnExport: document.getElementById('btn-export'),
+        btnImport: document.getElementById('btn-import'),
+        btnRefresh: document.getElementById('btn-refresh'),
+        sqlInput: document.getElementById('sqlInput'),
+        tbody: document.querySelector('#table_backup tbody'),
+        tableWrap: document.getElementById('table-wrap'),
+        emptyState: document.getElementById('empty-state'),
+        errorState: document.getElementById('error-state'),
+        retryBtn: document.getElementById('retry-btn'),
+        deleteModalEl: document.getElementById('deleteModal'),
+        deleteFileName: document.getElementById('delete-file-name'),
+        confirmDeleteBtn: document.getElementById('confirm-delete-btn'),
+        importModalEl: document.getElementById('importModal'),
+        importAck: document.getElementById('import-ack'),
+        confirmImportBtn: document.getElementById('confirm-import-btn'),
+    };
+
+    let deleteModal, importModal;
+
+    function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function formatBytes(n) {
+        n = Number(n) || 0;
+        const units = ['B', 'KB', 'MB', 'GB'];
+        let i = 0;
+        while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+        return (i === 0 ? n : n.toFixed(1)) + ' ' + units[i];
+    }
+
+    function showState(which) {
+        els.tableWrap.classList.toggle('tw-hidden', which !== 'table');
+        els.emptyState.classList.toggle('tw-hidden', which !== 'empty');
+        els.emptyState.classList.toggle('tw-flex', which === 'empty');
+        els.errorState.classList.toggle('tw-hidden', which !== 'error');
+        els.errorState.classList.toggle('tw-flex', which === 'error');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        deleteModal = new bootstrap.Modal(els.deleteModalEl);
+        importModal = new bootstrap.Modal(els.importModalEl);
+
+        els.btnRefresh.addEventListener('click', loadBackups);
+        els.retryBtn.addEventListener('click', loadBackups);
+        els.btnExport.addEventListener('click', doExport);
+
+        els.btnImport.addEventListener('click', () => {
+            els.importAck.checked = false;
+            els.confirmImportBtn.disabled = true;
+            importModal.show();
+        });
+        els.importAck.addEventListener('change', () => {
+            els.confirmImportBtn.disabled = !els.importAck.checked;
+        });
+        els.confirmImportBtn.addEventListener('click', () => {
+            importModal.hide();
+            els.sqlInput.click();
+        });
+        els.sqlInput.addEventListener('change', doImport);
+
+        els.confirmDeleteBtn.addEventListener('click', confirmDelete);
+
+        els.tbody.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const name = btn.dataset.name;
+            if (btn.dataset.action === 'download') {
+                window.location = '../config/backup_download.php?file=' + encodeURIComponent(name);
+            } else if (btn.dataset.action === 'delete') {
+                deleteTarget = name;
+                els.deleteFileName.textContent = name;
+                deleteModal.show();
+            }
+        });
+
+        loadBackups();
     });
 
-    async function loadBackup() {
-        let response = await fetch('../config/get_backup.php');
-        let json_res = response.json();
-        return json_res;
+    async function loadBackups() {
+        showLoading();
+        try {
+            const res = await fetch('../config/get_backup.php');
+            if (!res.ok) throw new Error('response not ok: ' + res.status);
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message || 'load failed');
+
+            els.total.textContent = data.total;
+            els.statCount.textContent = data.total;
+            els.statSize.textContent = formatBytes(data.total_size);
+            els.statLatest.textContent = data.latest || '-';
+
+            renderRows(data.files || []);
+        } catch (err) {
+            console.error('[backup] load failed', err);
+            showState('error');
+        } finally {
+            hideLoading();
+        }
     }
 
-    async function generate_table() {
-        let files = await loadBackup();
-
-        let table = document.getElementById('table_backup').getElementsByTagName('tbody')[0];
-        table.innerHTML = "";
-
-        files.forEach(file => {
-            let sizeMB = (file.size / 1024).toFixed(2); // แสดงเป็น MB (2 ตำแหน่ง)
-
-            let newRow = table.insertRow();
-            newRow.className = "text-center";
-            newRow.style.textAlign = "center";
-            newRow.insertCell(0).innerHTML = file.modified;
-            newRow.insertCell(1).innerHTML = file.name;
-            newRow.insertCell(2).innerHTML = `${sizeMB} KB`;
-            // 🔽 ปุ่มดาวน์โหลด
-            let downloadBtn = document.createElement("a");
-            downloadBtn.href = `../backup/${file.name}`;
-            downloadBtn.download = file.name;
-            downloadBtn.className = "btn btn-sm btn-outline-success";
-            downloadBtn.innerHTML = `<i class="bi bi-download"></i> `+lang['download'];
-
-            let actionCell = newRow.insertCell(3);
-            actionCell.appendChild(downloadBtn);
-        });
-    }
-
-    async function export_sql() {
-        // ส่งคำขอไปยัง export_sql.php ด้วย Fetch API
-        fetch('../config/sql_export.php', {
-            method: 'POST',  // ใช้ method POST
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            // ถ้าต้องการส่งข้อมูลใน body สามารถใส่ได้
-            // body: JSON.stringify({ key: "value" })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showNotify('✅ Export database file success.');
-                } else {
-                    showNotify('❌ Export database file failed. Please check: ' + data.message);
-                    console.error(data.message); // log error เพิ่ม
-                }
-            })
-            .catch(error => {
-                showNotify('❗ เกิดข้อผิดพลาดในการเชื่อมต่อ server');
-                console.error('Fetch error:', error);
-            });
-        await generate_table();
-    }
-
-    async function import_sql(event) {
-        let fileInput = event.target;  // ได้ไฟล์จาก input
-        let formData = new FormData();
-
-        // ตรวจสอบว่าเลือกไฟล์ไหม
-        if (fileInput.files.length === 0) {
-            showNotify('❌ กรุณาเลือกไฟล์ก่อน (นามสกุล .sql เท่านั้น)');
+    function renderRows(files) {
+        if (files.length === 0) {
+            els.tbody.innerHTML = '';
+            showState('empty');
             return;
         }
-
-        formData.append('sqlFile', fileInput.files[0]);
-
-        // ส่งคำขอไปยัง import_sql.php
-        fetch('../config/import_sql.php', {
-            method: 'POST',
-            body: formData
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    showNotify('✅ Import database file success.');
-                } else {
-                    showNotify('❌ Import database file failed. Please check: ' + data.message);
-                }
-            })
-            .catch(error => {
-                showNotify('❗ เกิดข้อผิดพลาดในการเชื่อมต่อ server');
-                console.error('Fetch error:', error);
-            });
+        showState('table');
+        els.tbody.innerHTML = files.map(f => `
+            <tr>
+                <td>${esc(f.name)}</td>
+                <td>${esc(formatBytes(f.size))}</td>
+                <td>${esc(f.modified)}</td>
+                <td>
+                    <div class="tw-flex tw-gap-1 tw-justify-end">
+                        <button type="button" data-action="download" data-name="${esc(f.name)}" title="${esc(bkLang['download'])}"
+                            class="tw-bg-slate-100 tw-text-slate-600 tw-border-0 tw-rounded-lg tw-px-2 tw-py-1 tw-text-sm hover:tw-bg-slate-200"><i class="bi bi-download"></i></button>
+                        <button type="button" data-action="delete" data-name="${esc(f.name)}" title="${esc(bkLang['delete'])}"
+                            class="tw-bg-red-50 tw-text-red-600 tw-border-0 tw-rounded-lg tw-px-2 tw-py-1 tw-text-sm hover:tw-bg-red-100"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </td>
+            </tr>`).join('');
     }
 
-    function click_import() {
-        document.getElementById('sqlInput').click();
+    async function doExport() {
+        showLoading();
+        els.btnExport.disabled = true;
+        try {
+            const res = await fetch('../config/sql_export.php', { method: 'POST' });
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.message || 'export failed');
+            showNotify(bkLang['exportsuccess']);
+            await loadBackups();
+        } catch (err) {
+            console.error('[backup] export failed', err);
+            showNotify(bkLang['exportfailed2']);
+        } finally {
+            hideLoading();
+            els.btnExport.disabled = false;
+        }
+    }
+
+    async function doImport() {
+        const file = els.sqlInput.files[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('sqlFile', file);
+
+        showLoading();
+        try {
+            const res = await fetch('../config/sql_import.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.status === 'success') {
+                showNotify(bkLang['importsuccess']);
+                await loadBackups();
+            } else {
+                showNotify(bkLang['importfailed']);
+            }
+        } catch (err) {
+            console.error('[backup] import failed', err);
+            showNotify(bkLang['importfailed']);
+        } finally {
+            hideLoading();
+            els.sqlInput.value = '';
+        }
+    }
+
+    async function confirmDelete() {
+        if (!deleteTarget) return;
+        const fd = new FormData();
+        fd.append('file', deleteTarget);
+
+        showLoading();
+        els.confirmDeleteBtn.disabled = true;
+        try {
+            const res = await fetch('../config/backup_delete.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            deleteModal.hide();
+            if (data.success) {
+                showNotify(bkLang['deletesuccess']);
+                await loadBackups();
+            } else {
+                showNotify(bkLang['savefailed']);
+            }
+        } catch (err) {
+            console.error('[backup] delete failed', err);
+            showNotify(bkLang['savefailed']);
+        } finally {
+            hideLoading();
+            els.confirmDeleteBtn.disabled = false;
+            deleteTarget = null;
+        }
     }
 </script>

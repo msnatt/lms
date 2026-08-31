@@ -1,3 +1,4 @@
 /backup/
 /config/turn-credentials.php
 /logs/
+/config/mail-credentials.php
