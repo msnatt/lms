@@ -1,49 +1,307 @@
-<!-- page product -->
+<!-- page results -->
 <script>
+    const R_LANG = {
+        exam: "<?= $lang['exam'] ?>",
+        score: "<?= $lang['score'] ?>",
+        percent: "<?= $lang['percent'] ?>",
+        examdate: "<?= $lang['examdate'] ?>",
+        avglabel: "<?= $lang['avglabel'] ?>",
+        examdonecount: "<?= $lang['examdonecount'] ?>",
+        items: "<?= $lang['items'] ?>",
+        noexamyet: "<?= $lang['noexamyet'] ?>",
+        scorebycourse: "<?= $lang['scorebycourse'] ?>",
+    };
+    const R_LANG_CODE = "<?= $langCode ?>";
+
+    let RESULT_MODEL = [];
+    let scoreChart = null;
+
     document.addEventListener('DOMContentLoaded', async () => {
-        const response = await fetch("../config/Fetch_results.php"); // เรียกใช้ PHP
-        const json_res = await response.json();
-        let results = json_res;
-
-        const response_mycourse = await fetch("../config/Fetch_MyCourse.php?user_id=<?php echo $_SESSION['user']['id']; ?>"); // เรียกใช้ PHP
-        const json_mycourse = await response_mycourse.json();
-
-
-        json_mycourse['courses'].forEach(course => {
-            create_Table(course, results['courses']);
-        });
+        if (typeof showLoading === 'function') showLoading();
+        try {
+            const [results, mycourse] = await Promise.all([
+                fetch("../config/Fetch_results.php").then(r => r.json()),
+                fetch("../config/Fetch_MyCourse.php?user_id=<?php echo $_SESSION['user']['id']; ?>").then(r => r.json()),
+            ]);
+            buildResults(results, mycourse);
+        } catch (err) {
+            console.error("results load error", err);
+        } finally {
+            if (typeof hideLoading === 'function') hideLoading();
+        }
     });
 
-    async function create_Table(course, results) {
-        let tablelist = document.getElementById('table-container');
-        const table = document.createElement('table');
-        table.classList.add('table', 'table-bordered');
-        table.style.width = "100%";
-        table.style.maxWidth = "600px";
-        const thead = document.createElement('thead');
-        thead.innerHTML = `
-            <tr >
-                <th class="text-center" colspan="3">${course.course_name}</th>
-            </tr>
-        `;
-        const tbody = document.createElement('tbody');
-        let index = 0;
-        results.forEach(res_course => {
-            if (course.course_id == res_course.id) {
-                res_course['questions'].forEach(q => {
-                    index++;
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="text-center">${index}</td>
-                        <td>${q.title}</td>
-                        <td class="text-center">${q.point}/${q.total}</td>
-                        `;
-                    tbody.appendChild(tr);
-                });
-            }
-            table.appendChild(thead);
-            table.appendChild(tbody);
-            tablelist.appendChild(table);
+    function num(v) {
+        const n = Number(v);
+        return isNaN(n) ? 0 : n;
+    }
+
+    function clampPct(n) {
+        return Math.max(0, Math.min(100, n));
+    }
+
+    function escapeHtml(s) {
+        return String(s ?? '').replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function fmtDate(s) {
+        if (!s) return '-';
+        const d = new Date(String(s).replace(' ', 'T'));
+        if (isNaN(d.getTime())) return '-';
+        return d.toLocaleDateString(R_LANG_CODE === 'th' ? 'th-TH' : 'en-GB');
+    }
+
+    function buildResults(results, mycourse) {
+        const regCourses = (mycourse && Array.isArray(mycourse.courses)) ? mycourse.courses : [];
+        const resCourses = (results && Array.isArray(results.courses)) ? results.courses : [];
+
+        RESULT_MODEL = regCourses.map(c => {
+            const rc = resCourses.find(r => String(r.id) === String(c.course_id));
+            const rawExams = (rc && Array.isArray(rc.questions)) ? rc.questions : [];
+
+            const exams = rawExams.map(q => {
+                const point = num(q.point);
+                const total = num(q.total);
+                return {
+                    title: q.title || '',
+                    type: q.type || '',
+                    point: point,
+                    total: total,
+                    percent: total > 0 ? (point / total * 100) : 0,
+                    created_at: q.created_at || null,
+                };
+            });
+
+            const sumPoint = exams.reduce((s, e) => s + e.point, 0);
+            const sumTotal = exams.reduce((s, e) => s + e.total, 0);
+            const latest = exams.reduce((m, e) => {
+                const t = e.created_at ? new Date(String(e.created_at).replace(' ', 'T')).getTime() : 0;
+                return (t && t > m) ? t : m;
+            }, 0);
+
+            return {
+                course_id: c.course_id,
+                code: c.course_code || '',
+                name: c.course_name || '',
+                exams: exams,
+                sumPoint: sumPoint,
+                sumTotal: sumTotal,
+                avg: sumTotal > 0 ? (sumPoint / sumTotal * 100) : 0,
+                latest: latest,
+            };
         });
+
+        const emptyState = document.getElementById('empty-state');
+        const listEl = document.getElementById('results-list');
+        const chartCard = document.getElementById('chart-card');
+        const toolbar = document.getElementById('result-toolbar');
+
+        if (RESULT_MODEL.length === 0) {
+            emptyState.hidden = false;
+            listEl.hidden = true;
+            chartCard.hidden = true;
+            toolbar.hidden = true;
+            renderSummary([]);
+            return;
+        }
+
+        bindActions();
+
+        const withResults = RESULT_MODEL.filter(m => m.exams.length > 0);
+        renderSummary(withResults);
+
+        if (withResults.length === 0) {
+            chartCard.hidden = true;
+            toolbar.hidden = true;
+        } else {
+            renderChart(withResults);
+            populateCourseFilter(RESULT_MODEL);
+            bindToolbar();
+        }
+
+        renderList();
+    }
+
+    function renderSummary(withResults) {
+        const totalPoint = withResults.reduce((s, m) => s + m.sumPoint, 0);
+        const totalTotal = withResults.reduce((s, m) => s + m.sumTotal, 0);
+        const overall = totalTotal > 0 ? (totalPoint / totalTotal * 100) : 0;
+        const avgOfCourses = withResults.length
+            ? withResults.reduce((s, m) => s + m.avg, 0) / withResults.length
+            : 0;
+        const examCount = withResults.reduce((s, m) => s + m.exams.length, 0);
+
+        document.getElementById('stat-overall').textContent = overall.toFixed(1) + '%';
+        document.getElementById('stat-avg').textContent = avgOfCourses.toFixed(1) + '%';
+        document.getElementById('stat-courses').textContent = withResults.length;
+        document.getElementById('stat-exams').textContent = examCount;
+    }
+
+    function renderChart(courses) {
+        const ctx = document.getElementById('score-chart');
+        if (!ctx || typeof Chart === 'undefined') return;
+        if (scoreChart) scoreChart.destroy();
+
+        scoreChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: courses.map(c => (c.code || c.name || '').trim() || c.name),
+                datasets: [{
+                    label: R_LANG.scorebycourse,
+                    data: courses.map(c => Number(c.avg.toFixed(1))),
+                    backgroundColor: '#F28222',
+                    borderRadius: 6,
+                    maxBarThickness: 48,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    function populateCourseFilter(model) {
+        const sel = document.getElementById('filter-course');
+        if (!sel) return;
+        model.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.course_id;
+            opt.textContent = (m.code ? m.code + ' ' : '') + m.name;
+            sel.appendChild(opt);
+        });
+    }
+
+    let toolbarBound = false;
+    function bindToolbar() {
+        if (toolbarBound) return;
+        toolbarBound = true;
+
+        const search = document.getElementById('search-input');
+        const sort = document.getElementById('sort-select');
+        const filter = document.getElementById('filter-course');
+
+        let t = null;
+        if (search) search.addEventListener('input', () => {
+            clearTimeout(t);
+            t = setTimeout(renderList, 200);
+        });
+        if (sort) sort.addEventListener('change', renderList);
+        if (filter) filter.addEventListener('change', renderList);
+    }
+
+    let actionsBound = false;
+    function bindActions() {
+        if (actionsBound) return;
+        actionsBound = true;
+        const btnPrint = document.getElementById('btn-print');
+        const btnPdf = document.getElementById('btn-pdf');
+        if (btnPrint) btnPrint.addEventListener('click', () => window.print());
+        if (btnPdf) btnPdf.addEventListener('click', () => window.print());
+    }
+
+    function renderList() {
+        const listEl = document.getElementById('results-list');
+        const emptyState = document.getElementById('empty-state');
+
+        const searchEl = document.getElementById('search-input');
+        const sortEl = document.getElementById('sort-select');
+        const filterEl = document.getElementById('filter-course');
+
+        const search = (searchEl && !searchEl.closest('[hidden]')) ? searchEl.value.trim().toLowerCase() : '';
+        const sort = (sortEl && !sortEl.closest('[hidden]')) ? sortEl.value : 'newest';
+        const filterId = (filterEl && !filterEl.closest('[hidden]')) ? filterEl.value : '';
+
+        let list = RESULT_MODEL.slice();
+
+        if (filterId) list = list.filter(m => String(m.course_id) === String(filterId));
+
+        if (search) {
+            list = list.filter(m =>
+                m.name.toLowerCase().includes(search) ||
+                m.code.toLowerCase().includes(search) ||
+                m.exams.some(e => e.title.toLowerCase().includes(search))
+            );
+        }
+
+        switch (sort) {
+            case 'high': list.sort((a, b) => b.avg - a.avg); break;
+            case 'low': list.sort((a, b) => a.avg - b.avg); break;
+            case 'name': list.sort((a, b) => (a.code + a.name).localeCompare(b.code + b.name)); break;
+            default: list.sort((a, b) => b.latest - a.latest); break;
+        }
+
+        if (list.length === 0) {
+            listEl.innerHTML = '';
+            listEl.hidden = true;
+            emptyState.hidden = false;
+            return;
+        }
+
+        emptyState.hidden = true;
+        listEl.hidden = false;
+        listEl.innerHTML = list.map(renderCourseCard).join('');
+    }
+
+    function renderCourseCard(m) {
+        const title = escapeHtml((m.code ? m.code + ' ' : '') + m.name);
+
+        let body;
+        if (m.exams.length === 0) {
+            body = `<div class="p-3 text-muted small">${R_LANG.noexamyet}</div>`;
+        } else {
+            const rows = m.exams.map((e, i) => `
+                <tr>
+                    <td class="text-center">${i + 1}</td>
+                    <td>${escapeHtml(e.title)}</td>
+                    <td class="text-center score-badge">${e.point}/${e.total}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="result-progress flex-grow-1"><span style="width:${clampPct(e.percent)}%"></span></div>
+                            <span class="small score-badge">${e.percent.toFixed(0)}%</span>
+                        </div>
+                    </td>
+                    <td class="text-center small">${fmtDate(e.created_at)}</td>
+                </tr>
+            `).join('');
+
+            body = `
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
+                        <thead>
+                            <tr>
+                                <th style="width:48px">#</th>
+                                <th>${R_LANG.exam}</th>
+                                <th style="width:110px">${R_LANG.score}</th>
+                                <th style="width:180px">${R_LANG.percent}</th>
+                                <th style="width:120px">${R_LANG.examdate}</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        return `
+            <div class="course-result-card bg-shadow-10">
+                <div class="crc-head">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="fw-bold">${title}</div>
+                        <div class="small text-muted score-badge">
+                            ${R_LANG.avglabel} ${m.avg.toFixed(1)}% &middot; ${R_LANG.examdonecount} ${m.exams.length} ${R_LANG.items}
+                        </div>
+                    </div>
+                    <div class="result-progress mt-2"><span style="width:${clampPct(m.avg)}%"></span></div>
+                </div>
+                ${body}
+            </div>
+        `;
     }
 </script>
