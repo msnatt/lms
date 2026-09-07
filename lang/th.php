@@ -303,6 +303,11 @@ $lang = [
     "examstaken" => "จำนวนที่สอบแล้ว",
     "overallscore" => "คะแนนรวม",
 
+    //mycourse
+    "nomycourse" => "คุณยังไม่ได้ลงทะเบียนเรียน",
+    "registeredcourses" => "คอร์สที่ลงทะเบียน",
+    "latestregister" => "ลงทะเบียนล่าสุด",
+
     //SMS
     "sms" => "ระบบบริหารจัดการนักเรียน",
     "select" => "เลือก",

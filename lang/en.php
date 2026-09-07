@@ -303,6 +303,11 @@ $lang = [
     "examstaken" => "Exams taken",
     "overallscore" => "Overall score",
 
+    //mycourse
+    "nomycourse" => "You are not enrolled in any course yet",
+    "registeredcourses" => "Enrolled courses",
+    "latestregister" => "Latest enrollment",
+
     //SMS
     "sms" => "Student management system",
     "select" => "Select",

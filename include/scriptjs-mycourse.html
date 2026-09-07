@@ -1,93 +1,135 @@
-<!-- page product -->
+<!-- page mycourse -->
 <script>
+    const MC_LANG = JSON.parse(document.getElementById('lang-data').textContent);
+    const MC_USER = JSON.parse(document.getElementById('user-data').textContent);
+
+    let allCourses = [];
+    let filteredCourses = [];
+    let productsPerPage = 6;
+    let currentPage = 1;
+
     document.addEventListener('DOMContentLoaded', async () => {
-        const response = await fetch("../config/Fetch_MyCourse.php?user_id=<?php echo $_SESSION['user']['id']; ?>"); // เรียกใช้ PHP
-        const json_res = await response.json();
-        let mycourse = json_res;
+        try {
+            const response = await fetch("../config/Fetch_MyCourse.php?user_id=" + encodeURIComponent(MC_USER.id));
+            const data = await response.json();
 
-        console.log(mycourse);
+            allCourses = (data && Array.isArray(data.courses)) ? data.courses : [];
+            filteredCourses = allCourses.slice();
 
-        if (!mycourse['courses'] || mycourse['courses'].length === 0) {
-            document.getElementById("course_div").innerHTML = `
-                <div class="result-empty-state">
-                    <i class="bi bi-journal-x fs-1 d-block mb-2"></i>
-                    คุณยังไม่ได้ลงทะเบียนเรียน
-                </div>
-            `;
-            document.querySelector('.pagination-bar').style.display = 'none';
-        }
-        else {
+            renderStats(data);
 
-            let productsPerPage = 6;
-            let currentPage = 1;
-
-            // ฟังก์ชันตรวจสอบขนาดหน้าจอ
-            function updateProductsPerPage() {
-                if (window.innerWidth < 768) {
-                    productsPerPage = 3; // หน้าจอเล็ก
-                } else {
-                    productsPerPage = 6; // หน้าจอใหญ่
-                }
-                currentPage = 1; // รีเซ็ตไปหน้าแรก
-                renderProducts(currentPage);
+            if (allCourses.length === 0) {
+                showEmptyState(MC_LANG.nomycourse, 'bi-journal-x');
+                document.querySelector('.toolbar').style.display = 'none';
+                document.querySelector('.pagination-bar').style.display = 'none';
+                document.getElementById('mycourse-stats').style.display = 'none';
+                return;
             }
 
-            // ฟังก์ชันเปลี่ยนหน้า
-            function changePage(offset) {
-                currentPage += offset;
-                renderProducts(currentPage);
-            }
-
-
-            function randomImage() {
-                var random = Math.floor((Math.random() * 6) + 1);
-                var pathofimage = `../assets/images/bg_cards/${random}.png`;
-                return pathofimage
-            }
-
-            // ฟังก์ชันแสดงสินค้า
-            function renderProducts(page) {
-                const startIndex = (page - 1) * productsPerPage;
-                const endIndex = startIndex + productsPerPage;
-                const visibleCourse = mycourse['courses'].slice(startIndex, endIndex);
-
-                const course_div = document.getElementById("course_div");
-                course_div.innerHTML = visibleCourse.map(course => `
-                    <div class="col-12 col-md-6 col-lg-3 d-flex justify-content-center" style="padding:1.5rem 0rem ;">
-                        <div class="card h-100" onclick="handleCardClick('${course.course_id}')">
-                            <img src="../assets/images/bg_cards/${course.image_code}" class="card-img-top" alt="img-${course.name}">
-                            <div class="card-body">
-                                <h5 class="card-title fw-bold">${course.course_code} ${course.course_name}</h5>
-                                <p class="">${course.description}</p>
-                            </div>
-                        </div>
-                    </div>
-                `).join("");
-
-                // คำนวณจำนวนหน้าสูงสุด
-                const totalPages = Math.ceil(mycourse['courses'].length / productsPerPage);
-                document.getElementById("total-pages").textContent = totalPages;
-
-                // อัปเดตปุ่ม Pagination
-                document.getElementById("current-page").textContent = currentPage;
-                document.getElementById("prev-page").disabled = currentPage === 1;
-                document.getElementById("next-page").disabled = currentPage === totalPages;
-            }
-
-            // Event Listeners
             document.getElementById("prev-page").addEventListener("click", () => changePage(-1));
             document.getElementById("next-page").addEventListener("click", () => changePage(1));
             window.addEventListener('resize', updateProductsPerPage);
 
-            // เริ่มต้น
             updateProductsPerPage();
+        } catch (err) {
+            console.error("mycourse load error", err);
         }
     });
 
-    function handleCardClick(course_id) {
-        window.location.href = `../components/set_course.php?courseid=${course_id}`;
-        // alert('You clicked on course: ' + course_id);
+    function escapeHtml(s) {
+        return String(s ?? '').replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
     }
 
+    function fmtDate(s) {
+        if (!s) return '-';
+        const d = new Date(String(s).replace(' ', 'T'));
+        if (isNaN(d.getTime())) return '-';
+        return d.toLocaleDateString(document.documentElement.lang === 'th' ? 'th-TH' : 'en-GB');
+    }
 
+    function showEmptyState(message, icon) {
+        document.getElementById("course_div").innerHTML = `
+            <div class="result-empty-state">
+                <i class="bi ${icon} fs-1 d-block mb-2"></i>
+                ${escapeHtml(message)}
+            </div>
+        `;
+    }
+
+    function renderStats(data) {
+        document.getElementById('stat-courses').textContent = allCourses.length;
+        document.getElementById('stat-faculty').textContent =
+            new Set(allCourses.map(c => c.faculty_id).filter(v => v != null)).size;
+        document.getElementById('stat-latest').textContent = fmtDate(data && data.create_date);
+    }
+
+    function updateProductsPerPage() {
+        productsPerPage = window.innerWidth < 768 ? 3 : 6;
+        currentPage = 1;
+        renderProducts(currentPage);
+    }
+
+    function changePage(offset) {
+        currentPage += offset;
+        renderProducts(currentPage);
+    }
+
+    function filterMyCourses() {
+        const q = document.getElementById('mycourse-search').value.trim().toLowerCase();
+        filteredCourses = q
+            ? allCourses.filter(c =>
+                String(c.course_code || '').toLowerCase().includes(q) ||
+                String(c.course_name || '').toLowerCase().includes(q))
+            : allCourses.slice();
+        currentPage = 1;
+        renderProducts(currentPage);
+    }
+
+    function renderProducts(page) {
+        const course_div = document.getElementById("course_div");
+        document.getElementById("numofresult").textContent = filteredCourses.length;
+
+        if (filteredCourses.length === 0) {
+            showEmptyState(MC_LANG.nomatchcourse, 'bi-search');
+            document.getElementById("total-pages").textContent = 1;
+            document.getElementById("current-page").textContent = 1;
+            document.getElementById("prev-page").disabled = true;
+            document.getElementById("next-page").disabled = true;
+            return;
+        }
+
+        const totalPages = Math.ceil(filteredCourses.length / productsPerPage);
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const startIndex = (currentPage - 1) * productsPerPage;
+        const visibleCourse = filteredCourses.slice(startIndex, startIndex + productsPerPage);
+
+        course_div.innerHTML = visibleCourse.map(c => {
+            const desc = String(c.description || '');
+            const shortDesc = desc.length > 50 ? desc.substring(0, 50) + '…' : desc;
+            return `
+                <div class="col-12 col-md-6 col-lg-3 d-flex justify-content-center" style="padding:1.5rem 0;">
+                    <div class="card h-100" onclick="handleCardClick('${encodeURIComponent(c.course_id)}')">
+                        <img src="../assets/images/bg_cards/${escapeHtml(c.image_code)}" class="card-img-top" alt="img-${escapeHtml(c.course_name)}">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold">${escapeHtml(c.course_code)} ${escapeHtml(c.course_name)}</h5>
+                            <p>${escapeHtml(shortDesc)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join("");
+
+        document.getElementById("total-pages").textContent = totalPages;
+        document.getElementById("current-page").textContent = currentPage;
+        document.getElementById("prev-page").disabled = currentPage === 1;
+        document.getElementById("next-page").disabled = currentPage === totalPages;
+    }
+
+    function handleCardClick(course_id) {
+        window.location.href = `../components/set_course.php?courseid=${course_id}`;
+    }
 </script>

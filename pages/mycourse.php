@@ -25,6 +25,36 @@ $user = $_SESSION['user'] ?? 'N/A';
                     <h2><?= $lang['mycourse'] ?></h2>
                 </div>
 
+                <div class="result-stats" id="mycourse-stats">
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-journal-bookmark"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-courses">0</div>
+                            <div class="result-stat-label"><?= $lang['registeredcourses'] ?></div>
+                        </div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-building"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-faculty">0</div>
+                            <div class="result-stat-label"><?= $lang['faculty'] ?></div>
+                        </div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-icon"><i class="bi bi-calendar-check"></i></div>
+                        <div>
+                            <div class="result-stat-value" id="stat-latest">-</div>
+                            <div class="result-stat-label"><?= $lang['latestregister'] ?></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <input type="text" id="mycourse-search" class="form-control" style="max-width: 320px;"
+                        placeholder="<?= $lang['searchcourse'] ?>" oninput="filterMyCourses()">
+                    <div><?= $lang['numofresult'] ?>: <strong id="numofresult">0</strong></div>
+                </div>
+
                 <div id="course_div" name="course_div" class="d-flex flex-wrap justify-content-center" style="min-height: 40svh;">
                     <?php for ($i = 0; $i < 6; $i++): ?>
                         <div class="col-12 col-md-6 col-lg-3 d-flex justify-content-center" style="padding:1.5rem 0rem;">
@@ -56,6 +86,13 @@ $user = $_SESSION['user'] ?? 'N/A';
             </div>
         </div>
     </div>
+    <script id="lang-data" type="application/json">
+        <?= json_encode($lang, JSON_UNESCAPED_UNICODE) ?>
+    </script>
+    <script id="user-data" type="application/json">
+        <?= json_encode(['is_admin' => !empty($user['is_admin']), 'id' => $user['id']], JSON_UNESCAPED_UNICODE) ?>
+    </script>
+
     <?php include "../include/footer.php"; ?>
     <?php include "../include/scriptjs.html"; ?>
     <?php include "../include/scriptjs-mycourse.html"; ?>
