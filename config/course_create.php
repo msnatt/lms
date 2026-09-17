@@ -56,6 +56,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $course_id = $conn->insert_id;
 
 
+        // ✅ ให้สิทธิ์เข้าถึงคอร์สแก่ผู้สร้างโดยอัตโนมัติ
+        $sql_access = "INSERT INTO course_access (course_id, user_id, is_access, create_by) VALUES (?, ?, 1, ?)";
+        $stmt_access = $conn->prepare($sql_access);
+        if (!$stmt_access) {
+            die("Error preparing access statement: " . $conn->error);
+        }
+        $stmt_access->bind_param("iii", $course_id, $user['id'], $user['id']);
+        if (!$stmt_access->execute()) {
+            die("Error executing access statement: " . $stmt_access->error);
+        }
+        $stmt_access->close();
+
         // ✅ บันทึกข้อมูลลงในตาราง course_schedule
         $sql_schedule = "INSERT INTO course_schedule (course_id, day_id, start_time, end_time) VALUES (?, ?, ?, ?)";
         $stmt_schedule = $conn->prepare($sql_schedule);
