@@ -6,21 +6,35 @@ error_reporting(E_ALL);
 
 
 include "../config/no-crash.php";
-include "../config/connect.php"; 
+include "../config/connect.php";
 
 // ตรวจสอบการเชื่อมต่อ
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// ดึงข้อมูลจากตาราง categories
-$sql = "SELECT * FROM unit WHERE is_deleted = 0";
-$result = $conn->query($sql);
+// รองรับ course_id (optional) เพื่อกรองเฉพาะ unit ของคอร์สนั้น ๆ — ไม่ส่งมา = คืนทั้งหมดเหมือนเดิม
+$course_id = isset($_GET['course_id']) && is_numeric($_GET['course_id']) ? (int) $_GET['course_id'] : null;
 
 $options = [];
-if ($result->num_rows > 0) {
+
+if ($course_id !== null) {
+    $stmt = $conn->prepare("SELECT * FROM unit WHERE is_deleted = 0 AND course_id = ? ORDER BY id");
+    $stmt->bind_param("i", $course_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
     while ($row = $result->fetch_assoc()) {
-        $options[] = $row; // เก็บข้อมูลในรูปแบบ Array
+        $options[] = $row;
+    }
+    $stmt->close();
+} else {
+    // ดึงข้อมูลจากตาราง categories
+    $sql = "SELECT * FROM unit WHERE is_deleted = 0";
+    $result = $conn->query($sql);
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $options[] = $row; // เก็บข้อมูลในรูปแบบ Array
+        }
     }
 }
 

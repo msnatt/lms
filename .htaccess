@@ -1,0 +1,6 @@
+# Block raw database dumps / logs / docs that live in the web root.
+# App pages and static assets are unaffected.
+<FilesMatch "\.(sql|log|md)$">
+    Require all denied
+</FilesMatch>
+Options -Indexes

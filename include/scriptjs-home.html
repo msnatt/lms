@@ -1,44 +1,82 @@
-<!-- Video Player -->
+<!-- Home page data loader -->
 <script>
-    // const id_list = ['slide01', 'slide02', 'slide03', 'icon01', 'icon02', 'icon03', 'icon04', 'icon05', 'icon06', 'icon07', 'icon08', 'icon09'];
     document.addEventListener('DOMContentLoaded', async () => {
         showLoading();
-        let response = await fetch("../config/Fetch_homeprofile.php");
-        let json = await response.json();
-        json = json[0];
 
-        Object.entries(json).forEach(([key, value]) => {
-            let element = document.getElementById(key);
-            if (key == 'id') {
-                return
-            }
-            if (key !== 'youtube_id') {
-                element.setAttribute('src', "../assets/images/home/" + value);
-            }
-        });
-
-        hideLoading();
-
-        const videoContainer = document.getElementById('youtube-video');
-        const observer = new IntersectionObserver(entries => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    videoContainer.innerHTML = `
-                    <iframe
-                        src="https://www.youtube.com/embed/${json['youtube_id']}?autoplay=0&mute=1"
-                        title="YouTube video"
-                        frameborder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen
-                        style="width:50vw; height: 415px;">
-                    </iframe>
-                `;
-                    observer.disconnect(); // หยุดสังเกตเมื่อโหลด iframe แล้ว
-                }
-            });
-        });
-        observer.observe(videoContainer);
-
+        try {
+            await Promise.all([
+                loadHomeProfile(),
+                loadFeaturedCourses()
+            ]);
+        } finally {
+            hideLoading();
+        }
     });
 
+    async function loadHomeProfile() {
+        try {
+            let response = await fetch("../config/Fetch_homeprofile.php");
+            let json = await response.json();
+            json = json[0];
+            if (!json) return;
+
+            Object.entries(json).forEach(([key, value]) => {
+                if (key === 'id' || key === 'youtube_id') {
+                    return;
+                }
+                const element = document.getElementById(key);
+                if (!element) {
+                    return;
+                }
+                element.setAttribute('src', "../assets/images/home/" + value);
+            });
+        } catch (err) {
+            console.error('Failed to load home profile:', err);
+        }
+    }
+
+    async function loadFeaturedCourses() {
+        const container = document.getElementById('featured-courses');
+        if (!container) return;
+
+        try {
+            let response = await fetch("../config/Fetch_HomeCourse.php");
+            let courses = await response.json();
+
+            if (!Array.isArray(courses) || courses.length === 0) {
+                container.innerHTML = `
+                    <div class="tw-col-span-full tw-text-center tw-text-slate-500 tw-py-10">
+                        ${window.LANG_NOCOURSE || 'No courses are available at the moment.'}
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = courses.map(course => `
+                <div class="tw-bg-white tw-rounded-xl tw-shadow tw-overflow-hidden tw-cursor-pointer tw-transition tw-duration-300 hover:tw-shadow-lg hover:-tw-translate-y-1"
+                    onclick="handleFeaturedCourseClick('${course.id}')">
+                    <img src="../assets/images/bg_cards/${course.image_code}" class="tw-w-full tw-h-40 tw-object-cover" loading="lazy" alt="${course.name}">
+                    <div class="tw-p-4">
+                        <h5 class="tw-font-bold tw-mb-2">${course.code} ${course.name}</h5>
+                        <p class="tw-text-sm tw-text-slate-600">${(course.description || '').substring(0, 80)}...</p>
+                    </div>
+                </div>
+            `).join("");
+        } catch (err) {
+            console.error('Failed to load featured courses:', err);
+            container.innerHTML = `
+                <div class="tw-col-span-full tw-text-center tw-text-slate-500 tw-py-10">
+                    ${window.LANG_NOCOURSE || 'No courses are available at the moment.'}
+                </div>
+            `;
+        }
+    }
+
+    function handleFeaturedCourseClick(courseId) {
+        if (window.IS_LOGGED_IN) {
+            window.location.href = `../components/Set_Course.php?courseid=${courseId}`;
+        } else {
+            window.location.href = "../pages/login.php";
+        }
+    }
 </script>

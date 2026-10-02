@@ -1,208 +1,427 @@
-<!-- page product -->
+<!-- page user-management -->
 <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        await generate_user();
+    const umsLang = JSON.parse(document.getElementById('lang-data').textContent);
+
+    // state
+    let allUsers = [];
+    let filtered = [];
+    let currentPage = 1;
+    const PER_PAGE = 10;
+
+    const els = {
+        search: document.getElementById('search-user'),
+        role: document.getElementById('filter-role'),
+        tbody: document.querySelector('#table_user tbody'),
+        tableWrap: document.getElementById('table-wrap'),
+        emptyState: document.getElementById('empty-state'),
+        errorState: document.getElementById('error-state'),
+        retryBtn: document.getElementById('retry-btn'),
+        total: document.getElementById('user-total'),
+        prev: document.getElementById('prev-page'),
+        next: document.getElementById('next-page'),
+        curPage: document.getElementById('current-page'),
+        totPages: document.getElementById('total-pages'),
+        csvInput: document.getElementById('csvInput'),
+        btnAdd: document.getElementById('btn-add-user'),
+        btnImport: document.getElementById('btn-import'),
+        btnExport: document.getElementById('btn-export'),
+        // user modal
+        userModalEl: document.getElementById('userModal'),
+        userModalLabel: document.getElementById('userModalLabel'),
+        userForm: document.getElementById('userForm'),
+        fUserId: document.getElementById('f-userId'),
+        fName: document.getElementById('f-name'),
+        fCode: document.getElementById('f-code'),
+        fUsername: document.getElementById('f-username'),
+        fEmail: document.getElementById('f-email'),
+        fTel: document.getElementById('f-telephone'),
+        fPassword: document.getElementById('f-password'),
+        fPasswordWrap: document.getElementById('f-password-wrap'),
+        fIsAdmin: document.getElementById('f-is_admin'),
+        fIsAdminWrap: document.getElementById('f-isadmin-wrap'),
+        userAlert: document.getElementById('user-alert'),
+        userSubmit: document.getElementById('userForm-submit'),
+        // reset modal
+        resetModalEl: document.getElementById('resetPasswordModal'),
+        resetForm: document.getElementById('resetPasswordForm'),
+        resetUserId: document.getElementById('resetUserId'),
+        newPassword: document.getElementById('newPassword'),
+        confirmPassword: document.getElementById('confirmPassword'),
+        alertBox: document.getElementById('alert_box'),
+        resetSubmit: document.getElementById('resetPassword-submit'),
+        // delete modal
+        deleteModalEl: document.getElementById('deleteUserModal'),
+        deleteUserName: document.getElementById('deleteUserName'),
+        confirmDeleteBtn: document.getElementById('confirmDeleteBtn'),
+        // import result
+        importModalEl: document.getElementById('importResultModal'),
+        importBody: document.getElementById('importResultBody'),
+    };
+
+    let userModal, resetModal, deleteModal, importModal;
+    let deleteTargetId = null;
+
+    function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function showState(which) {
+        els.tableWrap.classList.toggle('tw-hidden', which !== 'table');
+        els.emptyState.classList.toggle('tw-hidden', which !== 'empty');
+        els.emptyState.classList.toggle('tw-flex', which === 'empty');
+        els.errorState.classList.toggle('tw-hidden', which !== 'error');
+        els.errorState.classList.toggle('tw-flex', which === 'error');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        userModal = new bootstrap.Modal(els.userModalEl);
+        resetModal = new bootstrap.Modal(els.resetModalEl);
+        deleteModal = new bootstrap.Modal(els.deleteModalEl);
+        importModal = new bootstrap.Modal(els.importModalEl);
+
+        loadUsers();
+
+        els.search.addEventListener('input', () => { currentPage = 1; renderTable(); });
+        els.role.addEventListener('change', () => { currentPage = 1; renderTable(); });
+        els.retryBtn.addEventListener('click', loadUsers);
+        els.prev.addEventListener('click', () => changePage(-1));
+        els.next.addEventListener('click', () => changePage(1));
+
+        els.btnAdd.addEventListener('click', openAddModal);
+        els.btnImport.addEventListener('click', () => els.csvInput.click());
+        els.btnExport.addEventListener('click', doExport);
+        els.csvInput.addEventListener('change', handleFileUpload);
+
+        els.userSubmit.addEventListener('click', submitUserForm);
+        els.resetSubmit.addEventListener('click', submitResetPassword);
+        els.confirmDeleteBtn.addEventListener('click', confirmDelete);
+
+        // row actions via delegation
+        els.tbody.addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-action]');
+            if (!btn) return;
+            const id = btn.dataset.id;
+            const u = allUsers.find(x => String(x.id) === String(id));
+            if (!u) return;
+            if (btn.dataset.action === 'edit') openEditModal(u);
+            else if (btn.dataset.action === 'reset') openResetModal(u);
+            else if (btn.dataset.action === 'delete') openDeleteModal(u);
+        });
     });
 
-    // generate user div
-    async function generate_user() {
-        const response = await fetch("../config/Fetch_user.php"); // เรียกใช้ PHP
-        const json_res = await response.json();
-        let users = json_res;
-        console.log(users);
+    // ---------- load ----------
+    async function loadUsers() {
+        showLoading();
+        try {
+            const res = await fetch('../config/Fetch_UserList.php');
+            if (!res.ok) throw new Error('response not ok: ' + res.status);
+            allUsers = await res.json();
+            if (!Array.isArray(allUsers)) allUsers = [];
+            els.total.textContent = allUsers.length;
+            currentPage = 1;
+            renderTable();
+        } catch (err) {
+            console.error('[ums] load failed', err);
+            allUsers = [];
+            showState('error');
+        } finally {
+            hideLoading();
+        }
+    }
 
-        let table = document.getElementById('table_user').getElementsByTagName('tbody')[0];
-        table.innerHTML = "";
-
-        users.forEach(user => {
-            let newRow = table.insertRow();
-            newRow.insertCell(0).innerHTML = user.name;
-            newRow.insertCell(1).innerHTML = user.code;
-            // let cell1 = newRow.insertCell(1);
-            // cell1.innerHTML = user.name;
-            // cell1.style.textAlign = "center"; // จัดให้อยู่ตรงกลาง
-            newRow.insertCell(2).innerHTML = user.username;
-            newRow.insertCell(3).innerHTML = user.telephone;
-            newRow.insertCell(4).innerHTML = user.is_admin == 1 ? "Admin" : "Student";
-            let cell04 = newRow.insertCell(5);
-            cell04.className = "";
-            cell04.style.maxWidth = "100px";
-            cell04.style.textAlign = "center"; // จัดให้อยู่ตรงกลาง
-            cell04.innerHTML = `
-                <div style="display: flex; gap: 5px; width: 100%;">
-                    <button class="btn btn-secondary" onclick="openResetPasswordModal(${user.id})">
-                        <i class="bi bi-pen"></i><?=$lang['edit']?>
-                    </button>
-                    <button class="btn btn-secondary" onclick="openRenameModal(${user.id})">
-                        <i class="bi bi-pen"></i><?=$lang['rename']?>
-                    </button>
-                    <button class="btn btn-danger" onclick="openDeleteUserModal(${user.id},'${user.name}')">
-                        <i class="bi bi-trash3"></i><?=$lang['delete']?>
-                    </button>
-                </div>
-            `;
-
+    // ---------- filter + render ----------
+    function applyFilter() {
+        const term = els.search.value.trim().toLowerCase();
+        const role = els.role.value;
+        filtered = allUsers.filter(u => {
+            if (role !== '' && String(u.is_admin) !== role) return false;
+            if (!term) return true;
+            return [u.name, u.code, u.username, u.telephone, u.email]
+                .some(v => String(v ?? '').toLowerCase().includes(term));
         });
     }
 
-    // open reset
-    function openResetPasswordModal(userId) {
-        document.getElementById('userId').value = userId;
-        let newPassword = document.getElementById('newPassword');
-        let confirmPassword = document.getElementById('confirmPassword');
-        var alert_box = document.getElementById('alert_box');
-        alert_box.innerHTML = "";
-        newPassword.value = "";
-        newPassword.style.border = "1px solid #ccc";
-        confirmPassword.value = "";
-        confirmPassword.style.border = "1px solid #ccc";
-        let resetPasswordModal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
-        resetPasswordModal.show();
+    function changePage(offset) {
+        currentPage += offset;
+        renderTable();
     }
-    // open rename
-    function openRenameModal(userId) {
-        document.getElementById('userId').value = userId;
-        let newname = document.getElementById('newname');
-        newname.value = "";
-        newname.style.border = "1px solid #ccc";
-        let renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
-        renameModal.show();
-    }
-    // open Delete
-    function openDeleteUserModal(userId, userName) {
-        document.getElementById("deleteUserName").innerText = userName; // แสดงชื่อผู้ใช้ใน Modal
-        document.getElementById("confirmDeleteBtn").setAttribute("onclick", `deleteUser(${userId})`); // ตั้งค่าปุ่มลบ
 
-        let deleteUserModal = new bootstrap.Modal(document.getElementById("deleteUserModal"));
-        deleteUserModal.show(); // เปิด Modal
-    }
-    // submit reset
-    function submitResetPassword() {
-        let userId = document.getElementById('userId').value;
-        var alert_box = document.getElementById('alert_box');
-        let newPassword = document.getElementById('newPassword');
-        let confirmPassword = document.getElementById('confirmPassword');
-        if (newPassword.value !== confirmPassword.value) {
-            newPassword.style.border = "1px solid #f00";
-            confirmPassword.style.border = "1px solid #f00";
-            alert_box.style.color = "red";
-            alert_box.style.fontWeight = "600";
-            alert_box.innerHTML = "Password do not match!";
+    function renderTable() {
+        applyFilter();
+
+        if (filtered.length === 0) {
+            els.tbody.innerHTML = '';
+            showState('empty');
+            els.prev.disabled = true;
+            els.next.disabled = true;
+            els.curPage.textContent = '1';
+            els.totPages.textContent = '1';
             return;
         }
-        let formData = new FormData();
-        formData.append("user_id", userId);
-        formData.append("new_password", newPassword.value);
+        showState('table');
 
+        const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+        currentPage = Math.min(Math.max(currentPage, 1), totalPages);
+        const start = (currentPage - 1) * PER_PAGE;
+        const rows = filtered.slice(start, start + PER_PAGE);
 
-        // ทำ AJAX ส่งค่าไปยัง PHP
-        fetch("../config/user_resetpassword.php", {
-            method: "POST",
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    document.getElementById('resetPasswordForm').reset();
-                    let modal = bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'));
-                    modal.hide();
-                }
-            })
-            .catch(error => console.error("Error:", error));
+        els.tbody.innerHTML = rows.map(u => {
+            const isAdmin = String(u.is_admin) === '1';
+            const badge = isAdmin
+                ? `<span class="tw-text-xs tw-px-2 tw-py-0.5 tw-rounded-full tw-bg-sky-100 tw-text-brand">${esc(umsLang['roleadmin'])}</span>`
+                : `<span class="tw-text-xs tw-px-2 tw-py-0.5 tw-rounded-full tw-bg-slate-100 tw-text-slate-500">${esc(umsLang['rolestudent'])}</span>`;
+            return `
+                <tr>
+                    <td>${esc(u.name)}</td>
+                    <td>${esc(u.code)}</td>
+                    <td>${esc(u.username)}</td>
+                    <td>${esc(u.email)}</td>
+                    <td>${esc(u.telephone)}</td>
+                    <td>${badge}</td>
+                    <td>
+                        <div class="tw-flex tw-gap-1 tw-justify-end">
+                            <button type="button" data-action="edit" data-id="${esc(u.id)}" title="${esc(umsLang['edit'])}"
+                                class="tw-bg-slate-100 tw-text-slate-600 tw-border-0 tw-rounded-lg tw-px-2 tw-py-1 tw-text-sm hover:tw-bg-slate-200"><i class="bi bi-pencil"></i></button>
+                            <button type="button" data-action="reset" data-id="${esc(u.id)}" title="${esc(umsLang['resetpassword'])}"
+                                class="tw-bg-slate-100 tw-text-slate-600 tw-border-0 tw-rounded-lg tw-px-2 tw-py-1 tw-text-sm hover:tw-bg-slate-200"><i class="bi bi-key"></i></button>
+                            <button type="button" data-action="delete" data-id="${esc(u.id)}" title="${esc(umsLang['delete'])}"
+                                class="tw-bg-red-50 tw-text-red-600 tw-border-0 tw-rounded-lg tw-px-2 tw-py-1 tw-text-sm hover:tw-bg-red-100"><i class="bi bi-trash3"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+        }).join('');
+
+        els.curPage.textContent = currentPage;
+        els.totPages.textContent = totalPages;
+        els.prev.disabled = currentPage <= 1;
+        els.next.disabled = currentPage >= totalPages;
     }
 
-    function submitRename() {
-        let userId = document.getElementById('userId').value;
-        let newname = document.getElementById('newname');
-        let formData = new FormData();
-        formData.append("user_id", userId);
-        formData.append("newname", newname.value);
-
-        fetch("../config/user_rename.php", {
-            method: "POST",
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    let modal = bootstrap.Modal.getInstance(document.getElementById('renameModal'));
-                    modal.hide();
-                }
-            })
-            .catch(error => console.error("Error:", error));
-    }
-    // submit deleted
-    async function deleteUser(userId) {
-        console.log("ลบผู้ใช้ ID:", userId); // Debug ดูว่าได้ค่า userId ไหม
-        let formData = new FormData();
-        formData.append("user_id", userId);
-
-        fetch("../config/user_deleted.php", {
-            method: "POST",
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    console.log(data)
-                }
-            })
-            .catch(error => console.error("Error:", error));
-
-        let deleteUserModal = bootstrap.Modal.getInstance(document.getElementById("deleteUserModal"));
-        deleteUserModal.hide(); // ปิด Modal
-
-        await generate_user();
+    // ---------- add / edit ----------
+    function openAddModal() {
+        els.userForm.reset();
+        els.fUserId.value = '';
+        els.userAlert.textContent = '';
+        els.userModalLabel.textContent = umsLang['adduser'];
+        els.fPasswordWrap.classList.remove('tw-hidden');
+        els.fIsAdminWrap.classList.remove('tw-hidden');
+        els.fPassword.required = true;
+        userModal.show();
     }
 
-    async function Import_csv() {
-        document.getElementById("csvInput").click(); // ให้คลิก input file อัตโนมัติ
+    function openEditModal(u) {
+        els.userForm.reset();
+        els.userAlert.textContent = '';
+        els.userModalLabel.textContent = umsLang['edituser'];
+        els.fUserId.value = u.id;
+        els.fName.value = u.name ?? '';
+        els.fCode.value = u.code ?? '';
+        els.fUsername.value = u.username ?? '';
+        els.fEmail.value = u.email ?? '';
+        els.fTel.value = u.telephone ?? '';
+        els.fPasswordWrap.classList.add('tw-hidden');   // แก้รหัสผ่านผ่านปุ่ม reset แยก
+        els.fIsAdminWrap.classList.add('tw-hidden');    // ไม่เปลี่ยนบทบาทของคนที่มีอยู่แล้ว
+        els.fPassword.required = false;
+        userModal.show();
     }
 
-    async function Export_csv() {
-        await fetch("../config/user_export.php") // เรียกใช้ PHP
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // สร้างลิงก์ดาวน์โหลดไฟล์ CSV
-                    let link = document.createElement("a");
-                    link.href = "data:text/csv;base64," + data.filedata;
-                    link.download = data.filename;
-                    link.click();
-                } else {
-                    alert("เกิดข้อผิดพลาด: " + data.message);
-                }
-            })
-            .catch(error => console.error("Error:", error));
-    }
+    async function submitUserForm() {
+        els.userAlert.textContent = '';
+        const isEdit = els.fUserId.value !== '';
+        const fd = new FormData();
+        fd.append('name', els.fName.value.trim());
+        fd.append('code', els.fCode.value.trim());
+        fd.append('username', els.fUsername.value.trim());
+        fd.append('email', els.fEmail.value.trim());
+        fd.append('telephone', els.fTel.value.trim());
 
-    // Upload file
-    function handleFileUpload(event) {
-        const file = event.target.files[0]; // รับไฟล์ที่เลือก
-        if (file) {
-            let formData = new FormData();
-            formData.append("csv_file", file);
+        if (isEdit) {
+            fd.append('user_id', els.fUserId.value);
+        } else {
+            fd.append('password', els.fPassword.value);
+            fd.append('is_admin', els.fIsAdmin.checked ? '1' : '0');
+        }
 
-            // ส่งไฟล์ไปยัง PHP ผ่าน AJAX
-            fetch("../config/user_import.php", {
-                method: "POST",
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(typeof (data.duplicates));
-                    if (data.success) {
-                        if (data.duplicates.length > 0) {
-                            showNotify(`ข้อมูลซ้ำ: ${data.duplicates.join(", ")}`);
-                        } else {
-                            showNotify('นำเข้าทั้งหมดสำเร็จ!');
-                        }
-                    }
+        // client-side quick checks
+        if (!fd.get('name') || !fd.get('code') || !fd.get('username') || !fd.get('email') || !fd.get('telephone')
+            || (!isEdit && !els.fPassword.value)) {
+            els.userAlert.textContent = umsLang['savefailed'];
+            return;
+        }
 
-                })
-                .catch(error => console.error("Error:", error));
+        const url = isEdit ? '../config/user_update.php' : '../config/user_create.php';
+        showLoading();
+        els.userSubmit.disabled = true;
+        try {
+            const res = await fetch(url, { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                userModal.hide();
+                showNotify(umsLang['savesuccess']);
+                await loadUsers();
+            } else {
+                els.userAlert.textContent = messageFor(data.message);
+            }
+        } catch (err) {
+            console.error('[ums] save failed', err);
+            els.userAlert.textContent = umsLang['savefailed'];
+        } finally {
+            hideLoading();
+            els.userSubmit.disabled = false;
         }
     }
 
+    function messageFor(code) {
+        switch (code) {
+            case 'duplicate': return umsLang['duplicateuser'];
+            case 'email_invalid': return umsLang['emailinvalid'];
+            case 'password_short': return umsLang['passwordtooshort'];
+            case 'incomplete':
+            case 'too_long': return umsLang['savefailed'];
+            default: return umsLang['savefailed'];
+        }
+    }
 
+    // ---------- reset password ----------
+    function openResetModal(u) {
+        els.resetForm.reset();
+        els.resetUserId.value = u.id;
+        els.alertBox.textContent = '';
+        resetModal.show();
+    }
+
+    async function submitResetPassword() {
+        els.alertBox.textContent = '';
+        const p1 = els.newPassword.value;
+        const p2 = els.confirmPassword.value;
+        if (p1 !== p2) {
+            els.alertBox.textContent = umsLang['passwordmismatch'];
+            return;
+        }
+        if (p1.length < 8) {
+            els.alertBox.textContent = umsLang['passwordtooshort'];
+            return;
+        }
+        const fd = new FormData();
+        fd.append('user_id', els.resetUserId.value);
+        fd.append('new_password', p1);
+
+        showLoading();
+        els.resetSubmit.disabled = true;
+        try {
+            const res = await fetch('../config/user_resetpassword.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (data.success) {
+                resetModal.hide();
+                showNotify(umsLang['savesuccess']);
+            } else {
+                els.alertBox.textContent = data.message === 'password_short'
+                    ? umsLang['passwordtooshort'] : umsLang['savefailed'];
+            }
+        } catch (err) {
+            console.error('[ums] reset failed', err);
+            els.alertBox.textContent = umsLang['savefailed'];
+        } finally {
+            hideLoading();
+            els.resetSubmit.disabled = false;
+        }
+    }
+
+    // ---------- delete ----------
+    function openDeleteModal(u) {
+        deleteTargetId = u.id;
+        els.deleteUserName.textContent = u.name ?? '';
+        deleteModal.show();
+    }
+
+    async function confirmDelete() {
+        if (!deleteTargetId) return;
+        const fd = new FormData();
+        fd.append('user_id', deleteTargetId);
+
+        showLoading();
+        els.confirmDeleteBtn.disabled = true;
+        try {
+            const res = await fetch('../config/user_deleted.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            deleteModal.hide();
+            if (data.success) {
+                showNotify(umsLang['deletesuccess']);
+                await loadUsers();
+            } else if (data.message === 'cannot_delete_self') {
+                showNotify(umsLang['cannotdeleteself']);
+            } else if (data.message === 'cannot_delete_last_admin') {
+                showNotify(umsLang['cannotdeletelastadmin']);
+            } else {
+                showNotify(umsLang['savefailed']);
+            }
+        } catch (err) {
+            console.error('[ums] delete failed', err);
+            showNotify(umsLang['savefailed']);
+        } finally {
+            hideLoading();
+            els.confirmDeleteBtn.disabled = false;
+            deleteTargetId = null;
+        }
+    }
+
+    // ---------- export ----------
+    async function doExport() {
+        showLoading();
+        try {
+            const res = await fetch('../config/user_export.php');
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.message || 'export failed');
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;base64,' + data.filedata;
+            link.download = data.filename || 'users_export.csv';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (err) {
+            console.error('[ums] export failed', err);
+            showNotify(umsLang['exportfailed2']);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // ---------- import ----------
+    async function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('csv_file', file);
+
+        showLoading();
+        try {
+            const res = await fetch('../config/user_import.php', { method: 'POST', body: fd });
+            const data = await res.json();
+            if (!data.success) {
+                els.importBody.innerHTML = `<p class="tw-text-red-600 tw-m-0">${esc(umsLang['importfailed'])}: ${esc(data.message || '')}</p>`;
+                importModal.show();
+                return;
+            }
+            const parts = [
+                `<p class="tw-m-0 tw-mb-1"><strong>${esc(umsLang['importsuccess'])}:</strong> ${Number(data.imported || 0)}</p>`
+            ];
+            if ((data.duplicates || []).length) {
+                parts.push(`<p class="tw-m-0 tw-mb-1"><strong>${esc(umsLang['importduplicate'])}:</strong> ${esc(data.duplicates.join(', '))}</p>`);
+            }
+            if ((data.skipped || []).length) {
+                parts.push(`<p class="tw-m-0"><strong>${esc(umsLang['importskipped'])}:</strong> ${esc(data.skipped.join(', '))}</p>`);
+            }
+            els.importBody.innerHTML = parts.join('');
+            importModal.show();
+            await loadUsers();
+        } catch (err) {
+            console.error('[ums] import failed', err);
+            showNotify(umsLang['importfailed']);
+        } finally {
+            hideLoading();
+            els.csvInput.value = '';
+        }
+    }
 </script>

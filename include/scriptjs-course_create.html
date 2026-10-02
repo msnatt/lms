@@ -41,24 +41,24 @@
         const Modal = document.createElement('div');
         Modal.id = 'modal_div';
         Modal.innerHTML = `
-            <div class="modal " id="headerModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" style="max-width: 50vw;">
-                    <div class="modal-content" style="min-height: 30vh;">
+            <div class="modal fade" id="headerModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="exampleModalLabel"><?=$lang['nn-header']?></h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <label><?=$lang['nn-header']?></label>
-                            <input type="text" class="form-control" id="new_header">
-                            <label><?=$lang['nn-intro']?></label>
-                            <input type="text" class="form-control" id="intro_header">
-                            <label><?=$lang['nn-conclu']?></label>
+                            <label class="form-label tw-text-sm tw-font-medium tw-text-slate-600 tw-mb-1"><?=$lang['nn-header']?></label>
+                            <input type="text" class="form-control tw-mb-3" id="new_header">
+                            <label class="form-label tw-text-sm tw-font-medium tw-text-slate-600 tw-mb-1"><?=$lang['nn-intro']?></label>
+                            <input type="text" class="form-control tw-mb-3" id="intro_header">
+                            <label class="form-label tw-text-sm tw-font-medium tw-text-slate-600 tw-mb-1"><?=$lang['nn-conclu']?></label>
                             <input type="text" class="form-control" id="cons_header">
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" onclick="create_header_div()" data-bs-dismiss="modal"><?=$lang['create']?></button>
                             <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal"><?=$lang['cancel']?></button>
+                            <button type="button" class="btn btn-primary" onclick="create_header_div()" data-bs-dismiss="modal"><?=$lang['create']?></button>
                         </div>
                     </div>
                 </div>
@@ -78,25 +78,25 @@
         const Modal = document.createElement('div');
         Modal.id = 'modal_div';
         Modal.innerHTML = `
-            <div class="modal " id="contentModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" style="max-width: 50vw;">
-                    <div class="modal-content" style="min-height: 70vh;">
+            <div class="modal fade" id="contentModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="exampleModalLabel"><?=$lang['nn-content']?></h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <label><?=$lang['typecontent']?></label>
-                            <select id="select_content" class="form-select">
+                            <label class="form-label tw-text-sm tw-font-medium tw-text-slate-600 tw-mb-1"><?=$lang['typecontent']?></label>
+                            <select id="select_content" class="form-select tw-mb-3">
                                 <option value="0"><?=$lang['typecontent']?></option>
                             </select>
-                            <div id="contentofcontent">
+                            <div id="contentofcontent" class="tw-p-3 tw-rounded-lg tw-border tw-border-slate-200 tw-bg-slate-50 tw-min-h-[30vh]">
                                 <!-- content in js -->
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" onclick="create_content_div()" data-bs-dismiss="modal"><?=$lang['create']?></button>
                             <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal"><?=$lang['cancel']?></button>
+                            <button type="button" class="btn btn-primary" onclick="create_content_div()" data-bs-dismiss="modal"><?=$lang['create']?></button>
                         </div>
                     </div>
                 </div>
@@ -138,25 +138,22 @@
 
                 case "2": // Image
                     innerHTML = `
-                    <label for="imageInput">Choose an image:</label>
-                    <input type="file" id="inputContent" name="image" accept="image/*">
-                    <br>
+                    <label for="imageInput" class="form-label">Choose an image:</label>
+                    <input type="file" id="inputContent" name="image" accept="image/*" class="form-control">
                 `;
                     break;
 
                 case "3": // Video
                     innerHTML = `
-                    <label for="videoInput">Choose a video:</label>
-                    <input type="file" id="inputContent" accept="video/*">
-                    <br>
+                    <label for="videoInput" class="form-label">Choose a video:</label>
+                    <input type="file" id="inputContent" accept="video/*" class="form-control">
                 `;
                     break;
 
                 case "4": // PDF
                     innerHTML = `
-                    <label for="pdfInput">Choose a PDF:</label>
-                    <input type="file" id="inputContent" accept="application/pdf">
-                    <br>
+                    <label for="pdfInput" class="form-label">Choose a PDF:</label>
+                    <input type="file" id="inputContent" accept="application/pdf" class="form-control">
                 `;
                     break;
 
@@ -272,15 +269,13 @@
         datas.forEach(row => {
             if (row['type'] == "header" && row['is_deleted'] == 0) {
                 const unit_ = document.createElement('div');
-                unit_.className = 'p-2 rounded bg-shadow-10 d-flex justify-content-between';
+                unit_.className = 'tw-rounded-lg tw-border tw-border-sky-200 tw-bg-sky-50 tw-p-3 tw-flex tw-items-start tw-justify-between tw-gap-3';
                 unit_.style.width = '100%';
-                unit_.style.fontSize = '1.25rem';
-                unit_.style.border = '1px solid #eee';
                 unit_.innerHTML = `
-                <div>
-                    <div id="header_${row['id']}">${row['content']}</div>
-                    <div class="fs-6" id="header_intro_${row['id']}"><?=$lang['nn-intro']?>: ${row['intro']}</div>
-                    <div class="fs-6" id="header_cons_${row['id']}"><?=$lang['nn-conclu']?>: ${row['cons']}</div>
+                <div class="tw-min-w-0">
+                    <div class="tw-font-bold tw-text-brandink tw-text-base tw-mb-1" id="header_${row['id']}">${row['content']}</div>
+                    <div class="tw-text-xs tw-text-slate-500" id="header_intro_${row['id']}"><?=$lang['nn-intro']?>: ${row['intro']}</div>
+                    <div class="tw-text-xs tw-text-slate-500" id="header_cons_${row['id']}"><?=$lang['nn-conclu']?>: ${row['cons']}</div>
                 </div>
                 `;
 
@@ -288,20 +283,21 @@
                 const editUnitBtn = document.createElement('button');
                 editUnitBtn.id = "edit_header_" + row['id'];
                 editUnitBtn.type = 'button';
-                editUnitBtn.textContent = lang['edit'];
-                editUnitBtn.className = 'btn btn-sm';
-                editUnitBtn.style.marginLeft = '10px';
+                editUnitBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+                editUnitBtn.title = lang['edit'];
+                editUnitBtn.className = 'tw-inline-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-md tw-border tw-border-slate-300 tw-bg-white tw-text-slate-600 hover:tw-text-brand hover:tw-border-brand';
                 editUnitBtn.onclick = () => popup_update_header(row['id']);
-                // ปุ่มลบ 
+                // ปุ่มลบ
                 const delUnitBtn = document.createElement('button');
                 delUnitBtn.id = "delete_header_" + row['id'];
                 delUnitBtn.type = 'button';
-                delUnitBtn.textContent = lang['delete'];
-                delUnitBtn.className = 'btn btn-sm';
-                delUnitBtn.style.marginLeft = '10px';
+                delUnitBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                delUnitBtn.title = lang['delete'];
+                delUnitBtn.className = 'tw-inline-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-md tw-border tw-border-slate-300 tw-bg-white tw-text-slate-600 hover:tw-text-red-600 hover:tw-border-red-400';
                 delUnitBtn.onclick = () => deleteIndata(row['id'], "header");
 
                 const end_header = document.createElement('div');
+                end_header.className = 'tw-flex tw-gap-1 tw-shrink-0';
 
                 end_header.appendChild(editUnitBtn);
                 end_header.appendChild(delUnitBtn);
@@ -310,8 +306,8 @@
 
             } else if (row['type'] == "content" && row['is_deleted'] == 0) {
                 const content_ = document.createElement('div');
-                content_.className = 'rounded p-2 d-flex justify-content-between';
-                content_.style.width = '100%';
+                content_.className = 'tw-rounded-lg tw-border tw-border-slate-200 tw-bg-white tw-p-3 tw-ml-4 tw-flex tw-items-start tw-justify-between tw-gap-3';
+                content_.style.width = 'auto';
                 switch (row['selecttype']) {
                     case 1:
                         content_.innerHTML = `<div id="content_${row['id']}">${row['content']}</div>`;
@@ -356,22 +352,23 @@
 
                 // ปุ่มแก้ไข Content
                 const editContentBtn = document.createElement('button');
-                editContentBtn.textContent = lang['edit'];
+                editContentBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+                editContentBtn.title = lang['edit'];
                 editContentBtn.id = "edit_content_" + row['id'];
                 editContentBtn.type = 'button';
-                editContentBtn.className = 'btn btn-sm';
-                editContentBtn.style.marginLeft = '10px';
+                editContentBtn.className = 'tw-inline-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-md tw-border tw-border-slate-300 tw-bg-white tw-text-slate-600 hover:tw-text-brand hover:tw-border-brand';
                 editContentBtn.onclick = () => popup_update_content(row['id']);
-                // ปุ่มลบ 
+                // ปุ่มลบ
                 const delcontentBtn = document.createElement('button');
                 delcontentBtn.id = "delete_content_" + row['id'];
                 delcontentBtn.type = 'button';
-                delcontentBtn.textContent = lang['delete'];
-                delcontentBtn.className = 'btn btn-sm';
-                delcontentBtn.style.marginLeft = '10px';
+                delcontentBtn.innerHTML = '<i class="bi bi-trash"></i>';
+                delcontentBtn.title = lang['delete'];
+                delcontentBtn.className = 'tw-inline-flex tw-items-center tw-justify-center tw-w-8 tw-h-8 tw-rounded-md tw-border tw-border-slate-300 tw-bg-white tw-text-slate-600 hover:tw-text-red-600 hover:tw-border-red-400';
                 delcontentBtn.onclick = () => deleteIndata(row['id'], "content");
 
                 const end_content = document.createElement('div');
+                end_content.className = 'tw-flex tw-gap-1 tw-shrink-0';
 
                 end_content.appendChild(editContentBtn);
                 end_content.appendChild(delcontentBtn);
@@ -380,6 +377,14 @@
             }
 
         });
+
+        if (!div_degree_course.children.length) {
+            div_degree_course.innerHTML = `
+                <div class="tw-text-center tw-text-slate-400 tw-py-12 tw-border-2 tw-border-dashed tw-border-slate-200 tw-rounded-lg">
+                    <i class="bi bi-inbox tw-text-3xl tw-block tw-mb-2"></i>
+                    <?= $lang['n-header'] ?> / <?= $lang['n-content'] ?>
+                </div>`;
+        }
     }
 
     // ========================= End Header and content =======================
@@ -415,11 +420,11 @@
 
     btn_schedule.addEventListener('click', () => {
         var _schedule = document.createElement('div');
-        _schedule.className = "bg-light rounded m-1";
+        _schedule.className = "tw-rounded-lg tw-border tw-border-slate-200 tw-bg-slate-50 tw-p-3";
         _schedule.innerHTML = `
-        <div class="d-flex p-2 justify-content-center">
-            <label class="col-2"><?= $lang['day'] ?> :</label>
-            <select class="form-select col-10 mx-2 w-auto" required name="select_day[]">
+        <div class="tw-mb-2">
+            <label class="tw-block tw-text-xs tw-font-medium tw-text-slate-500 tw-mb-1"><?= $lang['day'] ?></label>
+            <select class="form-select form-select-sm" required name="select_day[]">
                 <option value=""><?= $lang['select_day'] ?></option>
                 <option value="1"><?= $lang['monday'] ?></option>
                 <option value="2"><?= $lang['tuesday'] ?></option>
@@ -430,13 +435,15 @@
                 <option value="7"><?= $lang['sunday'] ?></option>
             </select>
         </div>
-        <div class="d-flex justify-content-around p-2">
-            <label><?= $lang['start'] ?></label>
-            <label><?= $lang['end'] ?></label>
-        </div>
-        <div class="d-flex justify-content-around p-2">
-            <select class="form-select mx-2" required name="select_start[]"></select>
-            <select class="form-select mx-2" required name="select_end[]"></select>
+        <div class="tw-grid tw-grid-cols-2 tw-gap-2">
+            <div>
+                <label class="tw-block tw-text-xs tw-font-medium tw-text-slate-500 tw-mb-1"><?= $lang['start'] ?></label>
+                <select class="form-select form-select-sm" required name="select_start[]"></select>
+            </div>
+            <div>
+                <label class="tw-block tw-text-xs tw-font-medium tw-text-slate-500 tw-mb-1"><?= $lang['end'] ?></label>
+                <select class="form-select form-select-sm" required name="select_end[]"></select>
+            </div>
         </div>
     `;
 
@@ -499,24 +506,24 @@
         const Modal = document.createElement('div');
         Modal.id = 'modal_div';
         Modal.innerHTML = `
-            <div class="modal " id="headerModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" style="max-width: 50vw;">
-                    <div class="modal-content" style="min-height: 30vh;">
+            <div class="modal fade" id="headerModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="exampleModalLabel"><?=$lang['edit-header']?></h5>
                             <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <label><?=$lang['nn-header']?></label>
-                            <input type="text" class="form-control" id="update_header">
-                            <label><?=$lang['nn-intro']?></label>
-                            <input type="text" class="form-control" id="intro_header">
-                            <label><?=$lang['nn-conclu']?></label>
+                            <label class="form-label tw-text-sm tw-font-medium tw-text-slate-600 tw-mb-1"><?=$lang['nn-header']?></label>
+                            <input type="text" class="form-control tw-mb-3" id="update_header">
+                            <label class="form-label tw-text-sm tw-font-medium tw-text-slate-600 tw-mb-1"><?=$lang['nn-intro']?></label>
+                            <input type="text" class="form-control tw-mb-3" id="intro_header">
+                            <label class="form-label tw-text-sm tw-font-medium tw-text-slate-600 tw-mb-1"><?=$lang['nn-conclu']?></label>
                             <input type="text" class="form-control" id="cons_header">
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id="update-header" data-bs-dismiss="modal"><?=$lang['update']?></button>
                             <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal"><?=$lang['close']?></button>
+                            <button type="button" class="btn btn-primary" id="update-header" data-bs-dismiss="modal"><?=$lang['update']?></button>
                         </div>
                     </div>
                 </div>
@@ -557,25 +564,25 @@
         const Modal = document.createElement('div');
         Modal.id = 'modal_div';
         Modal.innerHTML = `
-            <div class="modal " id="contentModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div class="modal-dialog" style="max-width: 50vw;">
-                    <div class="modal-content" style="min-height: 70vh;">
+            <div class="modal fade" id="contentModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLabel">Edit about of content</h5>
+                            <h5 class="modal-title" id="exampleModalLabel"><?=$lang['edit-content']?></h5>
                             <button type="button" class="btn-close" onclick="clearModal('modal_div')" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <h6>Select new content.</h6>
-                            <select id="select_content" class="form-select">
-                                <option value="0">please select type</option>
+                            <label class="form-label tw-text-sm tw-font-medium tw-text-slate-600 tw-mb-1"><?=$lang['typecontent']?></label>
+                            <select id="select_content" class="form-select tw-mb-3">
+                                <option value="0"><?=$lang['typecontent']?></option>
                             </select>
-                            <div id="contentofcontent" class="p-3 mt-3" style="border: 2px solid #ddd; border-radius: 1rem; background-color:#fff; min-height: 40vh;">
+                            <div id="contentofcontent" class="tw-p-3 tw-rounded-lg tw-border tw-border-slate-200 tw-bg-slate-50 tw-min-h-[30vh]">
                                 <!-- content in js -->
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" id="update-content" data-bs-dismiss="modal"><?=$lang['create']?></button>
                             <button type="button" class="btn btn-secondary" onclick="clearModal('modal_div')" data-bs-dismiss="modal"><?=$lang['close']?></button>
+                            <button type="button" class="btn btn-primary" id="update-content" data-bs-dismiss="modal"><?=$lang['update']?></button>
                         </div>
                     </div>
                 </div>

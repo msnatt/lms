@@ -1,30 +1,249 @@
-<!-- page product -->
+<!-- page email -->
 <script>
-    // LINE Form
-    document.getElementById("lineForm").addEventListener("submit", function (e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch("../config/send_line.php", {
-            method: "POST",
-            body: formData
-        })
-            .then(res => res.text())
-            .then(result => {
-                document.getElementById("line_result").innerText = result;
-            });
+    const mailLang = JSON.parse(document.getElementById('lang-data').textContent);
+
+    let allUsers = [];
+    const selected = new Map(); // email -> name (ติ๊กค้างข้ามการค้นหา)
+
+    const els = {
+        subject: document.getElementById('compose-subject'),
+        body: document.getElementById('compose-body'),
+        chips: document.getElementById('recipient-chips'),
+        count: document.getElementById('recipient-count'),
+        sendCount: document.getElementById('send-count'),
+        sendBtn: document.getElementById('btn-send'),
+        sendAlert: document.getElementById('send-alert'),
+        clearBtn: document.getElementById('clear-recipients'),
+        search: document.getElementById('search-recipient'),
+        checkAll: document.getElementById('check-all-recipient'),
+        list: document.getElementById('recipient-list'),
+        pickerWrap: document.getElementById('picker-wrap'),
+        emptyState: document.getElementById('empty-state'),
+        errorState: document.getElementById('error-state'),
+        retryBtn: document.getElementById('retry-btn'),
+        manualEmail: document.getElementById('manual-email'),
+        addManualBtn: document.getElementById('btn-add-manual'),
+        resultModalEl: document.getElementById('sendResultModal'),
+        resultBody: document.getElementById('sendResultBody'),
+    };
+
+    let resultModal;
+
+    function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function showState(which) {
+        els.pickerWrap.classList.toggle('tw-hidden', which !== 'table');
+        els.emptyState.classList.toggle('tw-hidden', which !== 'empty');
+        els.emptyState.classList.toggle('tw-flex', which === 'empty');
+        els.errorState.classList.toggle('tw-hidden', which !== 'error');
+        els.errorState.classList.toggle('tw-flex', which === 'error');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        resultModal = new bootstrap.Modal(els.resultModalEl);
+        loadRecipients();
+
+        els.search.addEventListener('input', renderList);
+        els.retryBtn.addEventListener('click', loadRecipients);
+        els.checkAll.addEventListener('change', onCheckAll);
+        els.clearBtn.addEventListener('click', clearSelected);
+        els.addManualBtn.addEventListener('click', addManual);
+        els.manualEmail.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); addManual(); }
+        });
+        els.sendBtn.addEventListener('click', doSend);
+
+        els.list.addEventListener('change', (e) => {
+            const cb = e.target.closest('input[type="checkbox"][data-email]');
+            if (!cb) return;
+            toggle(cb.dataset.email, cb.dataset.name, cb.checked);
+        });
     });
 
-    // Email Form
-    document.getElementById("emailForm").addEventListener("submit", function (e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        fetch("../config/send_email.php", {
-            method: "POST",
-            body: formData
-        })
-            .then(res => res.text())
-            .then(result => {
-                document.getElementById("email_result").innerText = result;
-            });
-    });
+    // ---------- load ----------
+    async function loadRecipients() {
+        showLoading();
+        try {
+            const res = await fetch('../config/Fetch_UserList.php');
+            if (!res.ok) throw new Error('response not ok: ' + res.status);
+            let data = await res.json();
+            if (!Array.isArray(data)) data = [];
+            allUsers = data.filter(u => u.email && String(u.email).trim() !== '');
+            renderList();
+        } catch (err) {
+            console.error('[email] load recipients failed', err);
+            allUsers = [];
+            showState('error');
+        } finally {
+            hideLoading();
+        }
+    }
+
+    function visibleUsers() {
+        const term = els.search.value.trim().toLowerCase();
+        if (!term) return allUsers;
+        return allUsers.filter(u =>
+            String(u.name ?? '').toLowerCase().includes(term) ||
+            String(u.email ?? '').toLowerCase().includes(term)
+        );
+    }
+
+    function renderList() {
+        const rows = visibleUsers();
+        if (allUsers.length === 0) {
+            els.list.innerHTML = '';
+            showState('empty');
+            syncUI();
+            return;
+        }
+        showState('table');
+
+        els.list.innerHTML = rows.map(u => {
+            const checked = selected.has(u.email) ? 'checked' : '';
+            return `
+                <label class="tw-flex tw-items-center tw-gap-2 tw-py-1.5 tw-text-sm tw-cursor-pointer">
+                    <input type="checkbox" class="form-check-input tw-m-0" data-email="${esc(u.email)}" data-name="${esc(u.name)}" ${checked}>
+                    <span class="tw-min-w-0">
+                        <span class="tw-block tw-truncate tw-text-slate-700">${esc(u.name)}</span>
+                        <span class="tw-block tw-truncate tw-text-xs tw-text-slate-400">${esc(u.email)}</span>
+                    </span>
+                </label>`;
+        }).join('');
+
+        syncUI();
+    }
+
+    // ---------- selection ----------
+    function toggle(email, name, on) {
+        if (on) selected.set(email, name);
+        else selected.delete(email);
+        syncUI();
+    }
+
+    function onCheckAll(e) {
+        const on = e.target.checked;
+        visibleUsers().forEach(u => {
+            if (on) selected.set(u.email, u.name);
+            else selected.delete(u.email);
+        });
+        els.list.querySelectorAll('input[type="checkbox"][data-email]').forEach(cb => {
+            cb.checked = selected.has(cb.dataset.email);
+        });
+        syncUI();
+    }
+
+    function clearSelected() {
+        selected.clear();
+        els.list.querySelectorAll('input[type="checkbox"][data-email]').forEach(cb => { cb.checked = false; });
+        syncUI();
+    }
+
+    function removeChip(email) {
+        selected.delete(email);
+        const cb = els.list.querySelector(`input[type="checkbox"][data-email="${CSS.escape(email)}"]`);
+        if (cb) cb.checked = false;
+        syncUI();
+    }
+
+    function addManual() {
+        const v = els.manualEmail.value.trim();
+        if (!v) return;
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+            els.sendAlert.textContent = mailLang['emailinvalid'];
+            return;
+        }
+        els.sendAlert.textContent = '';
+        selected.set(v, v);
+        els.manualEmail.value = '';
+        // ติ๊ก checkbox ถ้าอีเมลนี้อยู่ในรายการผู้ใช้
+        const cb = els.list.querySelector(`input[type="checkbox"][data-email="${CSS.escape(v)}"]`);
+        if (cb) cb.checked = true;
+        syncUI();
+    }
+
+    function syncUI() {
+        els.chips.innerHTML = '';
+        selected.forEach((name, email) => {
+            const chip = document.createElement('span');
+            chip.className = 'tw-inline-flex tw-items-center tw-gap-1 tw-px-3 tw-py-1 tw-rounded-full tw-bg-sky-50 tw-text-brand tw-text-sm';
+            chip.textContent = name === email ? email : `${name} <${email}>`;
+            const x = document.createElement('button');
+            x.type = 'button';
+            x.className = 'tw-border-0 tw-bg-transparent tw-text-brand tw-leading-none tw-p-0';
+            x.innerHTML = '&times;';
+            x.addEventListener('click', () => removeChip(email));
+            chip.appendChild(x);
+            els.chips.appendChild(chip);
+        });
+
+        const n = selected.size;
+        els.count.textContent = n;
+        els.sendCount.textContent = n;
+        els.sendBtn.disabled = n === 0;
+
+        const vis = visibleUsers();
+        const visSel = vis.filter(u => selected.has(u.email)).length;
+        els.checkAll.checked = vis.length > 0 && visSel === vis.length;
+        els.checkAll.indeterminate = visSel > 0 && visSel < vis.length;
+    }
+
+    // ---------- send ----------
+    function messageFor(code) {
+        switch (code) {
+            case 'no_valid_recipient': return mailLang['norecipient'];
+            case 'too_many': return mailLang['toomany'];
+            case 'mail_not_configured': return mailLang['mailnotconfigured'];
+            case 'incomplete': return mailLang['nosubject'];
+            default: return mailLang['failed'];
+        }
+    }
+
+    async function doSend() {
+        els.sendAlert.textContent = '';
+        if (selected.size === 0) { els.sendAlert.textContent = mailLang['norecipient']; return; }
+        if (!els.subject.value.trim()) { els.sendAlert.textContent = mailLang['nosubject']; return; }
+        if (!els.body.value.trim()) { els.sendAlert.textContent = mailLang['nomessage']; return; }
+
+        const fd = new FormData();
+        fd.append('subject', els.subject.value.trim());
+        fd.append('message', els.body.value);
+        fd.append('recipients', JSON.stringify([...selected.keys()]));
+
+        showLoading();
+        els.sendBtn.disabled = true;
+        try {
+            const res = await fetch('../config/send_email.php', { method: 'POST', body: fd });
+            const data = await res.json();
+
+            if (data.success) {
+                const parts = [`<p class="tw-m-0 tw-mb-1"><strong>${esc(mailLang['sentcount'])}:</strong> ${Number(data.sent || 0)}</p>`];
+                if ((data.failed || []).length) {
+                    parts.push(`<p class="tw-m-0 tw-mb-1 tw-text-red-600"><strong>${esc(mailLang['sendfailed'])}:</strong> ${esc(data.failed.join(', '))}</p>`);
+                }
+                if ((data.invalid || []).length) {
+                    parts.push(`<p class="tw-m-0 tw-text-slate-500"><strong>${esc(mailLang['invalidemails'])}:</strong> ${esc(data.invalid.join(', '))}</p>`);
+                }
+                els.resultBody.innerHTML = parts.join('');
+                resultModal.show();
+                // ล้างฟอร์มเมื่อไม่มีรายที่ล้มเหลว
+                if (!(data.failed || []).length) {
+                    els.subject.value = '';
+                    els.body.value = '';
+                    clearSelected();
+                }
+            } else {
+                els.sendAlert.textContent = messageFor(data.message);
+            }
+        } catch (err) {
+            console.error('[email] send failed', err);
+            els.sendAlert.textContent = mailLang['failed'];
+        } finally {
+            hideLoading();
+            els.sendBtn.disabled = selected.size === 0;
+        }
+    }
 </script>

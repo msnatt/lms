@@ -1,49 +1,122 @@
-<!-- page product -->
+<!-- page results -->
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
-        const response = await fetch("../config/Fetch_results.php"); // เรียกใช้ PHP
-        const json_res = await response.json();
-        let results = json_res;
+        const listEl = document.getElementById('course-list');
+        const emptyEl = document.getElementById('empty-state');
+        const summaryEl = document.getElementById('summary');
 
-        const response_mycourse = await fetch("../config/Fetch_MyCourse.php?user_id=<?php echo $_SESSION['user']['id']; ?>"); // เรียกใช้ PHP
-        const json_mycourse = await response_mycourse.json();
+        showLoading();
+        try {
+            const [resResults, resMyCourse] = await Promise.all([
+                fetch("../config/Fetch_results.php"),
+                fetch("../config/Fetch_MyCourse.php?user_id=<?php echo $_SESSION['user']['id']; ?>")
+            ]);
+            const resultsJson = await resResults.json();
+            const myCourseJson = await resMyCourse.json();
 
+            // Fetch_results.php -> { ..., courses:[{ id, name, questions:[{ title, type, point, total }] }] } (or null)
+            // Fetch_MyCourse.php -> { courses:[{ course_id, course_name }] } (or [])
+            const resultCourses = (resultsJson && resultsJson.courses) ? resultsJson.courses : [];
+            const myCourses = (myCourseJson && myCourseJson.courses) ? myCourseJson.courses : [];
 
-        json_mycourse['courses'].forEach(course => {
-            create_Table(course, results['courses']);
-        });
+            let renderedCourses = 0;
+            let totalExams = 0;
+            let sumPct = 0;
+            let pctCount = 0;
+
+            myCourses.forEach(course => {
+                const match = resultCourses.find(rc => rc.id == course.course_id);
+                const questions = (match && match.questions) ? match.questions : [];
+                if (questions.length === 0) return; // ข้ามวิชาที่ยังไม่มีผลสอบ
+
+                renderedCourses++;
+                const card = buildCourseCard(course.course_name, questions);
+                listEl.appendChild(card.el);
+                totalExams += card.examCount;
+                sumPct += card.sumPct;
+                pctCount += card.pctCount;
+            });
+
+            document.getElementById('stat-subjects').textContent = renderedCourses;
+            document.getElementById('stat-exams').textContent = totalExams;
+            document.getElementById('stat-avg').textContent =
+                (pctCount > 0 ? Math.round(sumPct / pctCount) : 0) + '%';
+
+            if (renderedCourses === 0) {
+                summaryEl.classList.add('tw-hidden');
+                emptyEl.classList.remove('tw-hidden');
+                emptyEl.classList.add('tw-flex');
+            }
+        } catch (e) {
+            console.error('[results] load failed', e);
+            if (typeof showNotify === 'function') showNotify('<?= $lang['loadfailed'] ?>');
+            summaryEl.classList.add('tw-hidden');
+            emptyEl.classList.remove('tw-hidden');
+            emptyEl.classList.add('tw-flex');
+        } finally {
+            hideLoading();
+        }
     });
 
-    async function create_Table(course, results) {
-        let tablelist = document.getElementById('table-container');
-        const table = document.createElement('table');
-        table.classList.add('table', 'table-bordered');
-        table.style.width = "100%";
-        table.style.maxWidth = "600px";
-        const thead = document.createElement('thead');
-        thead.innerHTML = `
-            <tr >
-                <th class="text-center" colspan="3">${course.course_name}</th>
-            </tr>
-        `;
-        const tbody = document.createElement('tbody');
-        let index = 0;
-        results.forEach(res_course => {
-            if (course.course_id == res_course.id) {
-                res_course['questions'].forEach(q => {
-                    index++;
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `
-                        <td class="text-center">${index}</td>
-                        <td>${q.title}</td>
-                        <td class="text-center">${q.point}/${q.total}</td>
-                        `;
-                    tbody.appendChild(tr);
-                });
-            }
-            table.appendChild(thead);
-            table.appendChild(tbody);
-            tablelist.appendChild(table);
-        });
+    function escapeHtml(s) {
+        return String(s ?? '').replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    const RESULT_TYPE_LABEL = {
+        'pre-test': 'Pre-test',
+        'post-test': 'Post-test',
+        'quiz': 'Quiz'
+    };
+
+    function buildCourseCard(courseName, questions) {
+        const el = document.createElement('div');
+        el.className = 'tw-bg-white tw-rounded-xl tw-shadow tw-overflow-hidden';
+
+        let sumPct = 0;
+        let pctCount = 0;
+
+        const rows = questions.map((q, i) => {
+            const point = Number(q.point) || 0;
+            const total = Number(q.total) || 0;
+            const hasScore = total > 0;
+            const pct = hasScore ? Math.round((point / total) * 100) : 0;
+            if (hasScore) { sumPct += pct; pctCount++; }
+
+            const typeLabel = RESULT_TYPE_LABEL[q.type] || (q.type ? escapeHtml(q.type) : '');
+
+            return `
+                <div class="tw-flex tw-items-center tw-gap-4 tw-px-4 md:tw-px-6 tw-py-3 tw-border-t tw-border-solid tw-border-slate-100">
+                    <div class="tw-w-6 tw-shrink-0 tw-text-slate-400 tw-text-sm tw-text-center">${i + 1}</div>
+                    <div class="tw-flex-1 tw-min-w-0">
+                        <div class="tw-font-medium tw-text-slate-700 tw-truncate">${escapeHtml(q.title)}</div>
+                        <div class="tw-flex tw-items-center tw-gap-2 tw-mt-1">
+                            ${typeLabel ? `<span class="tw-text-[11px] tw-px-2 tw-py-0.5 tw-rounded-full tw-bg-sky-50 tw-text-brand">${typeLabel}</span>` : ''}
+                            <div class="tw-flex-1 tw-h-1.5 tw-bg-slate-100 tw-rounded-full tw-overflow-hidden tw-max-w-[220px]">
+                                <div class="tw-h-full tw-bg-brand tw-rounded-full" style="width:${pct}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tw-text-right tw-shrink-0">
+                        ${hasScore
+                            ? `<div class="tw-font-bold tw-text-brandink">${point}/${total}</div><div class="tw-text-xs tw-text-slate-400">${pct}%</div>`
+                            : `<div class="tw-text-sm tw-text-slate-400"><?= $lang['noresult'] ?></div>`}
+                    </div>
+                </div>`;
+        }).join('');
+
+        const avgPct = pctCount > 0 ? Math.round(sumPct / pctCount) : null;
+
+        el.innerHTML = `
+            <div class="tw-flex tw-items-center tw-justify-between tw-gap-3 tw-px-4 md:tw-px-6 tw-py-4 tw-bg-slate-50">
+                <h3 class="tw-font-bold tw-text-slate-800 tw-m-0 tw-truncate"><i class="bi bi-journal-text tw-text-brand tw-mr-2"></i>${escapeHtml(courseName)}</h3>
+                ${avgPct !== null
+                    ? `<span class="tw-shrink-0 tw-text-sm tw-font-semibold tw-text-brand"><?= $lang['courseavg'] ?> ${avgPct}%</span>`
+                    : ''}
+            </div>
+            ${rows}`;
+
+        return { el, examCount: questions.length, sumPct, pctCount };
     }
 </script>

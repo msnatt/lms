@@ -1,110 +1,255 @@
-<!-- page product -->
+<!-- page certificate -->
 <script>
-    var data = [];
-    document.addEventListener('DOMContentLoaded', async () => {
-        let response = await fetch('../config/files-list.php');
-        let json = await response.json();
+    const certLang = JSON.parse(document.getElementById('lang-data').textContent);
 
-        generate_select(json, 'select-template')
-        generate_student();
+    // state
+    let allStudents = [];                 // [{id, code, name}] จาก endpoint ปัจจุบัน
+    const selected = new Map();           // id -> name (ติ๊กค้างข้ามการค้นหา/เปลี่ยนคอร์ส)
 
+    const els = {
+        course: document.getElementById('select-course'),
+        template: document.getElementById('select-template'),
+        search: document.getElementById('search-student'),
+        tbody: document.querySelector('#table_list_student tbody'),
+        checkAll: document.getElementById('check-all'),
+        chipBox: document.getElementById('select-list'),
+        selCount: document.getElementById('selected-count'),
+        exportBtn: document.getElementById('export-btn'),
+        exportCount: document.getElementById('export-count'),
+        clearBtn: document.getElementById('clear-selected'),
+        emptyState: document.getElementById('empty-state'),
+        errorState: document.getElementById('error-state'),
+        retryBtn: document.getElementById('retry-btn'),
+        image: document.getElementById('image-Show'),
+        tableWrap: document.getElementById('student_list'),
+    };
+
+    function esc(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function showState(which) {
+        // which: 'table' | 'empty' | 'error'
+        els.tableWrap.classList.toggle('tw-hidden', which !== 'table');
+        els.emptyState.classList.toggle('tw-hidden', which !== 'empty');
+        els.emptyState.classList.toggle('tw-flex', which === 'empty');
+        els.errorState.classList.toggle('tw-hidden', which !== 'error');
+        els.errorState.classList.toggle('tw-flex', which === 'error');
+    }
+
+    // ---------- initial load ----------
+    document.addEventListener('DOMContentLoaded', () => {
+        loadTemplates();
+        loadCourses();
+        loadStudents();
+
+        els.course.addEventListener('change', loadStudents);
+        els.search.addEventListener('input', renderTable);
+        els.template.addEventListener('change', onTemplateChange);
+        els.checkAll.addEventListener('change', onCheckAll);
+        els.clearBtn.addEventListener('click', clearSelected);
+        els.retryBtn.addEventListener('click', loadStudents);
+        els.exportBtn.addEventListener('click', doExport);
+
+        // event delegation แทน onchange ราย checkbox
+        els.tbody.addEventListener('change', (e) => {
+            const cb = e.target.closest('input[type="checkbox"][data-id]');
+            if (!cb) return;
+            toggleStudent(cb.dataset.id, cb.dataset.name, cb.checked);
+        });
     });
 
-    function generate_select(values, id) {
-        let select = document.getElementById(id);
-        values.forEach(value => {
-            const option = document.createElement('option');
-            option.value = value;
-            option.textContent = value;
-            select.appendChild(option);
-        });
+    async function loadTemplates() {
+        try {
+            const res = await fetch('../config/files-list.php');
+            const files = await res.json();
+            (files || []).forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f;
+                opt.textContent = f;
+                els.template.appendChild(opt);
+            });
+        } catch (err) {
+            console.error('[certificate] template list failed', err);
+        }
     }
 
-    async function generate_student() {
-        let users = await fetch("../config/Fetch_user.php");
-        let json_res = await users.json();
-
-        let table = document.getElementById('table_list_student').getElementsByTagName('tbody')[0];
-        table.innerHTML = "";
-
-        json_res.forEach(each => {
-            let newRow = table.insertRow();
-            newRow.insertCell(0).innerHTML = `
-            <input type="checkbox" class="form-check w-75 h-75" value="${each.name}" onchange="preview()">
-            `;
-            newRow.insertCell(1).innerHTML = each.code;
-            newRow.insertCell(2).innerHTML = each.name;
-            newRow.insertCell(3).innerHTML = "";
-        });
-
+    async function loadCourses() {
+        try {
+            const res = await fetch('../config/Fetch_Course.php');
+            const courses = await res.json();
+            (courses || []).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.code ? `${c.code} - ${c.name}` : c.name;
+                els.course.appendChild(opt);
+            });
+        } catch (err) {
+            console.error('[certificate] course list failed', err);
+        }
     }
 
-    function preview() {
-        let selectlist = document.getElementById('select-list');
-        selectlist.innerHTML = "";
-        data = [];
-        const checkboxes = document.querySelectorAll('#table_list_student input[type="checkbox"]:checked');
-        // const selectedNames = Array.from(checkboxes).map( cb =>" " + cb.value  );
-        // selectlist.innerHTML = selectedNames;
-        checkboxes.forEach(checkbox => {
-            let temp = document.createElement('div');
-            temp.className = "px-2";
-            temp.style.color = "#000";
-            temp.style.backgroundColor = "#fff";
-            temp.style.border = "1px solid #555";
-            temp.style.borderRadius = "2rem";
-            temp.textContent = checkbox.value;
-            selectlist.appendChild(temp);
-            data.push(checkbox.value);
-        });
+    async function loadStudents() {
+        showLoading();
+        try {
+            const q = els.course.value ? `?course_id=${encodeURIComponent(els.course.value)}` : '';
+            const res = await fetch(`../config/Fetch_CertStudent.php${q}`);
+            if (!res.ok) throw new Error('response not ok: ' + res.status);
+            allStudents = await res.json();
+            if (!Array.isArray(allStudents)) allStudents = [];
+            renderTable();
+        } catch (err) {
+            console.error('[certificate] student list failed', err);
+            allStudents = [];
+            showState('error');
+        } finally {
+            hideLoading();
+        }
     }
 
-    async function Export() {
-        if (data.length === 0) {
-            alert("กรุณาเลือกนักเรียนอย่างน้อย 1 คน");
+    // ---------- rendering ----------
+    function visibleStudents() {
+        const term = els.search.value.trim().toLowerCase();
+        if (!term) return allStudents;
+        return allStudents.filter(s =>
+            String(s.code ?? '').toLowerCase().includes(term) ||
+            String(s.name ?? '').toLowerCase().includes(term)
+        );
+    }
+
+    function renderTable() {
+        const rows = visibleStudents();
+
+        if (rows.length === 0) {
+            els.tbody.innerHTML = '';
+            showState('empty');
+            syncSelectionUI();
+            return;
+        }
+        showState('table');
+
+        els.tbody.innerHTML = rows.map(s => {
+            const checked = selected.has(String(s.id)) ? 'checked' : '';
+            return `
+                <tr>
+                    <td><input type="checkbox" class="form-check-input tw-m-0" data-id="${esc(s.id)}" data-name="${esc(s.name)}" ${checked}></td>
+                    <td>${esc(s.code)}</td>
+                    <td>${esc(s.name)}</td>
+                </tr>`;
+        }).join('');
+
+        syncSelectionUI();
+    }
+
+    // ---------- selection ----------
+    function toggleStudent(id, name, on) {
+        id = String(id);
+        if (on) selected.set(id, name);
+        else selected.delete(id);
+        syncSelectionUI();
+    }
+
+    function onCheckAll(e) {
+        const on = e.target.checked;
+        visibleStudents().forEach(s => {
+            if (on) selected.set(String(s.id), s.name);
+            else selected.delete(String(s.id));
+        });
+        // อัปเดต checkbox ที่แสดงอยู่
+        els.tbody.querySelectorAll('input[type="checkbox"][data-id]').forEach(cb => {
+            cb.checked = selected.has(cb.dataset.id);
+        });
+        syncSelectionUI();
+    }
+
+    function clearSelected() {
+        selected.clear();
+        els.tbody.querySelectorAll('input[type="checkbox"][data-id]').forEach(cb => { cb.checked = false; });
+        syncSelectionUI();
+    }
+
+    function removeChip(id) {
+        selected.delete(String(id));
+        const cb = els.tbody.querySelector(`input[type="checkbox"][data-id="${CSS.escape(String(id))}"]`);
+        if (cb) cb.checked = false;
+        syncSelectionUI();
+    }
+
+    function syncSelectionUI() {
+        // chips
+        els.chipBox.innerHTML = '';
+        selected.forEach((name, id) => {
+            const chip = document.createElement('span');
+            chip.className = 'tw-inline-flex tw-items-center tw-gap-1 tw-px-3 tw-py-1 tw-rounded-full tw-bg-sky-50 tw-text-brand tw-text-sm';
+            chip.textContent = name;
+            const x = document.createElement('button');
+            x.type = 'button';
+            x.className = 'tw-border-0 tw-bg-transparent tw-text-brand tw-leading-none tw-p-0';
+            x.innerHTML = '&times;';
+            x.addEventListener('click', () => removeChip(id));
+            chip.appendChild(x);
+            els.chipBox.appendChild(chip);
+        });
+
+        const n = selected.size;
+        els.selCount.textContent = n;
+        els.exportCount.textContent = n;
+        els.exportBtn.disabled = n === 0;
+
+        // check-all state เทียบกับแถวที่มองเห็น
+        const vis = visibleStudents();
+        const visSelected = vis.filter(s => selected.has(String(s.id))).length;
+        els.checkAll.checked = vis.length > 0 && visSelected === vis.length;
+        els.checkAll.indeterminate = visSelected > 0 && visSelected < vis.length;
+    }
+
+    // ---------- template preview ----------
+    function onTemplateChange() {
+        const v = els.template.value;
+        els.image.setAttribute('src', v ? `../templates/${encodeURIComponent(v)}` : '../assets/images/default-template.png');
+    }
+
+    // ---------- export ----------
+    async function doExport() {
+        if (selected.size === 0) {
+            showNotify(certLang['pickstudent']);
+            return;
+        }
+        if (!els.template.value) {
+            showNotify(certLang['picktemplate']);
             return;
         }
 
-        let template = document.getElementById('select-template').value;
-        if (!template) {
-            alert("กรุณาเลือก Template");
-            return;
+        showLoading();
+        els.exportBtn.disabled = true;
+        try {
+            const res = await fetch('../config/course-certificate.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    names: [...selected.values()],
+                    template: els.template.value
+                })
+            });
+            const result = await res.json();
+            if (!res.ok || !result.zip) throw new Error(result.error || 'export failed');
+
+            const a = document.createElement('a');
+            a.href = result.zip;
+            a.download = result.zip.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            clearSelected();
+        } catch (err) {
+            console.error('[certificate] export failed', err);
+            showNotify(certLang['exportfailed']);
+        } finally {
+            hideLoading();
+            els.exportBtn.disabled = selected.size === 0;
         }
-
-        const response = await fetch('../config/course-certificate.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                names: data,
-                template: template
-            })
-        });
-
-        const result = await response.json();
-
-        // 👉 สร้าง <a> แล้วสั่งโหลด zip
-        const a = document.createElement('a');
-        a.href = result.zip;
-        a.download = result.zip.split('/').pop(); // ตั้งชื่อไฟล์จาก zip path
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        window.location.href = '../pages/certificate.php';
     }
-
-
-    let selectTemplate = document.getElementById('select-template');
-    let imagShow = document.getElementById('image-Show');
-    selectTemplate.addEventListener('change', () => {
-        if (selectTemplate.value == "") {
-            imagShow.setAttribute('src', `../assets/images/default-template.png`);
-        }
-        else {
-            imagShow.setAttribute('src', `../Templates/${selectTemplate.value}`);
-        }
-    });
-
 </script>

@@ -23,6 +23,8 @@
     let currentRoomId = null;
     let currentRoomName = null;
     let currentUserId = "<?php echo $_SESSION['user']['id']; ?>";
+    // เทียบชื่อผู้ส่งกับผู้ใช้ปัจจุบัน เพื่อจัดฝั่งซ้าย/ขวาของ chat bubble เท่านั้น (server broadcast type 'chat' ไม่ส่ง user_id มาด้วย)
+    const currentUserName = "<?php echo addslashes($_SESSION['user']['name'] ?? ''); ?>";
     let remoteVideo = document.getElementById("remoteVideo");
     let localVideo = document.getElementById('localVideo');
     const wsText = document.getElementById("wsText");
@@ -149,13 +151,16 @@
 
                 const div = document.createElement("div");
                 div.id = "room_" + room.id;
-                div.className = "box-chat px-4 cursor-pointer roombox";
+                div.className = "box-chat cursor-pointer roombox tw-flex tw-items-center tw-gap-3 tw-px-3 tw-py-3 tw-border-b tw-border-slate-100";
                 div.role = "button";
-                div.style.borderBottom = "1px solid #ddd";
                 div.onclick = () => selectRoomChat(room.id, room.name);
+                const roomInitial = (room.name || "?").trim().charAt(0).toUpperCase();
                 div.innerHTML = `
-                    <div class="fw-bold py-2">${room.name}</div>
-                    <div class="text-muted small pb-2">${truncatedMessage}</div>
+                    <div class="tw-w-10 tw-h-10 tw-rounded-full tw-bg-brand tw-text-white tw-flex tw-items-center tw-justify-center tw-font-bold tw-shrink-0">${roomInitial}</div>
+                    <div class="tw-min-w-0 tw-flex-1">
+                        <div class="tw-font-bold tw-truncate">${room.name}</div>
+                        <div class="tw-text-slate-500 tw-text-sm tw-truncate">${truncatedMessage}</div>
+                    </div>
                 `;
                 select.appendChild(div);
             }
@@ -189,7 +194,7 @@
             Element2.style.visibility = "visible";
             Element1.style.display = "none";
             Element2.style.display = "block";
-            meetbox.style.display = 'block';
+            meetbox.style.display = 'flex'; // #meet-box ใช้ tw-flex tw-gap-2 — ต้อง "flex" ไม่ใช่ "block" ให้ปุ่มเรียงติดกันถูกต้อง
             leaveMeet();
         }
     }
@@ -220,11 +225,11 @@
         let commubox = document.getElementById('commu-box');
         // ตรวจสอบค่าของ display
         if (listRoomChatBox.style.display === "none") {
-            listRoomChatBox.style.display = "block";
+            listRoomChatBox.style.display = "flex"; // ใช้ tw-flex tw-flex-col — "block" จะทำให้ chat-box ข้างในยืดตามเนื้อหาแทนที่จะ scroll ในกรอบ
             commubox.style.display = "none";
         } else {
             listRoomChatBox.style.display = "none";
-            commubox.style.display = "block";
+            commubox.style.display = "flex"; // เหตุผลเดียวกัน — commu-box ใช้ tw-flex tw-flex-col
         }
 
     }
@@ -237,7 +242,7 @@
             listRoomChatBox.style.display = "none";
             // chatBox.style.display.display = "none";
         } else {
-            listRoomChatBox.style.display = "block";
+            listRoomChatBox.style.display = "flex"; // tw-flex tw-flex-col ต้องการ "flex" ไม่ใช่ "block"
             // chatBox.style.display.display = "block";
         }
     });
@@ -250,8 +255,15 @@
 
     function displayMessage(name, message) {
         const chatBox = document.getElementById("chat-box");
+        const isMine = name === currentUserName;
         const messageDiv = document.createElement("div");
-        messageDiv.innerHTML = `<b>${name}:</b> ${message}`;
+        messageDiv.className = "tw-flex tw-mb-2 " + (isMine ? "tw-justify-end" : "tw-justify-start");
+        messageDiv.innerHTML = `
+            <div class="tw-max-w-[75%] tw-rounded-2xl tw-px-4 tw-py-2 ${isMine ? 'tw-bg-brand tw-text-white tw-rounded-br-sm' : 'tw-bg-slate-100 tw-text-slate-800 tw-rounded-bl-sm'}">
+                ${!isMine ? `<div class="tw-text-xs tw-font-bold tw-mb-0.5 tw-opacity-70">${name}</div>` : ''}
+                <div>${message}</div>
+            </div>
+        `;
         chatBox.appendChild(messageDiv);
     }
 
@@ -291,7 +303,7 @@
 
         // สร้าง input สำหรับค้นหา
         let addmember = document.createElement('input');
-        addmember.className = "form-control";
+        addmember.className = "form-control tw-rounded-full";
         addmember.placeholder = "ค้นหาเพื่อน เพื่อเริ่มแชท!";
 
         // สร้าง suggestion box (ลอยใต้ input)
@@ -301,7 +313,7 @@
         suggestionBox.style.left = '0';
         suggestionBox.style.right = '0';
         suggestionBox.style.zIndex = '1000';
-        suggestionBox.className = "list-group shadow";
+        suggestionBox.className = "list-group shadow tw-rounded-xl tw-overflow-hidden tw-mt-1";
 
         // แทรก input และ suggestionBox เข้าใน wrapper
         inputWrapper.appendChild(addmember);
@@ -368,7 +380,7 @@
                 const chatBox = document.getElementById("chat-box");
                 chatBox.innerHTML = ""; // ล้างของเก่า
                 data.forEach(msg => {
-                    chatBox.innerHTML += `<div><strong>${msg.name}:</strong> ${msg.message}</div>`;
+                    displayMessage(msg.name, msg.message);
                 });
             });
         let statusChat = document.getElementById("status-chat");
@@ -385,21 +397,25 @@
         let nameChat = document.getElementById("name-chat");
         // nameChat.textContent = roomName;
         nameChat.innerHTML = `
-        <div class="d-flex justify-content-between">
+        <div class="tw-flex tw-justify-between tw-items-center">
             <div>
-                <h4 id="name-room">${roomName}</h4>
-                <input type="text" id="editRoomNameInput" class="form-control d-none" 
+                <h4 id="name-room" class="tw-text-lg tw-font-bold tw-mb-0">${roomName}</h4>
+                <input type="text" id="editRoomNameInput" class="form-control d-none tw-mt-1"
                 onkeydown="if(event.key==='Enter') updateChatRoomName(${roomId})">
             </div>
-            &nbsp
-            <i class="bi bi-pencil-square fs-6" onclick="toggleChangeNameChat(${roomId})"></i>
+            <button type="button" class="tw-bg-transparent tw-border-0 tw-text-slate-400 hover:tw-text-brand" onclick="toggleChangeNameChat(${roomId})">
+                <i class="bi bi-pencil-square"></i>
+            </button>
         </div>
-        
             `;
         users_access.forEach(user => {
             const div = document.createElement('div');
-            div.className = "py-2";
-            div.textContent = `${user.code} - ${user.name}`;
+            div.className = "tw-flex tw-items-center tw-gap-2 tw-py-2";
+            const memberInitial = (user.name || "?").trim().charAt(0).toUpperCase();
+            div.innerHTML = `
+                <div class="tw-w-8 tw-h-8 tw-rounded-full tw-bg-brandink tw-text-white tw-flex tw-items-center tw-justify-center tw-text-sm tw-font-bold tw-shrink-0">${memberInitial}</div>
+                <div class="tw-truncate"><span class="tw-text-slate-400 tw-text-sm">${user.code}</span> ${user.name}</div>
+            `;
             statusChat.appendChild(div);
         });
 
@@ -469,7 +485,7 @@
 
         // สร้าง input สำหรับค้นหา
         let addmember = document.createElement('input');
-        addmember.className = "form-control";
+        addmember.className = "form-control tw-rounded-full";
         addmember.placeholder = "Add member to chat";
 
         // สร้าง suggestion box (ลอยใต้ input)
@@ -479,7 +495,7 @@
         suggestionBox.style.left = '0';
         suggestionBox.style.right = '0';
         suggestionBox.style.zIndex = '1000';
-        suggestionBox.className = "list-group shadow";
+        suggestionBox.className = "list-group shadow tw-rounded-xl tw-overflow-hidden tw-mt-1";
 
         // แทรก input และ suggestionBox เข้าใน wrapper
         inputWrapper.appendChild(addmember);
@@ -692,7 +708,7 @@
             const chatHeader = document.getElementById("chat-header");
             const chatBox = document.getElementById("chat-box");
             const meetbox = document.getElementById("meet-box");
-            meetbox.style.display = 'block';
+            meetbox.style.display = 'flex'; // #meet-box ใช้ tw-flex tw-gap-2
 
             // 1. อัปเดตบทเรียนห้อง
             chatHeader.innerText = `${roomName}`;
@@ -721,21 +737,21 @@
         const panel = document.getElementById("settingPanel");
         panel.style.display = "flex";
         panel.innerHTML = `
-        <div class="d-flex justify-content-between">
-            <div class="fs-4"><?=$lang['setting']?></div>
-            <button style="border: 0; background-color: #ffffff00;" onclick="toggleSettingPanel()">
-                <i class="bi bi-x"></i>
+        <div class="tw-flex tw-justify-between tw-items-center tw-mb-1">
+            <div class="tw-font-bold tw-text-lg"><?=$lang['setting']?></div>
+            <button style="border: 0; background-color: transparent;" class="tw-text-slate-400 hover:tw-text-slate-700" onclick="toggleSettingPanel()">
+                <i class="bi bi-x-lg"></i>
             </button>
         </div>
-        <div class="fs-6"><?=$lang['camera']?></div>
+        <div class="tw-text-sm tw-font-medium tw-text-slate-500"><?=$lang['camera']?></div>
         <select id="cam-select"></select>
-        <div class="form-check form-switch mb-2">
+        <div class="form-check form-switch tw-mb-1">
             <input class="form-check-input" type="checkbox" id="enableCamera" checked>
             <label class="form-check-label" for="enableCamera"><?=$lang['open']?><?=$lang['camera']?></label>
         </div>
-        <div class="fs-6"><?=$lang['audio']?></div>
+        <div class="tw-text-sm tw-font-medium tw-text-slate-500"><?=$lang['audio']?></div>
         <select id="mic-select"></select>
-        <div class="form-check form-switch mb-2">
+        <div class="form-check form-switch tw-mb-1">
             <input class="form-check-input" type="checkbox" id="enableMic" checked>
             <label class="form-check-label" for="enableMic"><?=$lang['open']?><?=$lang['audio']?></label>
         </div>
@@ -747,10 +763,10 @@
                 const audioDevices = devices.filter(device => device.kind === 'audioinput');
 
                 const camSelect = document.getElementById('cam-select');
-                camSelect.className = 'form-select mb-2';
+                camSelect.className = 'form-select tw-mb-2';
 
                 const micSelect = document.getElementById('mic-select');
-                micSelect.className = 'form-select mb-2';
+                micSelect.className = 'form-select tw-mb-2';
 
                 // สร้างตัวเลือกกล้อง
                 videoDevices.forEach((device, index) => {
@@ -784,7 +800,7 @@
                 }
                 const button = document.createElement('button');
                 button.innerHTML = `<?=$lang['confirm']?>`;
-                button.className = "form-control";
+                button.className = "tw-w-full tw-bg-brand tw-text-white tw-rounded-lg tw-py-2 tw-border-0 tw-font-medium hover:tw-opacity-90";
                 button.onclick = () => Confirm_connect(camSelect, micSelect);
                 panel.appendChild(button);
 
@@ -1245,9 +1261,11 @@
         if (message) {
             const chatMessages = document.getElementById('chatMessages');
             const newMsg = document.createElement('div');
-            newMsg.className = "w-100 text-end"
-            newMsg.textContent = message;
-            newMsg.style.margin = '5px 0';
+            newMsg.className = "tw-flex tw-justify-end tw-mb-2";
+            const userBubble = document.createElement('div');
+            userBubble.className = "tw-max-w-[85%] tw-bg-brand tw-text-white tw-rounded-2xl tw-rounded-br-sm tw-px-3 tw-py-2 tw-text-sm";
+            userBubble.textContent = message;
+            newMsg.appendChild(userBubble);
             chatMessages.appendChild(newMsg);
             input.value = '';
             chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1263,15 +1281,15 @@
                 .then(response => response.json())
                 .then(data => {
                     setTimeout(() => {
-                        const botMsg = document.createElement('div');
                         const boxmessage = document.createElement('div');
-                        boxmessage.className = "w-100 d-flex";
-                        boxmessage.style.textAlign = 'left';
-                        boxmessage.innerHTML = `
-                        <i class="bi bi-robot px-1">
-                        `;
+                        boxmessage.className = "tw-flex tw-items-start tw-gap-2 tw-mb-2";
+                        const icon = document.createElement('div');
+                        icon.className = "tw-w-6 tw-h-6 tw-rounded-full tw-bg-slate-200 tw-flex tw-items-center tw-justify-center tw-shrink-0";
+                        icon.innerHTML = `<i class="bi bi-robot tw-text-xs"></i>`;
+                        const botMsg = document.createElement('div');
+                        botMsg.className = "tw-max-w-[85%] tw-bg-slate-100 tw-text-slate-800 tw-rounded-2xl tw-rounded-bl-sm tw-px-3 tw-py-2 tw-text-sm";
                         botMsg.textContent = data.reply;
-                        botMsg.style.margin = '5px 0';
+                        boxmessage.appendChild(icon);
                         boxmessage.appendChild(botMsg);
                         chatMessages.appendChild(boxmessage);
 
@@ -1296,15 +1314,15 @@
             .then(response => response.json())
             .then(data => {
                 // 3. แสดงข้อความตอบกลับของบอท
-                const botMsg = document.createElement('div');
                 const boxmessage = document.createElement('div');
-                boxmessage.className = "w-100 d-flex";
-                boxmessage.style.textAlign = 'left';
-                boxmessage.innerHTML = `
-                        <i class="bi bi-robot px-1">
-                        `;
+                boxmessage.className = "tw-flex tw-items-start tw-gap-2 tw-mb-2";
+                const icon = document.createElement('div');
+                icon.className = "tw-w-6 tw-h-6 tw-rounded-full tw-bg-slate-200 tw-flex tw-items-center tw-justify-center tw-shrink-0";
+                icon.innerHTML = `<i class="bi bi-robot tw-text-xs"></i>`;
+                const botMsg = document.createElement('div');
+                botMsg.className = "tw-max-w-[85%] tw-bg-slate-100 tw-text-slate-800 tw-rounded-2xl tw-rounded-bl-sm tw-px-3 tw-py-2 tw-text-sm";
                 botMsg.textContent = data.reply;
-                botMsg.style.margin = '5px 0';
+                boxmessage.appendChild(icon);
                 boxmessage.appendChild(botMsg);
                 chatMessages.appendChild(boxmessage);
 

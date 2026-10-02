@@ -1,21 +1,54 @@
 <?php
-$backupDir = __DIR__ . '/../backup/';  // เปลี่ยน path ตามโฟลเดอร์ของคุณ
+// List of .sql files in backup/, newest first. Admin-only.
+session_start();
+
+include __DIR__ . '/no-crash.php';
+include __DIR__ . '/admin-guard.php';
+
+require_admin_json();
+
+header('Content-Type: application/json');
+
+$backupDir = __DIR__ . '/../backup/';
 $files = [];
+$totalSize = 0;
 
 if (is_dir($backupDir)) {
-    $scan = scandir($backupDir);
-    foreach ($scan as $file) {
-        if ($file !== '.' && $file !== '..' && pathinfo($file, PATHINFO_EXTENSION) === 'sql') {
-            $filePath = $backupDir . $file;
-            $files[] = [
-                'name' => $file,
-                'size' => filesize($filePath),
-                'modified' => date("Y-m-d H:i:s", filemtime($filePath)),
-            ];
+    foreach (scandir($backupDir) as $file) {
+        if ($file === '.' || $file === '..') {
+            continue;
         }
+        if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) !== 'sql') {
+            continue;
+        }
+        $full = $backupDir . $file;
+        $size = @filesize($full);
+        $mtime = @filemtime($full);
+        if ($size === false || $mtime === false) {
+            continue;
+        }
+        $files[] = [
+            'name'     => $file,
+            'size'     => $size,
+            'modified' => date('Y-m-d H:i:s', $mtime),
+            '_mtime'   => $mtime,
+        ];
+        $totalSize += $size;
     }
 }
 
-// ส่งออกเป็น JSON (ถ้าจะใช้กับ fetch ใน frontend)
-header('Content-Type: application/json');
-echo json_encode($files);
+// newest first
+usort($files, fn($a, $b) => $b['_mtime'] <=> $a['_mtime']);
+$latest = $files[0]['modified'] ?? null;
+foreach ($files as &$f) {
+    unset($f['_mtime']);
+}
+unset($f);
+
+echo json_encode([
+    'success'    => true,
+    'files'      => $files,
+    'total'      => count($files),
+    'total_size' => $totalSize,
+    'latest'     => $latest,
+], JSON_UNESCAPED_UNICODE);

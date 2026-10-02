@@ -26,9 +26,6 @@ include '../components/session.php';
                         <label for="bg" class="form-label">เลือกสี BG:</label>
                         <input type="color" id="bg" name="bg" class="form-control form-control-color w-25"
                             value="<?= $bg ?>" title="เลือกสี">
-                        <label for="bg-bar" class="form-label">เลือกสี BG bar:</label>
-                        <input type="color" id="bgbar" name="bgbar" class="form-control form-control-color w-25"
-                            value="<?= $bgbar ?>" title="เลือกสี">
                         <label for="bg-side" class="form-label">เลือกสี BG side:</label>
                         <input type="color" id="bgside" name="bgside" class="form-control form-control-color w-25"
                             value="<?= $bgside ?>" title="เลือกสี">

@@ -4,47 +4,58 @@ include '../components/session.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $conn->real_escape_string($_POST['username']);
-    $password = $conn->real_escape_string($_POST['password']);
+    $password = $_POST['password']; // ไม่ escape รหัสผ่าน — password_verify() เทียบ hash ไม่ได้ใส่ลง SQL
 
-    // $sql = "SELECT * FROM user WHERE username = '$username' AND password = '$password'";
-    // $result = $conn->query($sql);
-    // ดึงข้อมูลจาก username
     $stmt = $conn->prepare("SELECT * FROM user WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
 
+    $user = null;
+    $ok = false;
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
         // ตรวจสอบ password กับ hash ใน DB
-        if (password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['user'] = $user;
+        $ok = password_verify($password, $user['password']);
+    }
 
-            //log
-            $user_id = $user['id'];
-            $username = $user['username'];
-            $ip_address = $_SERVER['REMOTE_ADDR'];
-            $user_agent = $_SERVER['HTTP_USER_AGENT'];
+    $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
 
-            $log_sql = "INSERT INTO log_login (user_id, username, action, ip_address, user_agent) 
-            VALUES ('$user_id', '$username', 'login', '$ip_address', '$user_agent')";
-            $conn->query($log_sql);
-            log_action("[" . $username . "] Login successful.");
+    // prepared statement — $user_agent มาจาก header ของ client ห้ามต่อสตริงลง SQL
+    $log_stmt = $conn->prepare("INSERT INTO log_login (user_id, username, action, ip_address, user_agent)
+            VALUES (?, ?, ?, ?, ?)");
 
-            header("Location: ../pages/home.php");
-        }
+    if ($ok) {
+        session_regenerate_id(true); // กัน session fixation
+
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['user'] = $user;
+
+        //log
+        $user_id = $user['id'];
+        $log_username = $user['username'];
+
+        $login_action = 'login';
+        $log_stmt->bind_param("issss", $user_id, $log_username, $login_action, $ip_address, $user_agent);
+        $log_stmt->execute();
+        log_action("[" . $log_username . "] Login successful.");
+
+        header("Location: ../pages/home.php");
+        exit;
     } else {
+        // ครอบทั้งเคส "ไม่พบ username" และ "รหัสผ่านผิด" ด้วยข้อความเดียวกัน
+        // เพื่อไม่เผยว่ามี username นี้อยู่จริงหรือไม่
+        $failed_user_id = 0;
+        $failed_action = 'login_failed';
+        $log_stmt->bind_param("issss", $failed_user_id, $username, $failed_action, $ip_address, $user_agent);
+        $log_stmt->execute();
+        log_action("[" . $username . "] An unknown user attempted to access the account.");
+        log_error("[" . $username . "] An unknown user attempted to access the account.");
 
-        $ip_address = $_SERVER['REMOTE_ADDR'];
-        $user_agent = $_SERVER['HTTP_USER_AGENT'];
-
-        $log_sql = "INSERT INTO log_login (user_id, username, action, ip_address, user_agent) 
-            VALUES (0, '$username', 'login_failed', '$ip_address', '$user_agent')";
-        $conn->query($log_sql);
-        log_action($username . "An unknown user attempted to access the account.");
-        log_error($username . "An unknown user attempted to access the account.");
-        echo "<script>alert('Invalid username or password!'); window.location.href='../pages/login.php';</script>";
+        $_SESSION['login_error'] = $lang['loginfailed'];
+        header("Location: ../pages/login.php");
+        exit;
     }
 }
