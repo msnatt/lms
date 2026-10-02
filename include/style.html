@@ -304,6 +304,15 @@
     .card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); }
     .card-body { max-height: 140px; }
 
+    /* รูปภาพคอร์ส: สูงไม่เกิน 250px, ถ้ารูปสูงกว่าให้ crop ตรงกลางแทนการยืด/บีบรูป */
+    .course-img-preview {
+        display: block;
+        width: 100%;
+        max-height: 250px;
+        object-fit: cover;
+        object-position: center;
+    }
+
     .card-course {
         flex: 0 0 auto;
         width: 95%;

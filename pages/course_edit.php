@@ -60,6 +60,40 @@ if (!$isAdmin && !$isOwner) {
                         </button>
                     </div>
                 </div>
+                <div class="d-flex justify-content-center ">
+                    <form id="form-course" class="d-flex flex-wrap w-75" style="min-width: 85%;">
+                        <input type="hidden" id="course_id" name="course_id" value="<?php echo $courseid; ?>">
+                        <input type="hidden" id="is_deleted" name="is_deleted" value="0">
+                        <div class="d-flex flex-column col-lg-3 col-12 rounded" style="padding: 0.2rem 0.25rem;">
+                            <div class="bg-white p-4 rounded " style="position: relative;">
+                                <img id="img-course" class="card-img-top course-img-preview">
+                                <div class="bg-white px-1 rounded" style="position: absolute; top: 1.7rem; right: 1.8rem;" onclick="toggleEditImage()">
+                                    <i class="bi bi-pen"></i>
+                                </div>
+                                <div id="edit-img" class="w-100 d-none">
+                                    <p class="mb-0"><?= $lang['select'] . $lang['image'] ?></p>
+                                    <select id="image_code" name="image_code" class="form-select" onchange="changeImage()">
+                                    </select>
+                                    <p class="mb-0"><?= $lang['upload'] . $lang['new'] . $lang['image'] ?></p>
+                                    <button type="button" id="manage" class="bg-white p-2 mt-1 w-100 rounded border">
+                                        <?= $lang['upload'] ?> <i class="bi bi-cloud-plus fs-5"></i>
+                                    </button>
+                                </div>
+                                <hr>
+                                <div class="d-flex">
+                                    <div>
+                                        <label class="form-label"><?= $lang['namecourse'] ?></label>
+                                        <input type="text" id="name_course" name="name_course" class="form-control">
+                                    </div>
+                                    <div>
+                                        <label class="form-label"><?= $lang['codecourse'] ?></label>
+                                        <input type="text" id="code_course" name="code_course" class="form-control" oninput="validateNumberInput(event)">
+                                    </div>
+                                </div>
+                                <label class="form-label"><?= $lang['description'] ?><?= $lang['course'] ?></label>
+                                <textarea id="textBoxDescription" name="textBoxDescription" rows="4" cols="50" class="form-control"></textarea>
+                                <label class="form-label"><?= $lang['obj'] ?></label>
+                                <textarea id="textBoxObjective" name="textBoxObjective" rows="4" cols="50" class="form-control"></textarea>
 
                 <form id="form-course" class="row g-3">
                     <input type="hidden" id="course_id" name="course_id" value="<?php echo $courseid; ?>">
@@ -97,20 +131,13 @@ if (!$isAdmin && !$isOwner) {
                             <textarea id="textBoxObjective" name="textBoxObjective" rows="4" class="form-control"></textarea>
                         </div>
                     </div>
-
-                    <!-- Content builder -->
-                    <div class="col-12 col-lg-6">
-                        <div class="panel h-100 d-flex flex-column">
-                            <div class="d-flex justify-content-center gap-2 flex-wrap mb-3">
-                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="create_popup_header()">
-                                    <i class="bi bi-plus-square me-1"></i><?= $lang['n-header'] ?>
-                                </button>
-                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="create_popup_content()">
-                                    <i class="bi bi-file-earmark-plus me-1"></i><?= $lang['n-content'] ?>
-                                </button>
-                            </div>
-                            <div id="degree_course" name="degree_course" class="degree-course flex-grow-1"></div>
-                        </div>
+                    <button class="btn btn-success mx-auto my-2 w-25" id="btn-save" onclick="saveto()" style="display: none;"><?= $lang['save'] ?></button>
+                    <div class="w-100 px-4 py-2">
+                        <label for="imageInput" class="upload-box w-100">
+                            <p><?= $lang['clickforimportcourse'] ?></p>
+                            <p class="small text-muted mb-0"><?= $lang['courseimagenote'] ?></p>
+                            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                        </label>
                     </div>
 
                     <!-- Status / schedule -->
