@@ -42,7 +42,7 @@ $user = $_SESSION['user'] ?? 'N/A';
                         <input type="hidden" id="is_deleted" name="is_deleted" value="0">
                         <div class="d-flex flex-column col-lg-3 col-12 rounded" style="padding: 0.2rem 0.25rem;">
                             <div class="bg-white p-4 rounded " style="position: relative;">
-                                <img id="img-course" class="card-img-top">
+                                <img id="img-course" class="card-img-top course-img-preview">
                                 <div class="bg-white px-1 rounded" style="position: absolute; top: 1.7rem; right: 1.8rem;" onclick="toggleEditImage()">
                                     <i class="bi bi-pen"></i>
                                 </div>
@@ -123,7 +123,8 @@ $user = $_SESSION['user'] ?? 'N/A';
                     <button class="btn btn-success mx-auto my-2 w-25" id="btn-save" onclick="saveto()" style="display: none;"><?= $lang['save'] ?></button>
                     <div class="w-100 px-4 py-2">
                         <label for="imageInput" class="upload-box w-100">
-                            <p><?= $lang['clickforimport'] ?></p>
+                            <p><?= $lang['clickforimportcourse'] ?></p>
+                            <p class="small text-muted mb-0"><?= $lang['courseimagenote'] ?></p>
                             <input type="file" id="imageInput" accept="image/*" style="display: none;">
                         </label>
                     </div>
